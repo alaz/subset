@@ -1,0 +1,9 @@
+*~
+/target
+/lib_managed/
+/src_managed/
+/project/boot/
+/project/build/target/
+/src/test/resources/database.properties
+/.ensime
+.DS_Store
