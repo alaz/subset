@@ -1,6 +1,6 @@
 package com.osinka
 
-package object subset extends RecoveringPrimitivesSerializer {
+package object subset extends RecoveringPrimitivesSerializer with JodaTimeSerializer {
   // default collection-level scope
   implicit val collectionScope = Scope.CollectionLevel
 

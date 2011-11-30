@@ -24,3 +24,7 @@ class Field[T](val name: String)(implicit scope: Scope) {
 
   def ~[T2](f2: Field[T2]) = new Tuple2Extractor[T,T2](this.name, f2.name)
 }
+
+object Field {
+  def apply[T](name: String)(implicit scope: Scope): Field[T] = new Field[T](name)(scope)
+}

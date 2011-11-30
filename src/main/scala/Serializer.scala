@@ -14,7 +14,7 @@ trait Getter[+T] {
 
 @implicitNotFound(msg = "Cannot find Setter for ${T}")
 trait Setter[-T] {
-  def set(key: String, x: T, dbo: DBObject): Unit
+  def set(key: String, x: T, dbo: DBObject): DBObject
 }
 
 object Getter {
@@ -41,15 +41,17 @@ object Getter {
 
 object Setter {
   class DefaultSetter[T] extends Setter[T] {
-    override def set(key: String, x: T, dbo: DBObject) {
+    override def set(key: String, x: T, dbo: DBObject) = {
       dbo.put(key, x)
+      dbo
     }
   }
 
   def apply[T](sane: (T => Any)) =
     new Setter[T] {
-      override def set(key: String, x: T, dbo: DBObject) {
+      override def set(key: String, x: T, dbo: DBObject) = {
         dbo.put(key, sane(x))
+        dbo
       }
     }
 }
@@ -123,9 +125,17 @@ trait RecoveringPrimitivesSerializer extends BasePrimitivesSerializer {
     }) orElse stringGetter.andThen({ case AsInt(i) => i.byteValue })
 
   implicit val doubleGetter = Getter[Double]({
+      case i: Int => i.doubleValue
+      case l: Long => l.doubleValue
+      case b: Byte => b.doubleValue
+      case f: Float => f.doubleValue
       case d: Double => d
     }) orElse stringGetter.andThen({ case AsDouble(d) => d })
   implicit val floatGetter = Getter[Float]({
+      case i: Int => i.floatValue
+      case l: Long => l.floatValue
+      case b: Byte => b.floatValue
+      case f: Float => f
       case d: Double => d.floatValue
     }) orElse stringGetter.andThen({ case AsDouble(d) => d.floatValue })
 
