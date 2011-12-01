@@ -7,10 +7,10 @@ import org.scalatest.junit.JUnitRunner
 
 import java.util.Date
 import org.bson.types.{Symbol => BsonSymbol}
-import com.mongodb.{DBObject, BasicDBObject, BasicDBObjectBuilder}
+import com.mongodb.BasicDBObjectBuilder
 
 @RunWith(classOf[JUnitRunner])
-class serializerSpec extends Spec with MustMatchers with MongoMatchers {
+class serializerSpec extends Spec with MustMatchers with MongoMatchers with Routines {
   describe("Base primitives serializer") {
     val explicit = new BasePrimitivesSerializer {}
 
@@ -73,9 +73,4 @@ class serializerSpec extends Spec with MustMatchers with MongoMatchers {
       applyGetter[Date]("long", dbo)(explicit.dateGetter) must equal(Some(now))
     }
   }
-
-  def applyGetter[T](f: String, dbo: DBObject)(implicit getter: Getter[T]) = getter.get(f, dbo)
-
-  def applySetter[T](f: String, x: T, dbo: DBObject = new BasicDBObject)(implicit setter: Setter[T]): DBObject =
-    setter.set(f, x, dbo)
 }

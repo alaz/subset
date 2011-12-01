@@ -25,7 +25,7 @@ trait MongoMatchers {
           val v = dbo.get(key)
           // FIXME: must be "value == dbo.get(key)"
           MatchResult(m.erasure.getName == v.getClass.getName && value.toString == v.toString,
-                      /*dbo+*/" does not contain key-value "+(key,value)+", but the value is "+value,
+                      /*dbo+*/" does contain key "+key+", but the value is "+value,
                       /*dbo+*/" contains key-value "+(key,value))
         case false =>
           MatchResult(false,

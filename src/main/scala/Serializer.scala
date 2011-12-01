@@ -7,6 +7,8 @@ import util.matching.Regex
 import org.bson.types.{Symbol => BsonSymbol}
 import com.mongodb.DBObject
 
+import DBO._
+
 @implicitNotFound(msg = "Cannot find Getter for ${T}")
 trait Getter[+T] {
   def get(key: String, dbo: DBObject): Option[T]
@@ -39,20 +41,14 @@ object Getter {
   def apply[T](pf: PartialFunction[Any,T]) = new PfGetter[T](pf)
 }
 
-object Setter {
-  class DefaultSetter[T] extends Setter[T] {
-    override def set(key: String, x: T, dbo: DBObject) = {
-      dbo.put(key, x)
-      dbo
-    }
-  }
+class DefaultSetter[T] extends Setter[T] {
+  override def set(key: String, x: T, dbo: DBObject) = dbo.write(key, x)
+}
 
-  def apply[T](sane: (T => Any)) =
+object Setter {
+  def apply[T](sane: (T => Any)): Setter[T] =
     new Setter[T] {
-      override def set(key: String, x: T, dbo: DBObject) = {
-        dbo.put(key, sane(x))
-        dbo
-      }
+      override def set(key: String, x: T, dbo: DBObject) = dbo.write(key, sane(x))
     }
 }
 
@@ -62,7 +58,7 @@ object RecoveringPrimitivesSerializer extends RecoveringPrimitivesSerializer
 
 // Lowest priority
 trait DefaultPrimitiveSerializer {
-  implicit def defaultSetter[T] = new Setter.DefaultSetter[T]
+  implicit def defaultSetter[T] = new DefaultSetter[T]
 }
 
 /**
