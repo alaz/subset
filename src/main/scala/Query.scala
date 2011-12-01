@@ -2,7 +2,7 @@ package com.osinka.subset
 
 import com.mongodb.{DBObject, BasicDBObjectBuilder}
 import DBO._
-
+/*
 object QueryOp {
   def gt(f: DBObject => DBObject) =
     (dbo: DBObject) => dbo.write("$gt", f(empty))
@@ -22,3 +22,4 @@ trait QueryConversions {
   def conditionToDBO(cond: Condition[_]): DBObject =
     empty.write(cond.field.longName, cond.f(empty))
 }
+*/

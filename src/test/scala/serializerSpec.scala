@@ -5,72 +5,77 @@ import org.scalatest.matchers.MustMatchers
 import org.junit.runner.RunWith
 import org.scalatest.junit.JUnitRunner
 
-import java.util.Date
-import org.bson.types.{Symbol => BsonSymbol}
-import com.mongodb.BasicDBObjectBuilder
-
+/*
+ * FIXME: We cannot simply compare BSON symbols : https://jira.mongodb.org/browse/JAVA-479
+ */
 @RunWith(classOf[JUnitRunner])
 class serializerSpec extends Spec with MustMatchers with MongoMatchers with Routines {
   describe("Base primitives serializer") {
-    val explicit = new BasePrimitivesSerializer {}
+    import org.bson.types.{Symbol => BsonSymbol}
 
+    it("must set explicitly") {
+      val explicit = new BasePrimitivesSerializer {}
+      packValue("val")(ValueSerializer.defaultSerializer[String]) must equal(Some("val"))
+      val sym = packValue('Sym)(explicit.symbolSetter)
+      sym must be('defined)
+      sym.get.asInstanceOf[AnyRef].getClass must equal(classOf[BsonSymbol])
+      sym.get.asInstanceOf[BsonSymbol].getSymbol must equal("Sym")
+    }
     it("must set") {
-      applySetter("f", "val")(explicit.defaultSetter[String]) must containKeyValue("f" -> "val")
-      applySetter("f", 10) must containKeyValue("f" -> new java.lang.Integer(10))
-      applySetter("f", 'Sym) must containKeyValue("f" -> new BsonSymbol("Sym"))
+      packValue(10) must equal(Some(new java.lang.Integer(10)))
+      val sym = packValue('Sym)
+      sym must be('defined)
+      sym.get.asInstanceOf[AnyRef].getClass must equal(classOf[BsonSymbol])
+      sym.get.asInstanceOf[BsonSymbol].getSymbol must equal("Sym")
     }
     it("must get") {
-      val dbo = BasicDBObjectBuilder.start("s", "string").add("sym", new BsonSymbol("Sym")).get
-      applyGetter[String]("s", dbo) must equal(Some("string"))
-      applyGetter[Symbol]("s", dbo) must equal(None)
-      applyGetter[Symbol]("sym", dbo) must equal(Some('Sym))
-      applyGetter[String]("sym", dbo) must equal(None)
+      unpackValue[String]("string") must equal(Some("string"))
+      unpackValue[Symbol](new BsonSymbol("Sym")) must equal(Some('Sym))
+      unpackValue[Symbol]("sym") must equal(None)
+      unpackValue[String]('Sym) must equal(None)
     }
   }
   describe("Recovering primitives serializer") {
     val explicit = new RecoveringPrimitivesSerializer {}
 
     it("recovers Int") {
-      val dbo = BasicDBObjectBuilder.start("string", "10").add("int", 11).add("long", 109L).add("fail", "x13").get
-      applyGetter[Int]("int", dbo)(explicit.intGetter) must equal(Some(11))
-      applyGetter[Int]("string", dbo)(explicit.intGetter) must equal(Some(10))
-      applyGetter[Int]("long", dbo)(explicit.intGetter) must equal(Some(109))
-      applyGetter[Int]("fail", dbo)(explicit.intGetter) must equal(None)
+      unpackValue[Int](11)(explicit.intGetter) must equal(Some(11))
+      unpackValue[Int]("10")(explicit.intGetter) must equal(Some(10))
+      unpackValue[Int](109L)(explicit.intGetter) must equal(Some(109))
+      unpackValue[Int]("x13")(explicit.intGetter) must equal(None)
     }
     it("recovers Long") {
-      val dbo = BasicDBObjectBuilder.start("string", "10").add("int", 11).add("long", 109L).add("fail", "x13").get
-      applyGetter[Long]("int", dbo)(explicit.longGetter) must equal(Some(11L))
-      applyGetter[Long]("string", dbo)(explicit.longGetter) must equal(Some(10L))
-      applyGetter[Long]("long", dbo)(explicit.longGetter) must equal(Some(109L))
-      applyGetter[Long]("fail", dbo)(explicit.longGetter) must equal(None)
+      unpackValue[Long](11)(explicit.longGetter) must equal(Some(11L))
+      unpackValue[Long]("10")(explicit.longGetter) must equal(Some(10L))
+      unpackValue[Long](109L)(explicit.longGetter) must equal(Some(109L))
+      unpackValue[Long]("x13")(explicit.longGetter) must equal(None)
     }
     it("recovers Double") {
-      val dbo = BasicDBObjectBuilder.start("string", "10.87").add("double", 11.76).add("long", 109L).add("int", 67).add("fail", "x13").get
-      applyGetter[Double]("double", dbo)(explicit.doubleGetter) must equal(Some(11.76))
-      applyGetter[Double]("int", dbo)(explicit.doubleGetter) must equal(Some(67.0))
-      applyGetter[Double]("string", dbo)(explicit.doubleGetter) must equal(Some(10.87))
-      applyGetter[Double]("long", dbo)(explicit.doubleGetter) must equal(Some(109.0))
-      applyGetter[Double]("fail", dbo)(explicit.doubleGetter) must equal(None)
+      unpackValue[Double](11.76)(explicit.doubleGetter) must equal(Some(11.76))
+      unpackValue[Double](67)(explicit.doubleGetter) must equal(Some(67.0))
+      unpackValue[Double]("10.87")(explicit.doubleGetter) must equal(Some(10.87))
+      unpackValue[Double](109L)(explicit.doubleGetter) must equal(Some(109.0))
+      unpackValue[Double]("x13")(explicit.doubleGetter) must equal(None)
     }
     it("recovers Float") {
-      val dbo = BasicDBObjectBuilder.start("string", "10.87").add("float", 11.76F).add("long", 109L).add("int", 67).add("fail", "x13").get
-      applyGetter[Float]("float", dbo)(explicit.floatGetter) must equal(Some(11.76F))
-      applyGetter[Float]("int", dbo)(explicit.floatGetter) must equal(Some(67.0F))
-      applyGetter[Float]("string", dbo)(explicit.floatGetter) must equal(Some(10.87F))
-      applyGetter[Float]("long", dbo)(explicit.floatGetter) must equal(Some(109.0F))
-      applyGetter[Float]("fail", dbo)(explicit.floatGetter) must equal(None)
+      unpackValue[Float](11.76F)(explicit.floatGetter) must equal(Some(11.76F))
+      unpackValue[Float](67)(explicit.floatGetter) must equal(Some(67.0F))
+      unpackValue[Float]("10.87")(explicit.floatGetter) must equal(Some(10.87F))
+      unpackValue[Float](109L)(explicit.floatGetter) must equal(Some(109.0F))
+      unpackValue[Float]("x13")(explicit.floatGetter) must equal(None)
     }
     it("recovers Date") {
+      import java.util.Date
       // round to seconds
       val now = {
         val d = new Date
         d.setTime(d.getTime/1000 * 1000L)
         d
       }
-      val dbo = BasicDBObjectBuilder.start("date", now).add("long", now.getTime).add("int", (now.getTime/1000).intValue).get
-      applyGetter[Date]("date", dbo)(explicit.dateGetter) must equal(Some(now))
-      applyGetter[Date]("int", dbo)(explicit.dateGetter) must equal(Some(now))
-      applyGetter[Date]("long", dbo)(explicit.dateGetter) must equal(Some(now))
+
+      unpackValue[Date](now)(explicit.dateGetter) must equal(Some(now))
+      unpackValue[Date]((now.getTime/1000).intValue)(explicit.dateGetter) must equal(Some(now))
+      unpackValue[Date](now.getTime)(explicit.dateGetter) must equal(Some(now))
     }
   }
 }

@@ -3,22 +3,36 @@ package com.osinka.subset
 import com.mongodb.DBObject
 import DBO._
 
-class Tuple2Subset[T1,T2](val f1: String, val f2: String) {
-  def setter(implicit s1: Setter[T1], s2: Setter[T2]): Setter[(T1,T2)] =
-    new Setter[(T1,T2)] {
-      override def set(key: String, t: (T1,T2), dbo: DBObject): DBObject =
-        dbo.write(key, apply(t)(s1,s2).apply(empty))
+class Tuple2Subset[T1,T2](val f1: String, val f2: String) { tuple =>
+  /*
+   * Experimental "value (de)serializer" for Tuple2.
+   * 
+   * No go, because it's very confusing and requires creating manual "implicits"
+  def serializer(implicit s1: ValueSerializer[T1], s2: ValueSerializer[T2]) =
+    new Serializer[(T1,T2)] {
+      override def apply(t2: (T1,T2)): DBObject => DBObject = tuple.apply(t2)(s1,s2)
     }
 
-  def apply(t2: (T1,T2))(implicit s1: Setter[T1], s2: Setter[T2]): DBObject => DBObject =
-    {s1.set _}.curried(f1)(t2._1) andThen {s2.set _}.curried(f2)(t2._2)
+  def deserializer(implicit g1: ValueDeserializer[T1], g2: ValueDeserializer[T2]) =
+    new Deserializer[(T1,T2)] {
+      override def unapply(dbo: DBObject): Option[(T1,T2)] = tuple.unapply(dbo)(g1,g2)
+    }
+  */
+  def apply(t2: (T1,T2))(implicit s1: ValueSerializer[T1], s2: ValueSerializer[T2]): DBObject => DBObject =
+    (dbo: DBObject) => dbo.write(f1, s1.serialize(t2._1)).write(f2, s2.serialize(t2._2))
 
-  def unapply(dbo: DBObject)(implicit g1: Getter[T1], g2: Getter[T2]): Option[(T1,T2)] =
-    for {x1 <- g1.get(f1, dbo); x2 <- g2.get(f2, dbo)} yield (x1, x2)
+  def unapply(dbo: DBObject)(implicit g1: ValueDeserializer[T1], g2: ValueDeserializer[T2]): Option[(T1,T2)] =
+    for {o1 <- Option(dbo get f1)
+         x1 <- g1.deserialize(o1)
+         o2 <- Option(dbo get f2)
+         x2 <- g2.deserialize(o2)}
+    yield (x1, x2)
 
-  def ~[T3](f3: Field[T3]) = new Tuple3Subset[T1,T2,T3](this, f3.name)
+//  def ~[T3](f3: Field[T3]) = new Tuple3Subset[T1,T2,T3](this, f3.name)
 }
 
+
+/*
 class Tuple3Subset[T1,T2,T3](val e2: Tuple2Subset[T1,T2], val f3: String) {
   def apply(t3: (T1,T2,T3))(implicit s1: Setter[T1], s2: Setter[T2], s3: Setter[T3]): DBObject => DBObject =
     e2.apply( (t3._1, t3._2) )(s1,s2) andThen {s3.set _}.curried(f3)(t3._3)
@@ -80,3 +94,4 @@ trait TupleSerializer {
         dbo.write(key, t5subset.apply(t)(s1,s2,s3,s4,s5).apply(empty))
     }
 }
+*/

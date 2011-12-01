@@ -7,8 +7,8 @@ object DBO {
 
   implicit def dboMethods(dbo: DBObject) =
     new AnyRef {
-      def write(key: String, value: Any): DBObject = {
-        dbo.put(key, value)
+      def write(key: String, value: Option[Any]): DBObject = {
+        value foreach { dbo.put(key, _) }
         dbo
       }
     }
