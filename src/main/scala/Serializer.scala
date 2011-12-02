@@ -1,7 +1,7 @@
 package com.osinka.subset
 
 import com.mongodb.DBObject
-import DBO._
+import RichDBO._
 
 trait Serializer[-T] {
   def apply(x: T): (DBObject => DBObject)

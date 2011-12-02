@@ -5,9 +5,7 @@ import org.scalatest.matchers.MustMatchers
 import org.junit.runner.RunWith
 import org.scalatest.junit.JUnitRunner
 
-import java.util.Date
-import org.bson.types.{Symbol => BsonSymbol}
-import com.mongodb.{DBObject, BasicDBObject, BasicDBObjectBuilder}
+import com.mongodb.BasicDBObjectBuilder
 
 @RunWith(classOf[JUnitRunner])
 class tupleSpec extends Spec with MustMatchers with MongoMatchers with Routines {
@@ -40,7 +38,7 @@ class tupleSpec extends Spec with MustMatchers with MongoMatchers with Routines 
   }
 
   describe("Tuple serializer") {
-    import DBO._
+    import RichDBO._
 
     it("serializes Tuple2") {
       val T2 = "i".fieldOf[Int] ~ "s".fieldOf[String]

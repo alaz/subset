@@ -2,12 +2,12 @@ package com.osinka
 
 package object subset extends RecoveringPrimitivesSerializer with JodaTimeSerializer {
   // default collection-level scope
-  implicit val collectionScope = Scope.CollectionLevel
+  implicit val collectionScope: Scope = Scope.CollectionLevel
 
   // String to Field
-  implicit def pimpString(name: String) =
+  implicit def stringToField(name: String) =
     new AnyRef {
-      def fieldOf[T](implicit scope: Scope): Field[T] = new Field[T](name)
+      def fieldOf[T](implicit scope: Scope): Field[T] = Field[T](name)(scope)
     }
 
   // Tuple to DBO

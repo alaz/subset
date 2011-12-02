@@ -1,7 +1,7 @@
 package com.osinka.subset
 
 import com.mongodb.DBObject
-import DBO._
+import RichDBO._
 
 trait Scope {
   def names: List[String] = Nil
@@ -31,12 +31,12 @@ object Field {
   implicit def serializer[T](f: Field[T])(implicit setter: ValueSerializer[T]): Serializer[T] =
     new Serializer[T] {
       def apply(x: T): (DBObject => DBObject) =
-        (dbo: DBObject) => dbo.write(f.name, setter.serialize(x))
+        (dbo: DBObject) => dbo.write(f.name, x)
     }
 
   implicit def deserializer[T](f: Field[T])(implicit getter: ValueDeserializer[T]): Deserializer[T] =
     new Deserializer[T] {
       def unapply(dbo: DBObject): Option[T] =
-        Option(dbo.get(f.name)) flatMap {getter.deserialize _}
+        dbo.read[T](f.name)
     }
 }

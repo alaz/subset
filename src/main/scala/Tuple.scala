@@ -1,7 +1,7 @@
 package com.osinka.subset
 
 import com.mongodb.DBObject
-import DBO._
+import RichDBO._
 
 class Tuple2Subset[T1,T2](val f1: String, val f2: String) { tuple =>
   /*
@@ -19,13 +19,10 @@ class Tuple2Subset[T1,T2](val f1: String, val f2: String) { tuple =>
     }
   */
   def apply(t2: (T1,T2))(implicit s1: ValueSerializer[T1], s2: ValueSerializer[T2]): DBObject => DBObject =
-    (dbo: DBObject) => dbo.write(f1, s1.serialize(t2._1)).write(f2, s2.serialize(t2._2))
+    (dbo: DBObject) => dbo.write(f1, t2._1).write(f2, t2._2)
 
   def unapply(dbo: DBObject)(implicit g1: ValueDeserializer[T1], g2: ValueDeserializer[T2]): Option[(T1,T2)] =
-    for {o1 <- Option(dbo get f1)
-         x1 <- g1.deserialize(o1)
-         o2 <- Option(dbo get f2)
-         x2 <- g2.deserialize(o2)}
+    for {x1 <- dbo.read[T1](f1); x2 <- dbo.read[T2](f2)}
     yield (x1, x2)
 
 //  def ~[T3](f3: Field[T3]) = new Tuple3Subset[T1,T2,T3](this, f3.name)

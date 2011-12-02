@@ -1,7 +1,7 @@
 package com.osinka.subset
 
 import com.mongodb.{DBObject, BasicDBObjectBuilder}
-import DBO._
+import RichDBO._
 /*
 object QueryOp {
   def gt(f: DBObject => DBObject) =

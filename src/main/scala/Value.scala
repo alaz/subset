@@ -6,8 +6,6 @@ import annotation.implicitNotFound
 import util.matching.Regex
 import org.bson.types.{Symbol => BsonSymbol}
 
-import DBO._
-
 // ValueReader ?
 @implicitNotFound(msg = "Cannot find transformation from BSON object to ${T}")
 trait ValueDeserializer[+T] {
