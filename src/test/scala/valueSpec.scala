@@ -9,13 +9,13 @@ import org.scalatest.junit.JUnitRunner
  * FIXME: We cannot simply compare BSON symbols : https://jira.mongodb.org/browse/JAVA-479
  */
 @RunWith(classOf[JUnitRunner])
-class serializerSpec extends Spec with MustMatchers with MongoMatchers with Routines {
+class valueSpec extends Spec with MustMatchers with MongoMatchers with Routines {
   describe("Base primitives serializer") {
     import org.bson.types.{Symbol => BsonSymbol}
 
     it("must set explicitly") {
-      val explicit = new BasePrimitivesSerializer {}
-      packValue("val")(ValueSerializer.defaultSerializer[String]) must equal(Some("val"))
+      val explicit = new BaseValuePacking {}
+      packValue("val")(ValueWriter.defaultWriter[String]) must equal(Some("val"))
       val sym = packValue('Sym)(explicit.symbolSetter)
       sym must be('defined)
       sym.get.asInstanceOf[AnyRef].getClass must equal(classOf[BsonSymbol])
@@ -36,7 +36,7 @@ class serializerSpec extends Spec with MustMatchers with MongoMatchers with Rout
     }
   }
   describe("Recovering primitives serializer") {
-    val explicit = new RecoveringPrimitivesSerializer {}
+    val explicit = new RecoveringValuePacking {}
 
     it("recovers Int") {
       unpackValue[Int](11)(explicit.intGetter) must equal(Some(11))

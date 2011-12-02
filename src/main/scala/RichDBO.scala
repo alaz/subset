@@ -3,13 +3,13 @@ package com.osinka.subset
 import com.mongodb.{DBObject, BasicDBObjectBuilder}
 
 class RichDBO(val dbo: DBObject) {
-  def write[T](key: String, x: T)(implicit serializer: ValueSerializer[T]): RichDBO = {
-    serializer.serialize(x) foreach { dbo.put(key,_) }
+  def write[T](key: String, x: T)(implicit writer: ValueWriter[T]): RichDBO = {
+    writer.pack(x) foreach { dbo.put(key,_) }
     this
   }
 
-  def read[T](key: String)(implicit deserializer: ValueDeserializer[T]): Option[T] =
-    Option(dbo.get(key)) flatMap {deserializer.deserialize(_)}
+  def read[T](key: String)(implicit reader: ValueReader[T]): Option[T] =
+    Option(dbo.get(key)) flatMap {reader.unpack(_)}
 
   override def equals(o: Any): Boolean =
     o match {

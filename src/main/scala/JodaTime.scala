@@ -1,5 +1,5 @@
 package com.osinka.subset
 
-trait JodaTimeSerializer {
+trait JodaTimePacking {
   // TODO: Joda.Time : Getter / Setter
 }
