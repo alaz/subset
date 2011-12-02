@@ -17,7 +17,7 @@ class tupleSpec extends Spec with MustMatchers with MongoMatchers with Routines 
       T2.unapply(BasicDBObjectBuilder.start("i", 10).add("s", "str").get) must equal(Some(10 -> "str"))
       T2.unapply(BasicDBObjectBuilder.start("i", "10").add("s", "str").get) must equal(Some(10 -> "str"))
     }
-/*    it("deserializes Tuple3") {
+    it("deserializes Tuple3") {
       val T3 = "i".fieldOf[Int] ~ "s".fieldOf[String] ~ "d".fieldOf[Double]
       T3.unapply(BasicDBObjectBuilder.start.get) must equal(None)
       T3.unapply(BasicDBObjectBuilder.start("i", 10).get) must equal(None)
@@ -34,7 +34,7 @@ class tupleSpec extends Spec with MustMatchers with MongoMatchers with Routines 
         case _ =>
           fail("T3 extractor failed")
       }
-    } */
+    }
   }
 
   describe("Tuple serializer") {
@@ -45,12 +45,12 @@ class tupleSpec extends Spec with MustMatchers with MongoMatchers with Routines 
       T2(10 -> "str").apply(empty) must (containKeyValue("i" -> new java.lang.Integer(10)) and
                                          containKeyValue("s" -> "str"))
     }
-/*    it("serializes Tuple3") {
+    it("serializes Tuple3") {
       val T3 = "i".fieldOf[Int] ~ "s".fieldOf[String] ~ "d".fieldOf[Double]
       T3(10, "str", 1.67).apply(empty) must (containKeyValue("i" -> new java.lang.Integer(10)) and
                                              containKeyValue("s" -> "str") and
                                              containKeyValue("d" -> new java.lang.Double(1.67)))
-    } */
+    }
     it("serializes in sequence") {
       val T2 = "i".fieldOf[Int] ~ "s".fieldOf[String]
       val F1 = "d".fieldOf[Double]
