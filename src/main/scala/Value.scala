@@ -51,12 +51,12 @@ object StrictValuePacking extends StrictValuePacking
 object RecoveringValuePacking extends RecoveringValuePacking
 
 // Lowest priority
-trait DefaultValuePacking
+trait LowPriorityValuePacking
 
 /**
  * Basic implicit getters and setters along with some explicit transformations
  */
-trait BaseValuePacking extends DefaultValuePacking {
+trait BaseValuePacking extends LowPriorityValuePacking {
   implicit val symbolSetter = ValueWriter[Symbol](s => new BsonSymbol(s.name))
   implicit val regexSetter = ValueWriter[Regex](r => r.pattern)
   

@@ -9,6 +9,8 @@ import com.mongodb.BasicDBObjectBuilder
 
 @RunWith(classOf[JUnitRunner])
 class tupleSpec extends Spec with MustMatchers with MongoMatchers with Routines {
+  import Implicits._
+  import RecoveringValuePacking._
   describe("Tuple deserializer") {
     it("deserializes Tuple2") {
       val T2 = "i".fieldOf[Int] ~ "s".fieldOf[String]
@@ -53,7 +55,7 @@ class tupleSpec extends Spec with MustMatchers with MongoMatchers with Routines 
     }
     it("serializes in sequence") {
       val T2 = "i".fieldOf[Int] ~ "s".fieldOf[String]
-      val F1 = "d".fieldOf[Double]
+      val F1: Serializer[Double] = "d".fieldOf[Double].serializer
       (T2(10, "str") andThen F1(1.67)).apply(empty) must (containKeyValue("i" -> new java.lang.Integer(10)) and
                                                           containKeyValue("s" -> "str") and
                                                           containKeyValue("d" -> new java.lang.Double(1.67)))

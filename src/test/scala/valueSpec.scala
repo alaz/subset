@@ -14,14 +14,15 @@ class valueSpec extends Spec with MustMatchers with MongoMatchers with Routines 
     import org.bson.types.{Symbol => BsonSymbol}
 
     it("must set explicitly") {
-      val explicit = new BaseValuePacking {}
+      import StrictValuePacking._
       packValue("val")(ValueWriter.defaultWriter[String]) must equal(Some("val"))
-      val sym = packValue('Sym)(explicit.symbolSetter)
+      val sym = packValue('Sym)(symbolSetter)
       sym must be('defined)
       sym.get.asInstanceOf[AnyRef].getClass must equal(classOf[BsonSymbol])
       sym.get.asInstanceOf[BsonSymbol].getSymbol must equal("Sym")
     }
     it("must set") {
+      import RecoveringValuePacking._
       packValue(10) must equal(Some(new java.lang.Integer(10)))
       val sym = packValue('Sym)
       sym must be('defined)
@@ -29,6 +30,7 @@ class valueSpec extends Spec with MustMatchers with MongoMatchers with Routines 
       sym.get.asInstanceOf[BsonSymbol].getSymbol must equal("Sym")
     }
     it("must get") {
+      import RecoveringValuePacking._
       unpackValue[String]("string") must equal(Some("string"))
       unpackValue[Symbol](new BsonSymbol("Sym")) must equal(Some('Sym))
       unpackValue[Symbol]("sym") must equal(None)
@@ -36,7 +38,7 @@ class valueSpec extends Spec with MustMatchers with MongoMatchers with Routines 
     }
   }
   describe("Recovering primitives serializer") {
-    val explicit = new RecoveringValuePacking {}
+    val explicit = RecoveringValuePacking
 
     it("recovers Int") {
       unpackValue[Int](11)(explicit.intGetter) must equal(Some(11))

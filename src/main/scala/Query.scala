@@ -3,23 +3,27 @@ package com.osinka.subset
 import com.mongodb.{DBObject, BasicDBObjectBuilder}
 import RichDBO._
 /*
-object QueryOp {
-  def gt(f: DBObject => DBObject) =
-    (dbo: DBObject) => dbo.write("$gt", f(empty))
+trait Conditions[T] extends Address {
+  def ==?(x: T): Query
+  def >?(x: T) = FieldQuery[T](name, longName, ??)
 }
 
-trait Conditions[T] {
-  def ==?(x: T)(implicit setter: Setter[T]): Condition[T]
-  def >?(x: T)(implicit setter: Setter[T]): Condition[T]
+trait Query {
+  def write: DBObject => DBObject
+
+  def &&(other: Query): Query = Query(write andThen other.write)
 }
 
-case class Condition[T](val field: Field[T], val f: DBObject => DBObject) extends Conditions[T] {
-  def ==?(x: T)(implicit setter: Setter[T]) = copy(f = field(x)(setter))
-  def >?(x: T)(implicit setter: Setter[T]) = copy(f = f andThen QueryOp.gt(field(x)(setter)))
+object Query {
+  case class DefaultImpl(override val write: DBObject => DBObject) extends Query
+
+  def apply(dbo: DBObject): Query = apply(_ => dbo)
+  def apply(f: DBObject => DBObject): Query = DefaultImpl(f)
 }
+
+case class FieldQuery[T](override val name: String, override val longName: String, override val write: DBObject => DBObject)(implicit writer: ValueWriter[T]) extends Query with Conditions[T]
 
 trait QueryConversions {
-  def conditionToDBO(cond: Condition[_]): DBObject =
-    empty.write(cond.field.longName, cond.f(empty))
+  implicit def fieldToConditions[T](f: Field[T])(implicit writer: ValueWriter[T]) = FieldQuery[T](f.name, f.longName, identity _)
 }
 */
