@@ -1,5 +1,6 @@
 package com.osinka.subset
 
+import com.mongodb.DBObject
 import RichDBO._
 
 object Implicits extends Implicits
@@ -14,9 +15,13 @@ trait Implicits extends JodaTimePacking {
       def fieldOf[T](implicit scope: Scope): Field[T] = Field[T](name)(scope)
     }
 
+  // Serializer
+  implicit def dboToSerializer(f: (DBObject => DBObject)) = Serializer(f)
+  implicit def serializerToDBO(s: Serializer): DBObject = s.write(empty)
+
   // Tuple conversions
-  implicit def fieldTupleWriter[T : ValueWriter] =
-    ValueWriter[(Field[T], T)](t => empty.write(t._1.name, t._2))
+  implicit def fieldTupleSerializer[T : ValueWriter](t: (Field[T], T)): Serializer = Serializer(_.write(t._1.name, t._2))
+  implicit def fieldToDBO[T : ValueWriter](t: (Field[T], T)): DBObject = serializerToDBO(fieldTupleSerializer(t))
 
   /**
    * Conjunction for use in pattern matching

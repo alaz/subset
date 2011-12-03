@@ -3,6 +3,8 @@ package com.osinka.subset
 import com.mongodb.{DBObject, BasicDBObjectBuilder}
 
 class RichDBO(val dbo: DBObject) {
+  def get = dbo
+
   def write[T](key: String, x: T)(implicit writer: ValueWriter[T]): RichDBO = {
     writer.pack(x) foreach { dbo.put(key,_) }
     this

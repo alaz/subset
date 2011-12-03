@@ -21,7 +21,7 @@ trait Address {
   def longName: String
 }
 
-class Field[T](override val name: String)(implicit scope: Scope) extends Address /*extends Conditions[T]*/ {
+class Field[T](override val name: String)(implicit scope: Scope) extends Address /*extends Conditions[T]*/ { field =>
   override def longName: String = (name :: scope.names).reverse mkString "."
 
   def ~[T2](f2: Field[T2]) = new Tuple2Subset[T,T2](this.name, f2.name)
@@ -29,17 +29,9 @@ class Field[T](override val name: String)(implicit scope: Scope) extends Address
 //  def ==?(x: T)(implicit setter: unpackr[T]) = Condition[T](this, apply(x)(setter))
 //  def >?(x: T)(implicit setter: unpackr[T]) = Condition[T](this, QueryOp.gt(apply(x)(setter)))
 
-  // TODO: apply
-  def serializer[T](implicit setter: ValueWriter[T]): Serializer[T] =
-    new Serializer[T] {
-      def apply(x: T): (DBObject => DBObject) = (dbo: DBObject) => dbo.write(name, x)
-    }
+  def apply(x: T)(implicit setter: ValueWriter[T]): Serializer = Serializer(_.write(name, x))
 
-  // TODO: unapply
-  def deserializer[T](implicit getter: ValueReader[T]): Deserializer[T] =
-    new Deserializer[T] {
-      def unapply(dbo: DBObject): Option[T] = dbo.read[T](name)
-    }
+  def unapply(dbo: DBObject)(implicit getter: ValueReader[T]): Option[T] = dbo.read[T](name)
 }
 
 object Field {

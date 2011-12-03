@@ -5,7 +5,7 @@ import org.scalatest.matchers.MustMatchers
 import org.junit.runner.RunWith
 import org.scalatest.junit.JUnitRunner
 
-import com.mongodb.BasicDBObjectBuilder
+import com.mongodb.{DBObject,BasicDBObjectBuilder}
 
 @RunWith(classOf[JUnitRunner])
 class tupleSpec extends Spec with MustMatchers with MongoMatchers with Routines {
@@ -44,21 +44,23 @@ class tupleSpec extends Spec with MustMatchers with MongoMatchers with Routines 
 
     it("serializes Tuple2") {
       val T2 = "i".fieldOf[Int] ~ "s".fieldOf[String]
-      T2(10 -> "str").apply(empty) must (containKeyValue("i" -> new java.lang.Integer(10)) and
-                                         containKeyValue("s" -> "str"))
+      val dbo: DBObject = T2(10 -> "str")
+      dbo must (containKeyValue("i" -> new java.lang.Integer(10)) and containKeyValue("s" -> "str"))
     }
     it("serializes Tuple3") {
       val T3 = "i".fieldOf[Int] ~ "s".fieldOf[String] ~ "d".fieldOf[Double]
-      T3(10, "str", 1.67).apply(empty) must (containKeyValue("i" -> new java.lang.Integer(10)) and
-                                             containKeyValue("s" -> "str") and
-                                             containKeyValue("d" -> new java.lang.Double(1.67)))
+      val dbo: DBObject = T3(10, "str", 1.67)
+      dbo must (containKeyValue("i" -> new java.lang.Integer(10)) and
+                containKeyValue("s" -> "str") and
+                containKeyValue("d" -> new java.lang.Double(1.67)))
     }
     it("serializes in sequence") {
       val T2 = "i".fieldOf[Int] ~ "s".fieldOf[String]
-      val F1: Serializer[Double] = "d".fieldOf[Double].serializer
-      (T2(10, "str") andThen F1(1.67)).apply(empty) must (containKeyValue("i" -> new java.lang.Integer(10)) and
-                                                          containKeyValue("s" -> "str") and
-                                                          containKeyValue("d" -> new java.lang.Double(1.67)))
+      val F1 = "d".fieldOf[Double]
+      val dbo: DBObject = T2(10, "str") ~ F1(1.67)
+      dbo must (containKeyValue("i" -> new java.lang.Integer(10)) and
+                containKeyValue("s" -> "str") and
+                containKeyValue("d" -> new java.lang.Double(1.67)))
     }
   }
 }
