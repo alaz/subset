@@ -3,10 +3,8 @@ package com.osinka.subset
 import com.mongodb.DBObject
 
 trait Routines {
-  import DBO._
+  import RichDBO._
 
-  def applyGetter[T](f: String, dbo: DBObject)(implicit getter: Getter[T]) = getter.get(f, dbo)
-
-  def applySetter[T](f: String, x: T, dbo: DBObject = empty)(implicit setter: Setter[T]): DBObject =
-    setter.set(f, x, dbo)
+  def unpackValue[T](o: Any)(implicit getter: ValueReader[T]) = getter.unpack(o)
+  def packValue[T](x: T)(implicit setter: ValueWriter[T]): Option[Any] = setter.pack(x)
 }
