@@ -16,22 +16,22 @@ trait ValueWriter[-T] {
   def pack(x: T): Option[Any]
 }
 
+case class ValueReaderPf[+T](val pf: PartialFunction[Any, T]) extends ValueReader[T] {
+  override def unpack(o: Any): Option[T] = PartialFunction.condOpt(o)(pf)
+
+  def orElse[B1 >: T](pf2: PartialFunction[Any,B1]): ValueReaderPf[B1] = copy(pf = pf orElse pf2)
+  def orElse[B1 >: T](g: ValueReaderPf[B1]): ValueReaderPf[B1] = orElse(g.pf)
+
+  def andThen[R](pf2: PartialFunction[T,R]) =
+    copy(pf = new PartialFunction[Any,R] {
+        override def isDefinedAt(x: Any) = pf.isDefinedAt(x) && pf2.isDefinedAt(pf(x))
+        override def apply(x: Any): R = pf2(pf(x))
+      })
+
+}
+
 object ValueReader {
-  case class DefaultImpl[+T](val pf: PartialFunction[Any, T]) extends ValueReader[T] {
-    override def unpack(o: Any): Option[T] = PartialFunction.condOpt(o)(pf)
-
-    def orElse[B1 >: T](pf2: PartialFunction[Any,B1]): DefaultImpl[B1] = copy(pf = pf orElse pf2)
-    def orElse[B1 >: T](g: DefaultImpl[B1]): DefaultImpl[B1] = orElse(g.pf)
-
-    def andThen[R](pf2: PartialFunction[T,R]) =
-      copy(pf = new PartialFunction[Any,R] {
-          override def isDefinedAt(x: Any) = pf.isDefinedAt(x) && pf2.isDefinedAt(pf(x))
-          override def apply(x: Any): R = pf2(pf(x))
-        })
-
-  }
-
-  def apply[T](pf: PartialFunction[Any,T]) = new DefaultImpl[T](pf)
+  def apply[T](pf: PartialFunction[Any,T]): ValueReaderPf[T] = new ValueReaderPf[T](pf)
 }
 
 object ValueWriter {

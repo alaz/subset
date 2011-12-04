@@ -2,7 +2,7 @@ package com.osinka.subset
 
 import com.mongodb.{DBObject, BasicDBObjectBuilder}
 
-class RichDBO(val dbo: DBObject) {
+private[subset] class RichDBO(val dbo: DBObject) {
   def get = dbo
 
   def write[T](key: String, x: T)(implicit writer: ValueWriter[T]): RichDBO = {
@@ -24,7 +24,7 @@ class RichDBO(val dbo: DBObject) {
   override def toString: String = "RichDBO ["+dbo+"]"
 }
 
-object RichDBO {
+private[subset] object RichDBO {
   def empty = new RichDBO(BasicDBObjectBuilder.start.get)
 
   implicit def richFromDBO(dbo: DBObject) = new RichDBO(dbo)

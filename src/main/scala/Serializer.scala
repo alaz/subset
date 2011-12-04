@@ -4,13 +4,13 @@ import com.mongodb.DBObject
 import RichDBO._
 
 trait Serializer {
-  def write: (DBObject => DBObject)
+  def write: DBObject => DBObject
 
   def ~(other: Serializer) = Serializer(write andThen other.write)
 }
 
 object Serializer {
-  class DefaultSerializer(f: DBObject => DBObject) extends Serializer {
+  private class DefaultSerializer(f: DBObject => DBObject) extends Serializer {
     override def write: DBObject => DBObject = f
   }
 

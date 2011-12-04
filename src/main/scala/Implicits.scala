@@ -16,7 +16,7 @@ trait Implicits extends JodaTimePacking {
     }
 
   // Serializer
-  implicit def dboToSerializer(f: (DBObject => DBObject)) = Serializer(f)
+  implicit def dboToSerializer(f: DBObject => DBObject) = Serializer(f)
   implicit def serializerToDBO(s: Serializer): DBObject = s.write(empty)
 
   // Tuple conversions

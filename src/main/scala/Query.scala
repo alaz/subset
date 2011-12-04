@@ -1,29 +1,45 @@
 package com.osinka.subset
 
-import com.mongodb.{DBObject, BasicDBObjectBuilder}
+import com.mongodb.{DBObject, BasicDBObjectBuilder,QueryOperators}
 import RichDBO._
-/*
-trait Conditions[T] extends Address {
-  def ==?(x: T): Query
-  def >?(x: T) = FieldQuery[T](name, longName, ??)
+import Implicits._
+
+object Conditions {
+  implicit def stringTupleSerializer[T : ValueWriter](t: (String, T)): Serializer = Serializer(_.write(t._1, t._2))
+
+  def notEqual[T] = Field[T](QueryOperators.NE)
+  def greaterThan[T] = Field[T](QueryOperators.GT)
+  def greaterThanOrEqual[T] = Field[T](QueryOperators.GTE)
 }
 
-trait Query {
-  def write: DBObject => DBObject
+import Conditions._
 
-  def &&(other: Query): Query = Query(write andThen other.write)
+trait Conditions[T] extends Address {
+  def >(x: T)(implicit writer: ValueWriter[T]): AddressQuery[T] = AddressQuery[T](name, longName, greaterThan(x))
+  def >=(x: T)(implicit writer: ValueWriter[T]): AddressQuery[T] = AddressQuery[T](name, longName, greaterThanOrEqual(x))
+  def !==(x: T)(implicit writer: ValueWriter[T]): AddressQuery[T] = AddressQuery[T](name, longName, notEqual(x))
+}
+
+trait FieldConditions[T] extends Conditions[T] {
+  def ===(x: T)(implicit writer: ValueWriter[T]): Query = Query(longName -> x)
+}
+
+trait Query extends Serializer {
+  def &&(other: Query): Query = Query(this ~ other)
 }
 
 object Query {
-  case class DefaultImpl(override val write: DBObject => DBObject) extends Query
+  private case class DefaultImpl(override val write: DBObject => DBObject) extends Query
 
-  def apply(dbo: DBObject): Query = apply(_ => dbo)
-  def apply(f: DBObject => DBObject): Query = DefaultImpl(f)
+  def apply(f: Serializer): Query = DefaultImpl(f.write)
 }
 
-case class FieldQuery[T](override val name: String, override val longName: String, override val write: DBObject => DBObject)(implicit writer: ValueWriter[T]) extends Query with Conditions[T]
+case class AddressQuery[T](override val name: String, override val longName: String, val condition: Serializer) extends Query with Conditions[T] {
+  import ValueWriter.defaultWriter
 
-trait QueryConversions {
-  implicit def fieldToConditions[T](f: Field[T])(implicit writer: ValueWriter[T]) = FieldQuery[T](f.name, f.longName, identity _)
+  override def write: DBObject => DBObject =
+    (dbo: DBObject) => dbo.write(longName, condition.write(empty))
+
+  override def >(x: T)(implicit writer: ValueWriter[T]) = copy(condition = condition ~ greaterThan[T](x))
+  override def >=(x: T)(implicit writer: ValueWriter[T]) = copy(condition = condition ~ greaterThanOrEqual[T](x))
 }
-*/

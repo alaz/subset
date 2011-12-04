@@ -21,13 +21,10 @@ trait Address {
   def longName: String
 }
 
-class Field[T](override val name: String)(implicit scope: Scope) extends Address /*extends Conditions[T]*/ { field =>
+class Field[T](override val name: String)(implicit scope: Scope) extends Address with FieldConditions[T] {
   override def longName: String = (name :: scope.names).reverse mkString "."
 
   def ~[T2](f2: Field[T2]) = new Tuple2Subset[T,T2](this.name, f2.name)
-
-//  def ==?(x: T)(implicit setter: unpackr[T]) = Condition[T](this, apply(x)(setter))
-//  def >?(x: T)(implicit setter: unpackr[T]) = Condition[T](this, QueryOp.gt(apply(x)(setter)))
 
   def apply(x: T)(implicit setter: ValueWriter[T]): Serializer = Serializer(_.write(name, x))
 
