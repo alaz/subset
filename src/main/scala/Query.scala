@@ -9,6 +9,12 @@ import Implicits._
 
 object Conditions {
   implicit def stringTupleSerializer[T : ValueWriter](t: (String, T)): Serializer = Serializer(_.write(t._1, t._2).get)
+
+  val NOT    = "$not"
+  val TYPE   = "$type"
+  val WITHIN = "$within"
+  val CENTER = "$center"
+  val BOX    = "$box"
 }
 
 import Conditions._
@@ -23,13 +29,18 @@ trait Conditions[T] extends Address {
   def <=(x: T)(implicit writer: ValueWriter[T]) = aquery(LTE -> x)
   def !==(x: T)(implicit writer: ValueWriter[T]) = aquery(NE -> x)
   def mod(by: Int, rest: Int)(implicit writer: ValueWriter[Traversable[Int]]) = aquery(MOD -> List(by, rest))
-  def near(x: Double, y: Double)(implicit writer: ValueWriter[Traversable[Double]]) = aquery(NEAR -> List(x, y))
-  def near(x: Double, y: Double, d: Double)(implicit writer: ValueWriter[Traversable[Double]]) = aquery(NEAR -> List(x, y, d))
   def size(n: Int) = aquery(SIZE -> n) // TODO: for Seq[T] only
-  def `type`(n: Int) = aquery("$type" -> n)
+  def `type`(n: Int) = aquery(TYPE -> n)
   def in(s: Traversable[T])(implicit writer: ValueWriter[Traversable[T]]) = aquery(IN -> s) // TODO: for Seq[T] only
   def notIn(s: Traversable[T])(implicit writer: ValueWriter[Traversable[T]]) = aquery(NIN -> s) // TODO: for Seq[T] only
   def all(s: Traversable[T])(implicit writer: ValueWriter[Traversable[T]]) = aquery(ALL -> s) // TODO: for Seq[T] only
+
+  def near(x: Double, y: Double)(implicit writer: ValueWriter[Traversable[Double]]) = aquery(NEAR -> List(x, y))
+  def near(x: Double, y: Double, d: Double)(implicit writer: ValueWriter[Traversable[Double]]) = aquery(NEAR -> List(x, y, d))
+  def withinCenter(x: Double, y: Double, r: Double) =
+    aquery(WITHIN -> empty.write(CENTER, Array( Array(x, y), r)).get)
+  def withinBox(x: Double, y: Double, x2: Double, y2: Double) =
+    aquery(WITHIN -> empty.write(BOX, Array(Array(x,y), Array(x2,y2)) ).get)
 }
 
 trait FieldConditions[T] extends Conditions[T] {
@@ -57,7 +68,7 @@ object Query {
 }
 
 case class AddressQuery[T](override val name: String, override val longName: String, val condition: Serializer) extends Query with Conditions[T] {
-  def not : Query = Query( (dbo: DBObject) => dbo.write(longName, empty.write("$not", condition.write(empty)).get).get )
+  def not : Query = Query( (dbo: DBObject) => dbo.write(longName, empty.write(NOT, condition.write(empty)).get).get )
   def unary_! = not
 
   override def aquery(cond: Serializer) = copy(condition = condition ~ cond)
