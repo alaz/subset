@@ -24,9 +24,11 @@ trait Conditions[T] extends Address {
   def !==(x: T)(implicit writer: ValueWriter[T]) = aquery(NE -> x)
   def size(n: Int) = aquery(SIZE -> n) // TODO: for Seq[T] only
   def `type`(n: Int) = aquery("$type" -> n)
-  def in(s: Seq[T])(implicit writer: ValueWriter[Seq[T]]) = aquery(IN -> s) // TODO: for Seq[T] only
-  def notIn(s: Seq[T])(implicit writer: ValueWriter[Seq[T]]) = aquery(NIN -> s) // TODO: for Seq[T] only
-  def all(s: Seq[T])(implicit writer: ValueWriter[Seq[T]]) = aquery(ALL -> s) // TODO: for Seq[T] only
+  def in(s: Traversable[T])(implicit writer: ValueWriter[Traversable[T]]) = aquery(IN -> s) // TODO: for Seq[T] only
+  def notIn(s: Traversable[T])(implicit writer: ValueWriter[Traversable[T]]) = aquery(NIN -> s) // TODO: for Seq[T] only
+  def all(s: Traversable[T])(implicit writer: ValueWriter[Traversable[T]]) = aquery(ALL -> s) // TODO: for Seq[T] only
+  // TODO: mod
+  // TODO: near
 }
 
 trait FieldConditions[T] extends Conditions[T] {
@@ -41,6 +43,8 @@ trait FieldConditions[T] extends Conditions[T] {
 trait Query extends Serializer {
   def and(other: Query): Query = Query(this ~ other)
   def &&(other: Query): Query = and(other)
+  // TODO: $or
+  // TODO: $nor
 
   override def prefixString = "Query"
 }

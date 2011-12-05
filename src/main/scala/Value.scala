@@ -1,11 +1,7 @@
 package com.osinka.subset
 
 import java.util.Date
-import java.util.regex.Pattern
 import annotation.implicitNotFound
-import util.matching.Regex
-import org.bson.types.{Symbol => BsonSymbol}
-import RichDBO._
 
 @implicitNotFound(msg = "Cannot find reader from BSON object to ${T}")
 trait ValueReader[+T] {
@@ -48,19 +44,33 @@ object ValueWriter {
 }
 
 // Feel free to import to activate implicits:
-object StrictValuePacking extends StrictValuePacking
-object RecoveringValuePacking extends RecoveringValuePacking
+object StrictValuePacking extends StrictValuePacking with ScalaTypesPacking
+object RecoveringValuePacking extends RecoveringValuePacking with ScalaTypesPacking
 
 // Lowest priority
-trait LowPriorityValuePacking
+trait LowPriorityValuePacking {
+  implicit def defaultReader[T <: AnyRef](implicit m: Manifest[T]): ValueReader[T] =
+    new ValueReader[T] {
+      def unpack(o: Any): Option[T] =
+        PartialFunction.condOpt(o) {
+          case any: AnyRef if m.erasure isAssignableFrom any.getClass => any.asInstanceOf[T]
+        }
+    }
+}
 
 /**
  * Basic implicit getters and setters along with some explicit transformations
  */
 trait BaseValuePacking extends LowPriorityValuePacking {
+  import java.util.regex.Pattern
+  import util.matching.Regex
+  import org.bson.types.{Symbol => BsonSymbol}
+  import com.mongodb.DBObject
+
   implicit val symbolSetter = ValueWriter[Symbol](s => new BsonSymbol(s.name))
   implicit val regexSetter = ValueWriter[Regex](r => r.pattern)
-  
+
+  implicit val dboGetter = ValueReader[DBObject]({ case dbo: DBObject => dbo})
   implicit val stringGetter = ValueReader[String]({ case s: String => s})
   implicit val symbolGetter = ValueReader[Symbol]({
       case s: Symbol => s
@@ -71,14 +81,22 @@ trait BaseValuePacking extends LowPriorityValuePacking {
       case p: Pattern => new Regex(p.pattern)
       case r: Regex => r
     })
+}
 
+/**
+ * Getters and setters for complex Scala types, e.g. Traversable, Option, etc.
+ */
+trait ScalaTypesPacking {
+  import RichDBO._
+
+  // TODO: readers for Option[T], List[T]
   implicit def optionSetter[T](implicit w: ValueWriter[T]) =
     new ValueWriter[Option[T]] {
       override def pack(x: Option[T]): Option[Any] = x flatMap { w.pack _}
     }
   implicit def seqSetter[T](implicit w: ValueWriter[T]) =
-    new ValueWriter[Seq[T]] {
-      override def pack(x: Seq[T]): Option[Any] = Some( x flatMap {w.pack _} toArray )
+    new ValueWriter[Traversable[T]] {
+      override def pack(x: Traversable[T]): Option[Any] = Some( x flatMap {w.pack _} toArray )
     }
   implicit def tupleSetter[T](implicit w: ValueWriter[T]) =
     new ValueWriter[Tuple2[String,T]] {
@@ -94,9 +112,7 @@ trait BaseValuePacking extends LowPriorityValuePacking {
 trait StrictValuePacking extends BaseValuePacking {
   implicit val intGetter = ValueReader[Int]({ case i: Int => i })
   implicit val longGetter = ValueReader[Long]({ case l: Long => l })
-  implicit val byteGetter = ValueReader[Byte]({ case b: Byte => b })
   implicit val doubleGetter = ValueReader[Double]({ case d: Double => d })
-  implicit val floatGetter = ValueReader[Float]({ case d: Double => d.floatValue })
   implicit val dateGetter = ValueReader[Date]({ case d: Date => d })
 }
 
@@ -110,35 +126,47 @@ trait StrictValuePacking extends BaseValuePacking {
 trait RecoveringValuePacking extends BaseValuePacking {
   import net.liftweb.util.BasicTypesHelpers.{AsInt,AsDouble,AsLong}
 
+  implicit val shortGetter = ValueReader[Short]({
+      case b: Byte => b.shortValue
+      case s: Short => s
+      case i: Int => i.shortValue
+      case l: Long => l.shortValue
+    }) orElse stringGetter.andThen({ case AsInt(i) => i.shortValue })
+
   implicit val intGetter = ValueReader[Int]({
       case b: Byte => b.intValue
+      case s: Short => s.intValue
       case i: Int => i
       case l: Long => l.intValue
     }) orElse stringGetter.andThen({ case AsInt(i) => i })
   
   implicit val longGetter = ValueReader[Long]({
       case b: Byte => b.longValue
+      case s: Short => s.longValue
       case i: Int => i.longValue
       case l: Long => l
     }) orElse stringGetter.andThen({ case AsLong(l) => l })
   
   implicit val byteGetter = ValueReader[Byte]({
       case b: Byte => b
+      case s: Short => s.byteValue
       case i: Int => i.byteValue
       case l: Long => l.byteValue
     }) orElse stringGetter.andThen({ case AsInt(i) => i.byteValue })
 
   implicit val doubleGetter = ValueReader[Double]({
+      case b: Byte => b.doubleValue
+      case s: Short => s.doubleValue
       case i: Int => i.doubleValue
       case l: Long => l.doubleValue
-      case b: Byte => b.doubleValue
       case f: Float => f.doubleValue
       case d: Double => d
     }) orElse stringGetter.andThen({ case AsDouble(d) => d })
   implicit val floatGetter = ValueReader[Float]({
+      case b: Byte => b.floatValue
+      case s: Short => s.floatValue
       case i: Int => i.floatValue
       case l: Long => l.floatValue
-      case b: Byte => b.floatValue
       case f: Float => f
       case d: Double => d.floatValue
     }) orElse stringGetter.andThen({ case AsDouble(d) => d.floatValue })

@@ -6,6 +6,7 @@ import org.junit.runner.RunWith
 import org.scalatest.junit.JUnitRunner
 
 import java.util.regex.Pattern
+import org.bson.BSON
 import com.mongodb.{DBObject,BasicDBObjectBuilder,QueryBuilder}
 import QueryBuilder.{start => query}
 import BasicDBObjectBuilder.{start => dbo}
@@ -47,20 +48,56 @@ class querySpec extends Spec with MustMatchers with MongoMatchers with Routines 
     it("has $size") {
       (i size 10).get must equal(query("i").size(10).get)
     }
+    it("has $type") {
+      (i `type` BSON.NUMBER).get must equal(dbo.push("i").add("$type", BSON.NUMBER).get)
+    }
     it("has $in") {
       // FIXME: cannot compare arrays https://jira.mongodb.org/browse/JAVA-482
-      pending
-      (i in List(1,2)).get must equal(query("i").in(Array(1,2)).get)
+      // (i in List(1,2)).get must equal(query("i").in(Array(1,2)).get)
+      import Implicits._
+      import StrictValuePacking._
+      import RichDBO._
+
+      val dbo = (i in List(1,2)).get
+
+      val in = dbo.read[DBObject]("i")
+      in must be('defined)
+
+      val arr = in.get.read[Array[Int]]("$in")
+      arr must be ('defined)
+      arr.get must equal(Array(1,2))
     }
     it("has $all") {
       // FIXME: cannot compare arrays https://jira.mongodb.org/browse/JAVA-482
-      pending
-      (i all List(1,2)).get must equal(query("i").all(Array(1,2)).get)
+      //(i all List(1,2)).get must equal(query("i").all(Array(1,2)).get)
+      import Implicits._
+      import StrictValuePacking._
+      import RichDBO._
+
+      val dbo = (i all Array(1,2)).get
+
+      val in = dbo.read[DBObject]("i")
+      in must be('defined)
+
+      val arr = in.get.read[Array[Int]]("$all")
+      arr must be ('defined)
+      arr.get must equal(Array(1,2))
     }
     it("has $nin") {
       // FIXME: cannot compare arrays https://jira.mongodb.org/browse/JAVA-482
-      pending
-      (i notIn List(1,2)).get must equal(query("i").notIn(Array(1,2)).get)
+      //(i notIn List(1,2)).get must equal(query("i").notIn(Array(1,2)).get)
+      import Implicits._
+      import StrictValuePacking._
+      import RichDBO._
+
+      val dbo = (i notIn Iterable(1,2)).get
+
+      val in = dbo.read[DBObject]("i")
+      in must be('defined)
+
+      val arr = in.get.read[Array[Int]]("$nin")
+      arr must be ('defined)
+      arr.get must equal(Array(1,2))
     }
     it("accumulates") {
       (i < 10 > 5).get must equal(query("i").lessThan(10).greaterThan(5).get)
