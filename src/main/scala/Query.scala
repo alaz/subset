@@ -30,8 +30,6 @@ trait Conditions[T] extends Address {
   def in(s: Traversable[T])(implicit writer: ValueWriter[Traversable[T]]) = aquery(IN -> s) // TODO: for Seq[T] only
   def notIn(s: Traversable[T])(implicit writer: ValueWriter[Traversable[T]]) = aquery(NIN -> s) // TODO: for Seq[T] only
   def all(s: Traversable[T])(implicit writer: ValueWriter[Traversable[T]]) = aquery(ALL -> s) // TODO: for Seq[T] only
-  // TODO: mod
-  // TODO: near
 }
 
 trait FieldConditions[T] extends Conditions[T] {
@@ -59,7 +57,8 @@ object Query {
 }
 
 case class AddressQuery[T](override val name: String, override val longName: String, val condition: Serializer) extends Query with Conditions[T] {
-  import ValueWriter.defaultWriter
+  def not : Query = Query( (dbo: DBObject) => dbo.write(longName, empty.write("$not", condition.write(empty)).get).get )
+  def unary_! = not
 
   override def aquery(cond: Serializer) = copy(condition = condition ~ cond)
 

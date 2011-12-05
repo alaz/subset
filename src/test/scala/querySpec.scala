@@ -16,7 +16,7 @@ class querySpec extends Spec with MustMatchers with MongoMatchers with Routines 
   import Implicits._
   import RecoveringValuePacking._
 
-  describe("field condition") {
+  describe("field query") {
     val i = "i".fieldOf[Int]
 
     it("has $exists") {
@@ -112,9 +112,25 @@ class querySpec extends Spec with MustMatchers with MongoMatchers with Routines 
         i.near(2.5, 6.7, 3.4).get must equal(query("i").near(2.5, 6.7, 3.4).get)
       }
     }
+    it("has $not") {
+      val q = !(i < 10)
+      q.toString must startWith("Query")
+      q.get must equal(dbo.push("i").push("$not").add("$lt", 10).get)
+    }
     it("accumulates") {
       (i < 10 > 5).get must equal(query("i").lessThan(10).greaterThan(5).get)
       (i < 10 > 5 <= 15 < 5).get must equal(query("i").lessThan(10).greaterThan(5).lessThanEquals(15).lessThan(5).get)
+    }
+  }
+  describe("query") {
+    it("supports conjunction") {
+      pending
+    }
+    it("supports $or") {
+      pending
+    }
+    it("supports $nor") {
+      pending
     }
   }
 }
