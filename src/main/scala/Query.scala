@@ -2,7 +2,7 @@ package com.osinka.subset
 
 import java.util.regex.Pattern
 import util.matching.Regex
-import com.mongodb.{DBObject, QueryOperators}
+import com.mongodb.{DBObject, QueryOperators, QueryBuilder}
 import QueryOperators._
 import RichDBO._
 import Implicits._
@@ -22,6 +22,9 @@ trait Conditions[T] extends Address {
   def <(x: T)(implicit writer: ValueWriter[T]) = aquery(LT -> x)
   def <=(x: T)(implicit writer: ValueWriter[T]) = aquery(LTE -> x)
   def !==(x: T)(implicit writer: ValueWriter[T]) = aquery(NE -> x)
+  def mod(by: Int, rest: Int)(implicit writer: ValueWriter[Traversable[Int]]) = aquery(MOD -> List(by, rest))
+  def near(x: Double, y: Double)(implicit writer: ValueWriter[Traversable[Double]]) = aquery(NEAR -> List(x, y))
+  def near(x: Double, y: Double, d: Double)(implicit writer: ValueWriter[Traversable[Double]]) = aquery(NEAR -> List(x, y, d))
   def size(n: Int) = aquery(SIZE -> n) // TODO: for Seq[T] only
   def `type`(n: Int) = aquery("$type" -> n)
   def in(s: Traversable[T])(implicit writer: ValueWriter[Traversable[T]]) = aquery(IN -> s) // TODO: for Seq[T] only

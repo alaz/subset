@@ -24,6 +24,13 @@ trait Address {
 class Field[T](override val name: String)(implicit scope: Scope) extends Address with FieldConditions[T] {
   override def longName: String = (name :: scope.names).reverse mkString "."
 
+  /**
+   * Get "Index" field
+   * 
+   * Field[Int] is of much help to produce [Int] queries (in $special, $maxKey, $minKey, sort, index, etc.)
+   */
+  def i: Field[Int] = new Field[Int](name)(scope)
+
   // TODO: $elemMatch
 
   def ~[T2](f2: Field[T2]) = new Tuple2Subset[T,T2](this.name, f2.name)

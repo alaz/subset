@@ -99,6 +99,19 @@ class querySpec extends Spec with MustMatchers with MongoMatchers with Routines 
       arr must be ('defined)
       arr.get must equal(Array(1,2))
     }
+    it("has $mod") {
+      pendingUntilFixed {
+        // FIXME: cannot compare arrays https://jira.mongodb.org/browse/JAVA-482
+        i.mod(10, 1).get must equal(query("i").mod(10, 1).get)
+      }
+    }
+    it("has $near") {
+      pendingUntilFixed {
+        // FIXME: cannot compare arrays https://jira.mongodb.org/browse/JAVA-482
+        i.near(2.5, 6.7).get must equal(query("i").near(2.5, 6.7).get)
+        i.near(2.5, 6.7, 3.4).get must equal(query("i").near(2.5, 6.7, 3.4).get)
+      }
+    }
     it("accumulates") {
       (i < 10 > 5).get must equal(query("i").lessThan(10).greaterThan(5).get)
       (i < 10 > 5 <= 15 < 5).get must equal(query("i").lessThan(10).greaterThan(5).lessThanEquals(15).lessThan(5).get)
