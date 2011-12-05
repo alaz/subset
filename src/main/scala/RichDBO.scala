@@ -14,10 +14,7 @@ private[subset] class RichDBO(val dbo: DBObject) {
     Option(dbo.get(key)) flatMap {reader.unpack(_)}
 
   override def equals(o: Any): Boolean =
-    o match {
-      case other: RichDBO => dbo == other.dbo
-      case _ => false
-    }
+    PartialFunction.cond(o) { case other: RichDBO => dbo == other.dbo }
 
   override def hashCode: Int = dbo.hashCode
 

@@ -5,6 +5,7 @@ import java.util.regex.Pattern
 import annotation.implicitNotFound
 import util.matching.Regex
 import org.bson.types.{Symbol => BsonSymbol}
+import RichDBO._
 
 @implicitNotFound(msg = "Cannot find reader from BSON object to ${T}")
 trait ValueReader[+T] {
@@ -70,6 +71,21 @@ trait BaseValuePacking extends LowPriorityValuePacking {
       case p: Pattern => new Regex(p.pattern)
       case r: Regex => r
     })
+
+  implicit def optionSetter[T](implicit w: ValueWriter[T]) =
+    new ValueWriter[Option[T]] {
+      override def pack(x: Option[T]): Option[Any] = x flatMap { w.pack _}
+    }
+  implicit def seqSetter[T](implicit w: ValueWriter[T]) =
+    new ValueWriter[Seq[T]] {
+      override def pack(x: Seq[T]): Option[Any] = Some( x flatMap {w.pack _} toArray )
+    }
+  implicit def tupleSetter[T](implicit w: ValueWriter[T]) =
+    new ValueWriter[Tuple2[String,T]] {
+      override def pack(x: Tuple2[String,T]): Option[Any] =
+        w.pack(x._2) map { empty.write(x._1, _)(ValueWriter.defaultWriter[Any]).get }
+    }
+  // TODO: ValueWriter[Either[_,T]]
 }
 
 /**
