@@ -5,7 +5,8 @@ import org.scalatest.matchers.MustMatchers
 import org.junit.runner.RunWith
 import org.scalatest.junit.JUnitRunner
 
-import com.mongodb.BasicDBObjectBuilder.{start => dbo}
+import com.mongodb.{BasicDBList,BasicDBObjectBuilder}
+import BasicDBObjectBuilder.{start => dbo}
 
 /*
  * FIXME: We cannot simply compare BSON symbols : https://jira.mongodb.org/browse/JAVA-479
@@ -72,6 +73,16 @@ class valueSpec extends Spec with MustMatchers with MongoMatchers with Routines 
     }
     it("sets Tuple2") {
       packValue("s" -> 10) must equal(Some(dbo("s", 10).get))
+    }
+    it("gets List[T] from BSON DBList") {
+      val da = new BasicDBList
+      da.put(0, 1)
+      da.put(1, 2)
+      da.put(2, 3)
+      unpackValue[List[Int]](da) must equal(Some(List(1,2,3)))
+    }
+    it("gets List[T] from Array") {
+      unpackValue[List[Int]](Array(1,2,3)) must equal(Some(List(1,2,3)))
     }
   }
   describe("Recovering primitives serializer") {

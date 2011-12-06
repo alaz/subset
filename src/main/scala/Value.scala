@@ -70,6 +70,7 @@ trait BaseValuePacking extends LowPriorityValuePacking {
   implicit val symbolSetter = ValueWriter[Symbol](s => new BsonSymbol(s.name))
   implicit val regexSetter = ValueWriter[Regex](r => r.pattern)
 
+  implicit val booleanGetter = ValueReader[Boolean]({ case b: java.lang.Boolean => b.booleanValue })
   implicit val dboGetter = ValueReader[DBObject]({ case dbo: DBObject => dbo })
   implicit val stringGetter = ValueReader[String]({
       case s: String => s
@@ -80,7 +81,6 @@ trait BaseValuePacking extends LowPriorityValuePacking {
       case s: Symbol => s
       case s: BsonSymbol => Symbol(s.getSymbol)
     })
-  implicit val booleanGetter = ValueReader[Boolean]({ case b: java.lang.Boolean => b.booleanValue })
   implicit val regexGetter = ValueReader[Regex]({
       case p: Pattern => new Regex(p.pattern)
       case r: Regex => r
@@ -93,7 +93,20 @@ trait BaseValuePacking extends LowPriorityValuePacking {
 trait ScalaTypesPacking {
   import RichDBO._
 
-  // TODO: readers for Option[T], List[T]
+  implicit def optionGetter[T](implicit r: ValueReader[T]) =
+    new ValueReader[Option[T]] {
+      override def unpack(o: Any): Option[Option[T]] = Some(r.unpack(o))
+    }
+  implicit def listGetter[T](implicit r: ValueReader[T]) = {
+    import collection.JavaConversions._
+    import org.bson.types.BasicBSONList
+
+    ValueReader[List[T]]({
+        case ar: Array[_] => ar flatMap {r.unpack _} toList
+        case list: BasicBSONList => list flatMap {r.unpack _} toList
+      })
+  }
+
   implicit def optionSetter[T](implicit w: ValueWriter[T]) =
     new ValueWriter[Option[T]] {
       override def pack(x: Option[T]): Option[Any] = x flatMap { w.pack _}

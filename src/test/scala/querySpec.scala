@@ -18,7 +18,7 @@ class querySpec extends Spec with MustMatchers with MongoMatchers with Routines 
   import QueryOperators._
   import Conditions._
 
-  describe("field query") {
+  describe("Field query") {
     val i = "i".fieldOf[Int]
 
     it("has $exists") {
@@ -124,7 +124,7 @@ class querySpec extends Spec with MustMatchers with MongoMatchers with Routines 
       (i < 10 > 5 <= 15 < 5).get must equal(query("i").lessThan(10).greaterThan(5).lessThanEquals(15).lessThan(5).get)
     }
   }
-  describe("query") {
+  describe("Combining query") {
     import RichDBO._
 
     val i = "i".fieldOf[Int]
