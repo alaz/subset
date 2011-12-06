@@ -2,12 +2,11 @@ package com.osinka.subset
 
 import java.util.regex.Pattern
 import util.matching.Regex
-import com.mongodb.{DBObject, QueryOperators, QueryBuilder}
-import QueryOperators._
+import com.mongodb.{DBObject, QueryOperators}
 import RichDBO._
 import Implicits._
 
-object Conditions {
+private[subset] object Conditions {
   implicit def stringTupleSerializer[T : ValueWriter](t: (String, T)): Serializer = Serializer(_.write(t._1, t._2).get)
 
   val NOT    = "$not"
@@ -21,6 +20,8 @@ object Conditions {
   val AND    = "$and"
 }
 
+// importing Op names
+import QueryOperators._
 import Conditions._
 
 trait Conditions[T] extends Address {
@@ -59,15 +60,30 @@ trait FieldConditions[T] extends Conditions[T] {
 }
 
 trait Query extends Serializer {
-  def and(other: Query): Query = Query(this ~ other)
   def &&(other: Query): Query = and(other)
 
-  def or(other: Query): Query = OrQuery(other :: this :: Nil)
+  def and(other: Query): Query = {
+    import collection.JavaConversions._
+
+    if ( (this.get.keySet & other.get.keySet).isEmpty )
+      Query(this ~ other)
+    else
+      AndQuery(other :: this :: Nil)
+  }
+
   def ||(other: Query) = or(other)
+  def or(other: Query): Query = OrQuery(other :: this :: Nil)
 
   def nor(other: Query): Query = NorQuery(other :: this :: Nil)
 
   override def prefixString = "Query"
+}
+
+case class AndQuery(val queries: List[Query]) extends Query {
+  override def and(other: Query): Query = copy(queries = other :: queries)
+
+  override def write: DBObject => DBObject =
+    (dbo: DBObject) => dbo.write(AND, queries.reverse map{_.get} toArray)
 }
 
 case class OrQuery(val queries: List[Query]) extends Query {
