@@ -6,29 +6,31 @@ import org.junit.runner.RunWith
 import org.scalatest.junit.JUnitRunner
 
 import com.mongodb.{DBObject,BasicDBObjectBuilder}
+import BasicDBObjectBuilder.start
+
+import Implicits._
+import SmartValues._
 
 @RunWith(classOf[JUnitRunner])
 class tupleSpec extends Spec with MustMatchers with MongoMatchers with Routines {
-  import Implicits._
-  import RecoveringValuePacking._
   describe("Tuple deserializer") {
     it("deserializes Tuple2") {
       val T2 = "i".fieldOf[Int] ~ "s".fieldOf[String]
-      T2.unapply(BasicDBObjectBuilder.start.get) must equal(None)
-      T2.unapply(BasicDBObjectBuilder.start("i", 10).get) must equal(None)
-      T2.unapply(BasicDBObjectBuilder.start("i", 10).add("s", "str").get) must equal(Some(10 -> "str"))
-      T2.unapply(BasicDBObjectBuilder.start("i", "10").add("s", "str").get) must equal(Some(10 -> "str"))
+      T2.unapply(start.get) must equal(None)
+      T2.unapply(start("i", 10).get) must equal(None)
+      T2.unapply(start("i", 10).add("s", "str").get) must equal(Some(10 -> "str"))
+      T2.unapply(start("i", "10").add("s", "str").get) must equal(Some(10 -> "str"))
     }
     it("deserializes Tuple3") {
       val T3 = "i".fieldOf[Int] ~ "s".fieldOf[String] ~ "d".fieldOf[Double]
-      T3.unapply(BasicDBObjectBuilder.start.get) must equal(None)
-      T3.unapply(BasicDBObjectBuilder.start("i", 10).get) must equal(None)
-      T3.unapply(BasicDBObjectBuilder.start("i", 10).add("s", "str").get) must equal(None)
-      T3.unapply(BasicDBObjectBuilder.start("i", 10).add("s", "str").add("d", 1.67).get) must equal(Some( (10, "str", 1.67) ))
-      T3.unapply(BasicDBObjectBuilder.start("i", "10").add("s", "str").add("d", "1.67").get) must equal(Some( (10, "str", 1.67) ))
+      T3.unapply(start.get) must equal(None)
+      T3.unapply(start("i", 10).get) must equal(None)
+      T3.unapply(start("i", 10).add("s", "str").get) must equal(None)
+      T3.unapply(start("i", 10).add("s", "str").add("d", 1.67).get) must equal(Some( (10, "str", 1.67) ))
+      T3.unapply(start("i", "10").add("s", "str").add("d", "1.67").get) must equal(Some( (10, "str", 1.67) ))
 
       // or invoke extractor
-      BasicDBObjectBuilder.start("i", "10").add("s", "str").add("d", "1.67").get match {
+      start("i", "10").add("s", "str").add("d", "1.67").get match {
         case T3(i, s, d) =>
           i must equal(10)
           s must equal("str")

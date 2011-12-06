@@ -10,7 +10,7 @@ import com.mongodb.{DBObject,BasicDBObjectBuilder}
 @RunWith(classOf[JUnitRunner])
 class fieldSpec extends Spec with MustMatchers with MongoMatchers with Routines {
   import Implicits._
-  import RecoveringValuePacking._
+  import SmartValues._
   import RichDBO._
 
   describe("Field") {

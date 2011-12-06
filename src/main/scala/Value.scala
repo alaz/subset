@@ -44,8 +44,8 @@ object ValueWriter {
 }
 
 // Feel free to import to activate implicits:
-object StrictValuePacking extends StrictValuePacking with ScalaTypesPacking
-object RecoveringValuePacking extends RecoveringValuePacking with ScalaTypesPacking
+object Values extends BaseValuePacking with ScalaTypesPacking
+object SmartValues extends RecoveringValuePacking with ScalaTypesPacking
 
 // Lowest priority
 trait LowPriorityValuePacking {
@@ -60,6 +60,8 @@ trait LowPriorityValuePacking {
 
 /**
  * Basic implicit getters and setters along with some explicit transformations
+
+ * Mostly unpacks primitives "as is", without attempt to convert from other type
  */
 trait BaseValuePacking extends LowPriorityValuePacking {
   import java.util.regex.Pattern
@@ -71,6 +73,11 @@ trait BaseValuePacking extends LowPriorityValuePacking {
   implicit val regexSetter = ValueWriter[Regex](r => r.pattern)
 
   implicit val booleanGetter = ValueReader[Boolean]({ case b: java.lang.Boolean => b.booleanValue })
+  implicit val intGetter = ValueReader[Int]({ case i: Int => i })
+  implicit val longGetter = ValueReader[Long]({ case l: Long => l })
+  implicit val doubleGetter = ValueReader[Double]({ case d: Double => d })
+  implicit val dateGetter = ValueReader[Date]({ case d: Date => d })
+
   implicit val dboGetter = ValueReader[DBObject]({ case dbo: DBObject => dbo })
   implicit val stringGetter = ValueReader[String]({
       case s: String => s
@@ -124,16 +131,6 @@ trait ScalaTypesPacking {
 }
 
 /**
- * unpack primitives "as is", without attempt to convert from other type
- */
-trait StrictValuePacking extends BaseValuePacking {
-  implicit val intGetter = ValueReader[Int]({ case i: Int => i })
-  implicit val longGetter = ValueReader[Long]({ case l: Long => l })
-  implicit val doubleGetter = ValueReader[Double]({ case d: Double => d })
-  implicit val dateGetter = ValueReader[Date]({ case d: Date => d })
-}
-
-/**
  * unpack primitives and try to convert from other type:
  * 
  * - tries to get Int, Long, Double, Byte from String
@@ -143,54 +140,40 @@ trait StrictValuePacking extends BaseValuePacking {
 trait RecoveringValuePacking extends BaseValuePacking {
   import net.liftweb.util.BasicTypesHelpers.{AsInt,AsDouble,AsLong}
 
-  implicit val shortGetter = ValueReader[Short]({
-      case b: Byte => b.shortValue
-      case s: Short => s
+  implicit val shortRecoveringGetter = ValueReader[Short]({
       case i: Int => i.shortValue
       case l: Long => l.shortValue
     }) orElse stringGetter.andThen({ case AsInt(i) => i.shortValue })
 
-  implicit val intGetter = ValueReader[Int]({
-      case b: Byte => b.intValue
-      case s: Short => s.intValue
+  implicit val intRecoveringGetter = ValueReader[Int]({
       case i: Int => i
       case l: Long => l.intValue
     }) orElse stringGetter.andThen({ case AsInt(i) => i })
   
-  implicit val longGetter = ValueReader[Long]({
-      case b: Byte => b.longValue
-      case s: Short => s.longValue
+  implicit val longRecoveringGetter = ValueReader[Long]({
       case i: Int => i.longValue
       case l: Long => l
     }) orElse stringGetter.andThen({ case AsLong(l) => l })
   
-  implicit val byteGetter = ValueReader[Byte]({
-      case b: Byte => b
-      case s: Short => s.byteValue
+  implicit val byteRecoveringGetter = ValueReader[Byte]({
       case i: Int => i.byteValue
       case l: Long => l.byteValue
     }) orElse stringGetter.andThen({ case AsInt(i) => i.byteValue })
 
-  implicit val doubleGetter = ValueReader[Double]({
-      case b: Byte => b.doubleValue
-      case s: Short => s.doubleValue
+  implicit val doubleRecoveringGetter = ValueReader[Double]({
       case i: Int => i.doubleValue
       case l: Long => l.doubleValue
-      case f: Float => f.doubleValue
       case d: Double => d
     }) orElse stringGetter.andThen({ case AsDouble(d) => d })
-  implicit val floatGetter = ValueReader[Float]({
-      case b: Byte => b.floatValue
-      case s: Short => s.floatValue
+  implicit val floatRecoveringGetter = ValueReader[Float]({
       case i: Int => i.floatValue
       case l: Long => l.floatValue
-      case f: Float => f
       case d: Double => d.floatValue
     }) orElse stringGetter.andThen({ case AsDouble(d) => d.floatValue })
 
-  implicit val dateGetter = ValueReader[Date]({
+  implicit val dateRecoveringGetter = ValueReader[Date]({
       case d: Date => d
-      case i: Int => new Date(i.longValue*1000L)
+      case i: Int => new Date(i*1000L)
       case l: Long => new Date(l)
     })
 }

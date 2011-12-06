@@ -14,7 +14,7 @@ import BasicDBObjectBuilder.{start => dbo}
 @RunWith(classOf[JUnitRunner])
 class querySpec extends Spec with MustMatchers with MongoMatchers with Routines {
   import Implicits._
-  import RecoveringValuePacking._
+  import SmartValues._
   import QueryOperators._
   import Conditions._
 
@@ -56,8 +56,6 @@ class querySpec extends Spec with MustMatchers with MongoMatchers with Routines 
     it("has $in") {
       // FIXME: cannot compare arrays https://jira.mongodb.org/browse/JAVA-482
       // (i in List(1,2)).get must equal(query("i").in(Array(1,2)).get)
-      import Implicits._
-      import StrictValuePacking._
       import RichDBO._
 
       val dbo = (i in List(1,2)).get
@@ -72,8 +70,6 @@ class querySpec extends Spec with MustMatchers with MongoMatchers with Routines 
     it("has $all") {
       // FIXME: cannot compare arrays https://jira.mongodb.org/browse/JAVA-482
       //(i all List(1,2)).get must equal(query("i").all(Array(1,2)).get)
-      import Implicits._
-      import StrictValuePacking._
       import RichDBO._
 
       val dbo = (i all Array(1,2)).get
@@ -88,8 +84,6 @@ class querySpec extends Spec with MustMatchers with MongoMatchers with Routines 
     it("has $nin") {
       // FIXME: cannot compare arrays https://jira.mongodb.org/browse/JAVA-482
       //(i notIn List(1,2)).get must equal(query("i").notIn(Array(1,2)).get)
-      import Implicits._
-      import StrictValuePacking._
       import RichDBO._
 
       val dbo = (i notIn Iterable(1,2)).get
