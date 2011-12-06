@@ -136,6 +136,8 @@ trait ScalaTypesPacking {
  * - tries to get Int, Long, Double, Byte from String
  * - tries to get DateTime (java.util.Date) from Int (as a number of seconds from the epoch)
  *   or Long (as a number of milliseconds from the epoch)
+ *
+ * TODO: should it be in another project "subset-values" or simply rewrite As* extractors here?
  */
 trait RecoveringValuePacking extends BaseValuePacking {
   import net.liftweb.util.BasicTypesHelpers.{AsInt,AsDouble,AsLong}

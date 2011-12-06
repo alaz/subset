@@ -29,7 +29,14 @@ class Field[T](override val name: String)(implicit scope: Scope) extends Address
    * 
    * Field[Int] is of much help to produce [Int] queries (in $special, $maxKey, $minKey, sort, index, etc.)
    */
-  def i: Field[Int] = new Field[Int](name)(scope)
+  def int: Field[Int] = new Field[Int](name)(scope)
+
+  /**
+   * Get "Any" field
+   * 
+   * Field[Any] is of much help to insert custom objects or e.g. org.bson.types.{MaxKey, MinKey}
+   */
+  def any: Field[Any] = new Field[Any](name)(scope)
 
   // TODO: $elemMatch
 
