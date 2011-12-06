@@ -123,14 +123,31 @@ class querySpec extends Spec with MustMatchers with MongoMatchers with Routines 
     }
   }
   describe("query") {
+    import RichDBO._
+
     it("supports conjunction") {
-      pending
+      val dbo: DBObject = "i".fieldOf[Int] < 10 && "k".fieldOf[Int] > 4 && "m".fieldOf[Int] === 3
+      dbo must containKeyValue("m" -> 3)
+      dbo.read[DBObject]("i") must be('defined)
+      dbo.read[DBObject]("i").get must containKeyValue("$lt" -> 10)
+      dbo.read[DBObject]("k") must be('defined)
+      dbo.read[DBObject]("k").get must containKeyValue("$gt" -> 4)
     }
     it("supports $or") {
-      pending
+      val dbo: DBObject = "i".fieldOf[Int] === 10 || "k".fieldOf[Int] === 4 or "m".fieldOf[Int] === 7
+      val arr = dbo.read[Array[DBObject]]("$or")
+      arr must be('defined)
+      arr.get(0) must containKeyValue("i" -> 10)
+      arr.get(1) must containKeyValue("k" -> 4)
+      arr.get(2) must containKeyValue("m" -> 7)
     }
     it("supports $nor") {
-      pending
+      val dbo: DBObject = "i".fieldOf[Int] === 10 nor "k".fieldOf[Int] === 4 nor "m".fieldOf[Int] === 7
+      val arr = dbo.read[Array[DBObject]]("$nor")
+      arr must be('defined)
+      arr.get(0) must containKeyValue("i" -> 10)
+      arr.get(1) must containKeyValue("k" -> 4)
+      arr.get(2) must containKeyValue("m" -> 7)
     }
   }
 }

@@ -15,6 +15,10 @@ object Conditions {
   val WITHIN = "$within"
   val CENTER = "$center"
   val BOX    = "$box"
+  val OR     = "$or"
+  val NOR    = "$nor"
+  val WHERE  = "$where"
+  val AND    = "$and"
 }
 
 import Conditions._
@@ -41,6 +45,8 @@ trait Conditions[T] extends Address {
     aquery(WITHIN -> empty.write(CENTER, Array( Array(x, y), r)).get)
   def withinBox(x: Double, y: Double, x2: Double, y2: Double) =
     aquery(WITHIN -> empty.write(BOX, Array(Array(x,y), Array(x2,y2)) ).get)
+
+  // TODO: $where
 }
 
 trait FieldConditions[T] extends Conditions[T] {
@@ -55,10 +61,27 @@ trait FieldConditions[T] extends Conditions[T] {
 trait Query extends Serializer {
   def and(other: Query): Query = Query(this ~ other)
   def &&(other: Query): Query = and(other)
-  // TODO: $or
-  // TODO: $nor
+
+  def or(other: Query): Query = OrQuery(other :: this :: Nil)
+  def ||(other: Query) = or(other)
+
+  def nor(other: Query): Query = NorQuery(other :: this :: Nil)
 
   override def prefixString = "Query"
+}
+
+case class OrQuery(val queries: List[Query]) extends Query {
+  override def or(other: Query): Query = copy(queries = other :: queries)
+
+  override def write: DBObject => DBObject =
+    (dbo: DBObject) => dbo.write(OR, queries.reverse map{_.get} toArray)
+}
+
+case class NorQuery(val queries: List[Query]) extends Query {
+  override def nor(other: Query): Query = copy(queries = other :: queries)
+
+  override def write: DBObject => DBObject =
+    (dbo: DBObject) => dbo.write(NOR, queries.reverse map{_.get} toArray)
 }
 
 object Query {

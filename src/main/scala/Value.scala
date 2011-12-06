@@ -64,14 +64,18 @@ trait LowPriorityValuePacking {
 trait BaseValuePacking extends LowPriorityValuePacking {
   import java.util.regex.Pattern
   import util.matching.Regex
-  import org.bson.types.{Symbol => BsonSymbol}
+  import org.bson.types.{ObjectId, Symbol => BsonSymbol}
   import com.mongodb.DBObject
 
   implicit val symbolSetter = ValueWriter[Symbol](s => new BsonSymbol(s.name))
   implicit val regexSetter = ValueWriter[Regex](r => r.pattern)
 
-  implicit val dboGetter = ValueReader[DBObject]({ case dbo: DBObject => dbo})
-  implicit val stringGetter = ValueReader[String]({ case s: String => s})
+  implicit val dboGetter = ValueReader[DBObject]({ case dbo: DBObject => dbo })
+  implicit val stringGetter = ValueReader[String]({
+      case s: String => s
+      case s: BsonSymbol => s.getSymbol
+      case oid: ObjectId => oid.toString
+    })
   implicit val symbolGetter = ValueReader[Symbol]({
       case s: Symbol => s
       case s: BsonSymbol => Symbol(s.getSymbol)
