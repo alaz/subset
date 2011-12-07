@@ -72,7 +72,7 @@ trait BaseValuePacking extends LowPriorityValuePacking {
   implicit val symbolSetter = ValueWriter[Symbol](s => new BsonSymbol(s.name))
   implicit val regexSetter = ValueWriter[Regex](r => r.pattern)
 
-  implicit val booleanGetter = ValueReader[Boolean]({ case b: java.lang.Boolean => b.booleanValue })
+  implicit val booleanGetter = ValueReader[Boolean]({ case b: Boolean => b })
   implicit val intGetter = ValueReader[Int]({ case i: Int => i })
   implicit val longGetter = ValueReader[Long]({ case l: Long => l })
   implicit val doubleGetter = ValueReader[Double]({ case d: Double => d })
@@ -142,6 +142,11 @@ trait ScalaTypesPacking {
 trait RecoveringValuePacking extends BaseValuePacking {
   import net.liftweb.util.BasicTypesHelpers.{AsInt,AsDouble,AsLong}
 
+  implicit val booleanRecoveringGetter = ValueReader[Boolean]({
+      case b: Boolean => b
+      case i: Int => i != 0
+      case l: Long => l != 0
+    })
   implicit val shortRecoveringGetter = ValueReader[Short]({
       case i: Int => i.shortValue
       case l: Long => l.shortValue
