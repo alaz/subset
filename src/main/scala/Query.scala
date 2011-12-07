@@ -46,8 +46,6 @@ trait Conditions[T] extends Address {
     aquery(WITHIN -> empty.write(CENTER, Array( Array(x, y), r)).get)
   def withinBox(x: Double, y: Double, x2: Double, y2: Double) =
     aquery(WITHIN -> empty.write(BOX, Array(Array(x,y), Array(x2,y2)) ).get)
-
-  // TODO: $where
 }
 
 trait FieldConditions[T] extends Conditions[T] {
