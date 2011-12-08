@@ -24,4 +24,6 @@ object Serializer {
   private class DefaultSerializer(override val write: DBObject => DBObject) extends Serializer
 
   def apply(f: DBObject => DBObject): Serializer = new DefaultSerializer(f)
+
+  implicit val serializerWriter = ValueWriter[Serializer](_.get)
 }

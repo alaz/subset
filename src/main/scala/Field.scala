@@ -21,7 +21,7 @@ trait Address {
   def longName: String
 }
 
-class Field[T](override val name: String)(implicit scope: Scope) extends Address with FieldConditions[T] {
+class Field[T](override val name: String)(implicit scope: Scope) extends Address with FieldConditions[T] with Modifications[T] {
   override def longName: String = (name :: scope.names).reverse mkString "."
 
   /**

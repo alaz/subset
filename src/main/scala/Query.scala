@@ -7,8 +7,6 @@ import RichDBO._
 import Implicits._
 
 private[subset] object Conditions {
-  implicit def stringTupleSerializer[T : ValueWriter](t: (String, T)): Serializer = Serializer(_.write(t._1, t._2).get)
-
   val NOT    = "$not"
   val TYPE   = "$type"
   val WITHIN = "$within"

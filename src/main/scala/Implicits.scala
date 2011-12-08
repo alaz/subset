@@ -5,7 +5,7 @@ import RichDBO._
 
 object Implicits extends Implicits
 
-trait Implicits extends JodaTimePacking {
+trait Implicits {
   // default collection-level scope
   implicit val collectionScope: Scope = Scope.CollectionLevel
 
@@ -15,16 +15,16 @@ trait Implicits extends JodaTimePacking {
       def fieldOf[T](implicit scope: Scope): Field[T] = Field[T](name)(scope)
     }
 
+  // String Tuple
+  implicit def stringTupleSerializer[T : ValueWriter](t: (String, T)): Serializer = Serializer(_.write(t._1, t._2).get)
+
   // Field conversions
-  implicit def fieldTupleSerializer[T : ValueWriter](t: (Field[T], T)): Serializer = Serializer(_.write(t._1.name, t._2))
-  implicit def fieldToDBO[T : ValueWriter](t: (Field[T], T)): DBObject = serializerToDBO(fieldTupleSerializer(t))
+  implicit def fieldTupleSerializer[T : ValueWriter](t: (Field[T], T)): Serializer = Serializer(_.write(t._1.name, t._2).get)
+  implicit def fieldTupleDBO[T : ValueWriter](t: (Field[T], T)): DBObject = serializerToDbo( fieldTupleSerializer[T](t) )
 
   // Serializer
   implicit def dboToSerializer(f: DBObject => DBObject) = Serializer(f)
-  implicit def serializerToDBO(s: Serializer): DBObject = s.get
-
-  // Query
-  implicit def queryToDBO(q: Query): DBObject = q.get
+  implicit def serializerToDbo(s: Serializer): DBObject = s.get
 
   /**
    * Conjunction for use in pattern matching
