@@ -20,11 +20,14 @@ trait Implicits {
 
   // Field conversions
   implicit def fieldTupleSerializer[T : ValueWriter](t: (Field[T], T)): Serializer = Serializer(_.write(t._1.name, t._2).get)
-  implicit def fieldTupleDBO[T : ValueWriter](t: (Field[T], T)): DBObject = serializerToDbo( fieldTupleSerializer[T](t) )
+  implicit def fieldTupleDBO[T : ValueWriter](t: (Field[T], T)): DBObject = serializerToDBO( fieldTupleSerializer[T](t) )
 
   // Serializer
   implicit def dboToSerializer(f: DBObject => DBObject) = Serializer(f)
-  implicit def serializerToDbo(s: Serializer): DBObject = s.get
+  implicit def serializerToDBO(s: Serializer): DBObject = s.get
+
+  // Update
+  implicit def updateToDBO(u: Update): DBObject = u.get
 
   /**
    * Conjunction for use in pattern matching
