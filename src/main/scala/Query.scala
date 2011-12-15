@@ -22,7 +22,7 @@ private[subset] object Conditions {
 import QueryOperators._
 import Conditions._
 
-trait Conditions[T] extends Address {
+trait Conditions[T] extends Path {
   protected def aquery(condition: Serializer): AddressQuery[T]
 
   def exists(v: Boolean) = aquery(EXISTS -> v)
@@ -47,7 +47,7 @@ trait Conditions[T] extends Address {
 }
 
 trait FieldConditions[T] extends Conditions[T] {
-  override def aquery(condition: Serializer) = AddressQuery[T](name, longName, condition)
+  override def aquery(condition: Serializer) = AddressQuery[T](this, condition)
 
   def ===(x: T)(implicit writer: ValueWriter[T]) = Query(longName -> x)
   def ===(x: Option[T])(implicit writer: ValueWriter[T]): Query = x map {this ===} getOrElse exists(false)
@@ -102,7 +102,9 @@ object Query {
   def apply(f: Serializer): Query = DefaultImpl(f.write)
 }
 
-case class AddressQuery[T](override val name: String, override val longName: String, val condition: Serializer) extends Query with Conditions[T] {
+case class AddressQuery[T](val p: Path, val condition: Serializer) extends Query with Conditions[T] {
+  override def path: List[String] = p.path
+
   def not : Query = Query( (dbo: DBObject) => dbo.write(longName, empty.write(NOT, condition.write(empty)).get).get )
   def unary_! = not
 

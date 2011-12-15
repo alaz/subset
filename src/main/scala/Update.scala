@@ -20,8 +20,8 @@ private[subset] object Operations {
 
 import Operations._
 
-trait Modifications[T] extends Address {
-  private def op[B](op: String, x: B)(implicit writer: ValueWriter[B]) = Update(op -> ((name -> x): Serializer))
+trait Modifications[T] extends Path {
+  private def op[B](op: String, x: B)(implicit writer: ValueWriter[B]) = Update(op -> ((path.last -> x): Serializer))
 
   def set(x: T)(implicit writer: ValueWriter[T]) = op(SET, x)
   def inc(x: T)(implicit writer: ValueWriter[T]) = op(INC, x)

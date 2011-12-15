@@ -7,12 +7,12 @@ object Implicits extends Implicits
 
 trait Implicits {
   // default collection-level scope
-  implicit val collectionScope: Scope = Scope.CollectionLevel
+  implicit val topLevelPath: Path = Path.empty
 
   // String to Field
   implicit def stringToField(name: String) =
     new AnyRef {
-      def fieldOf[T](implicit scope: Scope): Field[T] = Field[T](name)(scope)
+      def fieldOf[T](implicit outer: Path): Field[T] = Field[T](name)(outer)
     }
 
   // String Tuple

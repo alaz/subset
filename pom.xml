@@ -3,7 +3,7 @@
   <modelVersion>4.0.0</modelVersion>
   <groupId>com.osinka</groupId>
   <artifactId>subset_2.8.2</artifactId>
-  <version>0.1.0-SNAPSHOT</version>
+  <version>0.2.0-SNAPSHOT</version>
   <packaging>bundle</packaging>
   <name>MongoDB Document serialization and query builder library</name>
   <inceptionYear>2011</inceptionYear>
