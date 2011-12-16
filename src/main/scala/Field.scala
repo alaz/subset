@@ -24,6 +24,11 @@ class Field[T](val name: String)(implicit outer: Path) extends Path with FieldCo
   def apply(x: T)(implicit setter: ValueWriter[T]): Serializer = Serializer.writer(name, x)
 
   def unapply(dbo: DBObject)(implicit getter: ValueReader[T]): Option[T] = Serializer.read[T](name, dbo)
+
+  override def equals(o: Any): Boolean =
+    PartialFunction.cond(o) { case other: Field[_] => super.equals(other) }
+
+  override def toString: String = "Field("+longName+")"
 }
 
 object Field {

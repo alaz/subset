@@ -1,5 +1,7 @@
 *~
+*.iml
 /target
 /project/target/
 /.ensime
 .DS_Store
+/.idea/

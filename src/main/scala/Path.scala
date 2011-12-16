@@ -8,6 +8,11 @@ trait Path {
   def relative(scope: Path) =
     if (path startsWith scope.path) Path(path.drop(scope.path.size))
     else this
+
+  override def equals(o: Any): Boolean =
+    PartialFunction.cond(o) { case other: Path => path == other.path }
+
+  override def hashCode: Int = path.hashCode
 }
 
 object Path {

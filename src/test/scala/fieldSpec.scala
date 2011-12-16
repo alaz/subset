@@ -14,6 +14,11 @@ class fieldSpec extends Spec with MustMatchers with MongoMatchers with Routines 
   import SmartValues._
 
   describe("Field") {
+    it("has proper basic Java methods") {
+      Field[Int]("i") must equal(Field[String]("i"))
+      Field[Int]("i").hashCode must equal(Field[String]("i").hashCode)
+      Field[Int]("i").toString must startWith("Field")
+    }
     it("serializes explicitly") {
       val f = Field[Int]("i")
       (f(10) : DBObject) must containKeyValue("i" -> 10)

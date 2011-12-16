@@ -117,24 +117,30 @@
         </configuration>
         <executions>
           <execution>
-            <phase>process-resources</phase>
+            <id>cmain</id>
             <goals>
               <goal>compile</goal>
             </goals>
+            <configuration>
+              <args>
+                <arg>-make:transitive</arg>
+                <arg>-dependencyfile</arg>
+                <arg>${project.build.directory}/.main_scala_dependencies</arg>
+              </args>
+            </configuration>
           </execution>
           <execution>
-            <id>compile</id>
-            <goals>
-              <goal>compile</goal>
-            </goals>
-            <phase>compile</phase>
-          </execution>
-          <execution>
-            <id>test-compile</id>
-            <phase>test-compile</phase>
+            <id>ctest</id>
             <goals>
               <goal>testCompile</goal>
             </goals>
+            <configuration>
+              <args>
+                <arg>-make:transitive</arg>
+                <arg>-dependencyfile</arg>
+                <arg>${project.build.directory}/.test_scala_dependencies</arg>
+              </args>
+            </configuration>
           </execution>
         </executions>
       </plugin>

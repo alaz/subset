@@ -12,7 +12,7 @@ trait Serializer {
   protected def prefixString: String = "Serializer"
 
   override def equals(o: Any): Boolean =
-    PartialFunction.cond(o) { case other: Serializer => other.get == get }
+    PartialFunction.cond(o) { case other: Serializer if prefixString == other.prefixString => other.get == get }
 
   override def hashCode: Int = get.hashCode
 
