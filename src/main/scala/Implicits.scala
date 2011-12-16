@@ -1,7 +1,6 @@
 package com.osinka.subset
 
 import com.mongodb.DBObject
-import RichDBO._
 
 object Implicits extends Implicits
 
@@ -16,10 +15,10 @@ trait Implicits {
     }
 
   // String Tuple
-  implicit def stringTupleSerializer[T : ValueWriter](t: (String, T)): Serializer = Serializer(_.write(t._1, t._2).get)
+  implicit def stringTupleSerializer[T : ValueWriter](t: (String, T)): Serializer = Serializer.writer(t._1, t._2)
 
   // Field conversions
-  implicit def fieldTupleSerializer[T : ValueWriter](t: (Field[T], T)): Serializer = Serializer(_.write(t._1.name, t._2).get)
+  implicit def fieldTupleSerializer[T : ValueWriter](t: (Field[T], T)): Serializer = Serializer.writer(t._1.name, t._2)
   implicit def fieldTupleDBO[T : ValueWriter](t: (Field[T], T)): DBObject = serializerToDBO( fieldTupleSerializer[T](t) )
 
   // Serializer

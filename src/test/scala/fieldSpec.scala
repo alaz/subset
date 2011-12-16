@@ -6,12 +6,12 @@ import org.junit.runner.RunWith
 import org.scalatest.junit.JUnitRunner
 
 import com.mongodb.{DBObject,BasicDBObjectBuilder}
+import BasicDBObjectBuilder.start
 
 @RunWith(classOf[JUnitRunner])
 class fieldSpec extends Spec with MustMatchers with MongoMatchers with Routines {
   import Implicits._
   import SmartValues._
-  import RichDBO._
 
   describe("Field") {
     it("serializes explicitly") {
@@ -34,14 +34,14 @@ class fieldSpec extends Spec with MustMatchers with MongoMatchers with Routines 
     }
     it("has extractor") {
       val F1 = "i".fieldOf[Int]
-      empty.write("i", 10).get match {
+      start("i", 10).get match {
         case F1(i) => i must equal(10)
         case _ => fail("must extract field value")
       }
     }
     it("has conjunction extractor") {
       val O = "i".fieldOf[Int] ~ "s".fieldOf[String]
-      empty.write("i", 10).write("s", "string").get match {
+      start("i", 10).append("s", "string").get match {
         case O(i, s) =>
           i must equal(10)
           s must equal("string")

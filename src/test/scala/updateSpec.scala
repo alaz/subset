@@ -6,7 +6,6 @@ import org.junit.runner.RunWith
 import org.scalatest.junit.JUnitRunner
 
 import com.mongodb.DBObject
-import RichDBO._
 
 @RunWith(classOf[JUnitRunner])
 class updateSpec extends Spec with MustMatchers with MongoMatchers with Routines {
@@ -22,7 +21,7 @@ class updateSpec extends Spec with MustMatchers with MongoMatchers with Routines
       u.toString must startWith("Update")
       u.get must containField("$set")
       
-      val dbo = u.get.read[DBObject]("$set")
+      val dbo = Serializer.read[DBObject]("$set", u.get)
       dbo must be('defined)
       dbo.get must containKeyValue("i" -> 10)
     }
@@ -31,7 +30,7 @@ class updateSpec extends Spec with MustMatchers with MongoMatchers with Routines
       u.toString must startWith("Update")
       u.get must containField("$set")
       
-      val dbo = u.get.read[DBObject]("$set")
+      val dbo = Serializer.read[DBObject]("$set", u.get)
       dbo must be('defined)
       dbo.get must (containKeyValue("i" -> 10) and containKeyValue("j" -> 3))
     }

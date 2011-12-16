@@ -1,8 +1,7 @@
 package com.osinka.subset
 
-import com.mongodb.DBObject
+import com.mongodb.{DBObject,BasicDBObjectBuilder}
 import Implicits._
-import RichDBO._
 
 private[subset] object Operations {
   val SET        = "$set"
@@ -49,7 +48,7 @@ object Update {
 
 case class Update(val ops: Map[String,Serializer]) {
   def get: DBObject =
-    (empty /: ops) {(dbo, kv) => dbo.write(kv._1, kv._2)} get
+    (BasicDBObjectBuilder.start /: ops) {(builder, kv) => builder.append(kv._1, kv._2.get)} get
 
   def ~(other: Update) = {
     def mergeMaps(ms: Map[String,Serializer]*)(f: (Serializer, Serializer) => Serializer) =

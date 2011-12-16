@@ -3,7 +3,6 @@ package com.osinka.subset
 import java.util.regex.Pattern
 import util.matching.Regex
 import com.mongodb.{DBObject, QueryOperators}
-import RichDBO._
 import Implicits._
 
 private[subset] object Conditions {
@@ -41,9 +40,9 @@ trait Conditions[T] extends Path {
   def near(x: Double, y: Double)(implicit writer: ValueWriter[Traversable[Double]]) = aquery(NEAR -> List(x, y))
   def near(x: Double, y: Double, d: Double)(implicit writer: ValueWriter[Traversable[Double]]) = aquery(NEAR -> List(x, y, d))
   def withinCenter(x: Double, y: Double, r: Double) =
-    aquery(WITHIN -> empty.write(CENTER, Array( Array(x, y), r)).get)
+    aquery(WITHIN -> Serializer.writer(CENTER, Array( Array(x, y), r)).get)
   def withinBox(x: Double, y: Double, x2: Double, y2: Double) =
-    aquery(WITHIN -> empty.write(BOX, Array(Array(x,y), Array(x2,y2)) ).get)
+    aquery(WITHIN -> Serializer.writer(BOX, Array(Array(x,y), Array(x2,y2)) ).get)
 }
 
 trait FieldConditions[T] extends Conditions[T] {
@@ -52,7 +51,7 @@ trait FieldConditions[T] extends Conditions[T] {
   def ===(x: T)(implicit writer: ValueWriter[T]) = Query(longName -> x)
   def ===(x: Option[T])(implicit writer: ValueWriter[T]): Query = x map {this ===} getOrElse exists(false)
   def ===(x: Regex)(implicit writer: ValueWriter[Regex]) = Query(longName -> x) // TODO: for String only
-  def ===(x: Pattern) = Query( (dbo: DBObject) => dbo.write(longName, x).get  ) // TODO: for String only
+  def ===(x: Pattern) = Query( Serializer.writer(longName, x)  ) // TODO: for String only
 }
 
 trait Query extends Serializer {
@@ -79,21 +78,21 @@ case class AndQuery(val queries: List[Query]) extends Query {
   override def and(other: Query): Query = copy(queries = other :: queries)
 
   override def write: DBObject => DBObject =
-    (dbo: DBObject) => dbo.write(AND, queries.reverse map{_.get} toArray)
+    Serializer.writer(AND, queries.reverse map{_.get} toArray) write
 }
 
 case class OrQuery(val queries: List[Query]) extends Query {
   override def or(other: Query): Query = copy(queries = other :: queries)
 
   override def write: DBObject => DBObject =
-    (dbo: DBObject) => dbo.write(OR, queries.reverse map{_.get} toArray)
+    Serializer.writer(OR, queries.reverse map{_.get} toArray) write
 }
 
 case class NorQuery(val queries: List[Query]) extends Query {
   override def nor(other: Query): Query = copy(queries = other :: queries)
 
   override def write: DBObject => DBObject =
-    (dbo: DBObject) => dbo.write(NOR, queries.reverse map{_.get} toArray)
+    Serializer.writer(NOR, queries.reverse map{_.get} toArray) write
 }
 
 object Query {
@@ -105,13 +104,13 @@ object Query {
 case class AddressQuery[T](val p: Path, val condition: Serializer) extends Query with Conditions[T] {
   override def path: List[String] = p.path
 
-  def not : Query = Query( (dbo: DBObject) => dbo.write(longName, empty.write(NOT, condition.write(empty)).get).get )
+  def not : Query = Query( Serializer.writer(longName, Serializer.writer(NOT, condition.get).get) )
   def unary_! = not
 
   override def aquery(cond: Serializer) = copy(condition = condition ~ cond)
 
   override def write: DBObject => DBObject =
-    (dbo: DBObject) => dbo.write(longName, condition.write(empty))
+    Serializer.writer(longName, condition.get) write
 
   override def prefixString = "AddressQuery"
 }

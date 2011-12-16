@@ -42,8 +42,6 @@ class tupleSpec extends Spec with MustMatchers with MongoMatchers with Routines 
   }
 
   describe("Tuple serializer") {
-    import RichDBO._
-
     it("serializes Tuple2") {
       val T2 = "i".fieldOf[Int] ~ "s".fieldOf[String]
       val dbo: DBObject = T2(10 -> "str")

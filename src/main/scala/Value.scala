@@ -98,8 +98,6 @@ trait BaseValuePacking extends LowPriorityValuePacking {
  * Getters and setters for complex Scala types, e.g. Traversable, Option, etc.
  */
 trait ScalaTypesPacking {
-  import RichDBO._
-
   implicit def optionGetter[T](implicit r: ValueReader[T]) =
     new ValueReader[Option[T]] {
       override def unpack(o: Any): Option[Option[T]] = Some(r.unpack(o))
@@ -125,7 +123,7 @@ trait ScalaTypesPacking {
   implicit def tupleSetter[T](implicit w: ValueWriter[T]) =
     new ValueWriter[Tuple2[String,T]] {
       override def pack(x: Tuple2[String,T]): Option[Any] =
-        w.pack(x._2) map { empty.write(x._1, _)(ValueWriter.defaultWriter[Any]).get }
+        w.pack(x._2) map { Serializer.writer(x._1, _)(ValueWriter.defaultWriter[Any]).get }
     }
   // TODO: ValueWriter[Either[_,T]]
 }
