@@ -1,9 +1,9 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <project xmlns="http://maven.apache.org/POM/4.0.0" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/maven-v4_0_0.xsd">
   <modelVersion>4.0.0</modelVersion>
-  <groupId>com.osinka</groupId>
+  <groupId>com.osinka.subset</groupId>
   <artifactId>subset_2.8.2</artifactId>
-  <version>0.1.0-SNAPSHOT</version>
+  <version>0.2.0-SNAPSHOT</version>
   <packaging>bundle</packaging>
   <name>MongoDB Document serialization and query builder library</name>
   <inceptionYear>2011</inceptionYear>
@@ -117,24 +117,30 @@
         </configuration>
         <executions>
           <execution>
-            <phase>process-resources</phase>
+            <id>cmain</id>
             <goals>
               <goal>compile</goal>
             </goals>
+            <configuration>
+              <args>
+                <arg>-make:transitive</arg>
+                <arg>-dependencyfile</arg>
+                <arg>${project.build.directory}/.main_scala_dependencies</arg>
+              </args>
+            </configuration>
           </execution>
           <execution>
-            <id>compile</id>
-            <goals>
-              <goal>compile</goal>
-            </goals>
-            <phase>compile</phase>
-          </execution>
-          <execution>
-            <id>test-compile</id>
-            <phase>test-compile</phase>
+            <id>ctest</id>
             <goals>
               <goal>testCompile</goal>
             </goals>
+            <configuration>
+              <args>
+                <arg>-make:transitive</arg>
+                <arg>-dependencyfile</arg>
+                <arg>${project.build.directory}/.test_scala_dependencies</arg>
+              </args>
+            </configuration>
           </execution>
         </executions>
       </plugin>

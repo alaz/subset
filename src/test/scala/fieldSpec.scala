@@ -6,14 +6,19 @@ import org.junit.runner.RunWith
 import org.scalatest.junit.JUnitRunner
 
 import com.mongodb.{DBObject,BasicDBObjectBuilder}
+import BasicDBObjectBuilder.start
 
 @RunWith(classOf[JUnitRunner])
 class fieldSpec extends Spec with MustMatchers with MongoMatchers with Routines {
   import Implicits._
   import SmartValues._
-  import RichDBO._
 
   describe("Field") {
+    it("has proper basic Java methods") {
+      Field[Int]("i") must equal(Field[String]("i"))
+      Field[Int]("i").hashCode must equal(Field[String]("i").hashCode)
+      Field[Int]("i").toString must startWith("Field")
+    }
     it("serializes explicitly") {
       val f = Field[Int]("i")
       (f(10) : DBObject) must containKeyValue("i" -> 10)
@@ -34,14 +39,25 @@ class fieldSpec extends Spec with MustMatchers with MongoMatchers with Routines 
     }
     it("has extractor") {
       val F1 = "i".fieldOf[Int]
-      empty.write("i", 10).get match {
+      start("i", 10).get match {
         case F1(i) => i must equal(10)
         case _ => fail("must extract field value")
       }
     }
     it("has conjunction extractor") {
+      val I = "i".fieldOf[Int]
+      val S = "s".fieldOf[String]
+      start("i", 10).append("s", "string").get match {
+        case I(i) ~ S(s) =>
+          i must equal(10)
+          s must equal("string")
+        case _ =>
+          fail("must extract field value")
+      }
+    }
+    it("has tuple extractor") {
       val O = "i".fieldOf[Int] ~ "s".fieldOf[String]
-      empty.write("i", 10).write("s", "string").get match {
+      start("i", 10).append("s", "string").get match {
         case O(i, s) =>
           i must equal(10)
           s must equal("string")
