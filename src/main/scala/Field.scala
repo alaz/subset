@@ -1,6 +1,7 @@
 package com.osinka.subset
 
 import com.mongodb.DBObject
+import Lens._
 
 class Field[T](val name: String)(implicit outer: Path) extends Path with FieldConditions[T] with Modifications[T] {
   override val path: List[String] = outer.path :+ name
@@ -21,9 +22,9 @@ class Field[T](val name: String)(implicit outer: Path) extends Path with FieldCo
 
   def ~[T2](f2: Field[T2]) = new Tuple2Subset[T,T2](this.name, f2.name)
 
-  def apply(x: T)(implicit setter: ValueWriter[T]): Serializer = Serializer.writer(name, x)
+  def apply(x: T)(implicit setter: ValueWriter[T]): Lens = writer(name, x)
 
-  def unapply(dbo: DBObject)(implicit getter: ValueReader[T]): Option[T] = Serializer.read[T](name, dbo)
+  def unapply(dbo: DBObject)(implicit getter: ValueReader[T]): Option[T] = read[T](name, dbo)
 
   override def equals(o: Any): Boolean =
     PartialFunction.cond(o) { case other: Field[_] => super.equals(other) }

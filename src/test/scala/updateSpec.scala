@@ -11,7 +11,6 @@ import com.mongodb.DBObject
 class updateSpec extends Spec with MustMatchers with MongoMatchers with Routines {
   import Implicits._
   import SmartValues._
-  import Conditions._
 
   describe("Modification operations") {
     val i = "i".fieldOf[Int]
@@ -19,18 +18,16 @@ class updateSpec extends Spec with MustMatchers with MongoMatchers with Routines
     it("have $set") {
       val u = i.set(10)
       u.toString must startWith("Update")
-      u.get must containField("$set")
-      
-      val dbo = Serializer.read[DBObject]("$set", u.get)
+
+      val dbo = Lens.read[DBObject]("$set", u : DBObject)
       dbo must be('defined)
       dbo.get must containKeyValue("i" -> 10)
     }
     it("combine") {
       val u = i.set(10) ~ j.set(3)
       u.toString must startWith("Update")
-      u.get must containField("$set")
-      
-      val dbo = Serializer.read[DBObject]("$set", u.get)
+
+      val dbo = Lens.read[DBObject]("$set", u : DBObject)
       dbo must be('defined)
       dbo.get must (containKeyValue("i" -> 10) and containKeyValue("j" -> 3))
     }

@@ -5,10 +5,15 @@ trait Path {
 
   def longName = path mkString "."
 
-  def relative(scope: Path) =
+  def relativeTo(scope: Path) =
     if (path startsWith scope.path) Path(path.drop(scope.path.size))
     else this
 
+  def positionIn(scope: Path) =
+    if (scope.path.isEmpty) this
+    else if (path startsWith scope.path) Path(scope.path ::: "$" :: path.drop(scope.path.size))
+    else this
+    
   override def equals(o: Any): Boolean =
     PartialFunction.cond(o) { case other: Path => path == other.path }
 

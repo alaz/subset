@@ -16,7 +16,6 @@ class querySpec extends Spec with MustMatchers with MongoMatchers with Routines 
   import Implicits._
   import SmartValues._
   import QueryOperators._
-  import Conditions._
 
   describe("Field query") {
     val i = "i".fieldOf[Int]
@@ -51,7 +50,7 @@ class querySpec extends Spec with MustMatchers with MongoMatchers with Routines 
       (i size 10).get must equal(query("i").size(10).get)
     }
     it("has $type") {
-      (i `type` BSON.NUMBER).get must equal(dbo.push("i").add(TYPE, BSON.NUMBER).get)
+      (i `type` BSON.NUMBER).get must equal(dbo.push("i").add("$type", BSON.NUMBER).get)
     }
     it("has $in") {
       // FIXME: cannot compare arrays https://jira.mongodb.org/browse/JAVA-482
@@ -59,10 +58,10 @@ class querySpec extends Spec with MustMatchers with MongoMatchers with Routines 
 
       val dbo = (i in List(1,2)).get
 
-      val in = Serializer.read[DBObject]("i", dbo)
+      val in = Lens.read[DBObject]("i", dbo)
       in must be('defined)
 
-      val arr = Serializer.read[Array[Int]](IN, in.get)
+      val arr = Lens.read[Array[Int]]("$in", in.get)
       arr must be ('defined)
       arr.get must equal(Array(1,2))
     }
@@ -72,10 +71,10 @@ class querySpec extends Spec with MustMatchers with MongoMatchers with Routines 
 
       val dbo = (i all Array(1,2)).get
 
-      val in = Serializer.read[DBObject]("i", dbo)
+      val in = Lens.read[DBObject]("i", dbo)
       in must be('defined)
 
-      val arr = Serializer.read[Array[Int]](ALL, in.get)
+      val arr = Lens.read[Array[Int]]("$all", in.get)
       arr must be ('defined)
       arr.get must equal(Array(1,2))
     }
@@ -85,10 +84,10 @@ class querySpec extends Spec with MustMatchers with MongoMatchers with Routines 
 
       val dbo = (i notIn Iterable(1,2)).get
 
-      val in = Serializer.read[DBObject]("i", dbo)
+      val in = Lens.read[DBObject]("i", dbo)
       in must be('defined)
 
-      val arr = Serializer.read[Array[Int]](NIN, in.get)
+      val arr = Lens.read[Array[Int]]("$nin", in.get)
       arr must be ('defined)
       arr.get must equal(Array(1,2))
     }
@@ -108,7 +107,7 @@ class querySpec extends Spec with MustMatchers with MongoMatchers with Routines 
     it("has $not") {
       val q = !(i < 10)
       q.toString must startWith("Query")
-      q.get must equal(dbo.push("i").push(NOT).add(LT, 10).get)
+      q.get must equal(dbo.push("i").push("$not").add("$lt", 10).get)
     }
     it("accumulates") {
       (i < 10 > 5).get must equal(query("i").lessThan(10).greaterThan(5).get)
@@ -123,14 +122,14 @@ class querySpec extends Spec with MustMatchers with MongoMatchers with Routines 
     it("supports conjunction w/o $and") {
       val dbo: DBObject = i < 10 && k > 4 && m === 3
       dbo must containKeyValue("m" -> 3)
-      Serializer.read[DBObject]("i", dbo) must be('defined)
-      Serializer.read[DBObject]("i", dbo).get must containKeyValue(LT -> 10)
-      Serializer.read[DBObject]("k", dbo) must be('defined)
-      Serializer.read[DBObject]("k", dbo).get must containKeyValue(GT -> 4)
+      Lens.read[DBObject]("i", dbo) must be('defined)
+      Lens.read[DBObject]("i", dbo).get must containKeyValue(LT -> 10)
+      Lens.read[DBObject]("k", dbo) must be('defined)
+      Lens.read[DBObject]("k", dbo).get must containKeyValue(GT -> 4)
     }
     it("supports conjunction w/ $and, in one order") {
       val dbo: DBObject = i === 4 && i > 5 && k === 5
-      val arr = Serializer.read[Array[DBObject]](AND, dbo)
+      val arr = Lens.read[Array[DBObject]]("$and", dbo)
       arr must be('defined)
       arr.get.size must equal(3)
       arr.get(0) must containKeyValue("i" -> 4)
@@ -139,7 +138,7 @@ class querySpec extends Spec with MustMatchers with MongoMatchers with Routines 
     }
     it("supports conjunction w/ $and, in another order") {
       val dbo: DBObject = i === 4 && k === 5 && i > 5
-      val arr = Serializer.read[Array[DBObject]](AND, dbo)
+      val arr = Lens.read[Array[DBObject]]("$and", dbo)
       arr must be('defined)
       arr.get.size must equal(2)
       arr.get(0) must (containKeyValue("i" -> 4) and containKeyValue("k" -> 5))
@@ -147,7 +146,7 @@ class querySpec extends Spec with MustMatchers with MongoMatchers with Routines 
     }
     it("supports $or") {
       val dbo: DBObject = i === 10 || k === 4 or m === 7
-      val arr = Serializer.read[Array[DBObject]](OR, dbo)
+      val arr = Lens.read[Array[DBObject]]("$or", dbo)
       arr must be('defined)
       arr.get.size must equal(3)
       arr.get(0) must containKeyValue("i" -> 10)
@@ -156,7 +155,7 @@ class querySpec extends Spec with MustMatchers with MongoMatchers with Routines 
     }
     it("supports $nor") {
       val dbo: DBObject = i === 10 nor k === 4 nor m === 7
-      val arr = Serializer.read[Array[DBObject]](NOR, dbo)
+      val arr = Lens.read[Array[DBObject]]("$nor", dbo)
       arr must be('defined)
       arr.get.size must equal(3)
       arr.get(0) must containKeyValue("i" -> 10)

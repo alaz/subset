@@ -1,58 +1,43 @@
 package com.osinka.subset
 
-import com.mongodb.{DBObject,BasicDBObjectBuilder}
 import Implicits._
-
-private[subset] object Operations {
-  val SET        = "$set"
-  val UNSET      = "$unset"
-  val INC        = "$inc"
-  val PUSH       = "$push"
-  val PUSH_ALL   = "$pushAll"
-  val ADD_TO_SET = "$addToSet"
-  val POP        = "$pop"
-  val PULL       = "$pull"
-  val PULL_ALL   = "$pullAll"
-  val RENAME     = "$rename"
-  val BIT        = "$bit"
-}
-
-import Operations._
+import Lens._
+import QueryLens._
 
 trait Modifications[T] extends Path {
-  private def op[B](op: String, x: B)(implicit writer: ValueWriter[B]) = Update(op -> ((path.last -> x): Serializer))
+  private def op[B](op: String, x: B)(implicit writer: ValueWriter[B]) =
+    Update(op -> positional(this, x))
 
-  def set(x: T)(implicit writer: ValueWriter[T]) = op(SET, x)
-  def inc(x: T)(implicit writer: ValueWriter[T]) = op(INC, x)
-  def unset(x: T)(implicit writer: ValueWriter[Int]) = op(UNSET, 1)
-  def push(x: T)(implicit writer: ValueWriter[T]) = op(PUSH, x)
+  def set(x: T)(implicit writer: ValueWriter[T]) = op("$set", x)
+  def inc(x: T)(implicit writer: ValueWriter[T]) = op("$inc", x)
+  def unset(x: T)(implicit writer: ValueWriter[Int]) = op("$unset", 1)
+  def push(x: T)(implicit writer: ValueWriter[T]) = op("$push", x)
   def push(seq: Traversable[T])(implicit writer: ValueWriter[Traversable[T]]): Update = pushAll(seq)
-  def pushAll(seq: Traversable[T])(implicit writer: ValueWriter[Traversable[T]]) = op(PUSH_ALL, seq)
-  def addToSet(x: T)(implicit writer: ValueWriter[T]) = op(ADD_TO_SET, x)
-  def addToSet(seq: Traversable[T])(implicit writer: ValueWriter[Traversable[T]]) = op(ADD_TO_SET, "$each" -> seq)
-  def pop(i: Int)(implicit writer: ValueWriter[Int]) = op(POP, i)
-  def pull(x: T)(implicit writer: ValueWriter[T]) = op(PULL, x)
-  def pull(q: Query) = op(PULL, q)
+  def pushAll(seq: Traversable[T])(implicit writer: ValueWriter[Traversable[T]]) = op("$pushAll", seq)
+  def addToSet(x: T)(implicit writer: ValueWriter[T]) = op("$addToSet", x)
+  def addToSet(seq: Traversable[T])(implicit w: ValueWriter[Traversable[T]]) = op("$addToSet", writer("$each", seq))
+  def pop(i: Int)(implicit writer: ValueWriter[Int]) = op("$pop", i)
+  def pull(x: T)(implicit writer: ValueWriter[T]) = op("$pull", x)
+  def pull(q: Query) = op("$pull", q)
   def pull(seq: Traversable[T])(implicit writer: ValueWriter[Traversable[T]]): Update = pullAll(seq)
-  def pullAll(seq: Traversable[T])(implicit writer: ValueWriter[Traversable[T]]) = op(PULL_ALL, seq)
-  def rename(newName: String)(implicit writer: ValueWriter[String]) = op(RENAME, newName)
+  def pullAll(seq: Traversable[T])(implicit writer: ValueWriter[Traversable[T]]) = op("$pullAll", seq)
+  def rename(newName: String)(implicit writer: ValueWriter[String]) = op("$rename", newName)
   // TOOD: $bit
-  // TODO: positional $
 }
 
 object Update {
-  def apply(t: (String, Serializer)) = new Update(Map(t))
+  def apply(t: (String, QueryLens)) = new Update(Map(t))
 
-  implicit val updateWriter = ValueWriter[Update](_.get)
+  implicit def updateWriter(implicit scope: Path) = ValueWriter[Update](_.get(scope).get)
 }
 
-case class Update(val ops: Map[String,Serializer]) {
-  def get: DBObject =
-    (BasicDBObjectBuilder.start /: ops) {(builder, kv) => builder.append(kv._1, kv._2.get)} get
+case class Update(ops: Map[String,QueryLens]) {
+  def get(implicit scope: Path): Lens =
+    ops map {t => writer(t._1, t._2(scope))} reduceLeft {_ ~ _}
 
   def ~(other: Update) = {
-    def mergeMaps(ms: Map[String,Serializer]*)(f: (Serializer, Serializer) => Serializer) =
-      (Map[String,Serializer]() /: ms.flatten) { (m, kv) =>
+    def mergeMaps(ms: Map[String,QueryLens]*)(f: (QueryLens, QueryLens) => QueryLens) =
+      (Map[String,QueryLens]() /: ms.flatten) { (m, kv) =>
         m + (if (m contains kv._1) kv._1 -> f(m(kv._1), kv._2)
              else kv)
       }
