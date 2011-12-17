@@ -46,7 +46,7 @@ trait FieldConditions[T] extends Conditions[T] {
 trait Query extends Lens {
   def queryLens: QueryLens
 
-  override def apply(dbo: DBObject): DBObject = queryLens(topLevelScope)(dbo)
+  override def apply(dbo: DBObject): DBObject = queryLens(Path.empty)(dbo)
 
   def &&(other: Query): Query = and(other)
   def and(other: Query): Query = {

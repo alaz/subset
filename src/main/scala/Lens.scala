@@ -24,17 +24,17 @@ object Lens {
       def apply(dbo: DBObject): DBObject = f(dbo)
     }
 
+  implicit def fToLens(f: DBObject => DBObject): Lens = apply(f)
+  implicit def lensWriter: ValueWriter[Lens] = ValueWriter[Lens](_.get)
+
   def read[T](key: String, dbo: DBObject)(implicit reader: ValueReader[T]): Option[T] =
     Option(dbo.get(key)) flatMap {reader.unpack(_)}
 
   def writer[T](key: String, x: T)(implicit w: ValueWriter[T]): Lens =
-    apply( (dbo: DBObject) => {
+    (dbo: DBObject) => {
         w.pack(x) foreach {dbo.put(key, _)}
         dbo
-      } )
-
-  implicit def fToLens(f: DBObject => DBObject): Lens = apply(f)
-  implicit def lensWriter: ValueWriter[Lens] = ValueWriter[Lens](_.get)
+      }
 }
 
 import Lens._

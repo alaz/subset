@@ -3,7 +3,7 @@ package com.osinka.subset
 import com.mongodb.DBObject
 import Lens._
 
-class Field[T](val name: String)(implicit outer: Path) extends Path with FieldConditions[T] with Modifications[T] {
+class Field[T](val name: String)(implicit outer: Path = Path.empty) extends Path with FieldConditions[T] with Modifications[T] {
   override val path: List[String] = outer.path :+ name
 
   /**
@@ -11,14 +11,21 @@ class Field[T](val name: String)(implicit outer: Path) extends Path with FieldCo
    * 
    * Field[Int] is of much help to produce [Int] queries (in $special, $maxKey, $minKey, sort, index, etc.)
    */
-  def int: Field[Int] = new Field[Int](name)
+  def int: Field[Int] = new Field[Int](name)(outer)
 
   /**
    * Get "Any" field
    * 
    * Field[Any] is of much help to insert custom objects or e.g. org.bson.types.{MaxKey, MinKey}
    */
-  def any: Field[Any] = new Field[Any](name)
+  def any: Field[Any] = new Field[Any](name)(outer)
+
+  /**
+   * Creates a positional field to update the first matched element in an array
+   * 
+   * http://www.mongodb.org/display/DOCS/Updating#Updating-The%24positionaloperator
+   */
+  def first: Field[T] = new Field[T]("$")(Path(path))
 
   def ~[T2](f2: Field[T2]) = new Tuple2Subset[T,T2](this.name, f2.name)
 
@@ -29,9 +36,9 @@ class Field[T](val name: String)(implicit outer: Path) extends Path with FieldCo
   override def equals(o: Any): Boolean =
     PartialFunction.cond(o) { case other: Field[_] => super.equals(other) }
 
-  override def toString: String = "Field("+longName+")"
+  override def toString: String = "Field "+longName
 }
 
 object Field {
-  def apply[T](name: String)(implicit outer: Path): Field[T] = new Field[T](name)
+  def apply[T](name: String)(implicit outer: Path = Path.empty): Field[T] = new Field[T](name)
 }

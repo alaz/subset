@@ -7,7 +7,7 @@ import org.scalatest.junit.JUnitRunner
 
 import java.util.regex.Pattern
 import org.bson.BSON
-import com.mongodb.{DBObject,BasicDBObjectBuilder,QueryBuilder,QueryOperators}
+import com.mongodb.{DBObject,BasicDBObjectBuilder,QueryBuilder}
 import QueryBuilder.{start => query}
 import BasicDBObjectBuilder.{start => dbo}
 
@@ -15,7 +15,6 @@ import BasicDBObjectBuilder.{start => dbo}
 class querySpec extends Spec with MustMatchers with MongoMatchers with Routines {
   import Implicits._
   import SmartValues._
-  import QueryOperators._
 
   describe("Field query") {
     val i = "i".fieldOf[Int]
@@ -123,9 +122,9 @@ class querySpec extends Spec with MustMatchers with MongoMatchers with Routines 
       val dbo: DBObject = i < 10 && k > 4 && m === 3
       dbo must containKeyValue("m" -> 3)
       Lens.read[DBObject]("i", dbo) must be('defined)
-      Lens.read[DBObject]("i", dbo).get must containKeyValue(LT -> 10)
+      Lens.read[DBObject]("i", dbo).get must containKeyValue("$lt" -> 10)
       Lens.read[DBObject]("k", dbo) must be('defined)
-      Lens.read[DBObject]("k", dbo).get must containKeyValue(GT -> 4)
+      Lens.read[DBObject]("k", dbo).get must containKeyValue("$gt" -> 4)
     }
     it("supports conjunction w/ $and, in one order") {
       val dbo: DBObject = i === 4 && i > 5 && k === 5
@@ -161,6 +160,27 @@ class querySpec extends Spec with MustMatchers with MongoMatchers with Routines 
       arr.get(0) must containKeyValue("i" -> 10)
       arr.get(1) must containKeyValue("k" -> 4)
       arr.get(2) must containKeyValue("m" -> 7)
+    }
+  }
+  describe("Subset query") {
+    object Doc extends Subset("doc") {
+      val f = "f".fieldOf[Int]
+
+      object Sub extends Subset("sub") {
+        val f = Field[Int]("f")
+      }
+    }
+
+    it("writes long names") {
+      (Doc.f === 10).get must equal(dbo("doc.f", 10).get)
+      (Doc.Sub.f === 10).get must equal(dbo("doc.sub.f", 10).get)
+    }
+    it("supports conjunction") {
+      (Doc.f === 10 && Doc.Sub.f === 3).get must equal(dbo("doc.f", 10).append("doc.sub.f", 3).get)
+    }
+    it("supports $elemMatch") {
+      Doc.elemMatch(doc => doc.f === 10).get must equal(dbo.push("doc").push("$elemMatch").append("f", 10).get)
+      Doc.Sub.elemMatch(doc => doc.f === 3).get must equal(dbo.push("doc.sub").push("$elemMatch").append("f", 3).get)
     }
   }
 }

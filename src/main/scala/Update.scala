@@ -53,5 +53,5 @@ case class Update(ops: Map[String,QueryLens]) {
 
   override def hashCode: Int = ops.hashCode
 
-  override def toString = "Update"+get
+  override def toString = "Update"+get(Path.empty)
 }

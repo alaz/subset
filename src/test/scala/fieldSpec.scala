@@ -45,6 +45,17 @@ class fieldSpec extends Spec with MustMatchers with MongoMatchers with Routines 
       }
     }
     it("has conjunction extractor") {
+      val I = "i".fieldOf[Int]
+      val S = "s".fieldOf[String]
+      start("i", 10).append("s", "string").get match {
+        case I(i) ~ S(s) =>
+          i must equal(10)
+          s must equal("string")
+        case _ =>
+          fail("must extract field value")
+      }
+    }
+    it("has tuple extractor") {
       val O = "i".fieldOf[Int] ~ "s".fieldOf[String]
       start("i", 10).append("s", "string").get match {
         case O(i, s) =>

@@ -1,4 +1,4 @@
-organization := "com.osinka"
+organization := "com.osinka.subset"
 
 name := "subset"
 
