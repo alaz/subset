@@ -168,10 +168,12 @@
           <failIfMissing>true</failIfMissing>
           <excludes>
             <exclude>.git/**</exclude>
+            <exclude>.idea/**</exclude>
             <exclude>.manager/**</exclude>
             <exclude>*.gitignore</exclude>
             <exclude>src/main/license/*.txt</exclude>
             <exclude>*.xml</exclude>
+            <exclude>*.sbt</exclude>
             <exclude>*.textile</exclude>
             <exclude>project/**</exclude>
             <exclude>.ensime</exclude>
