@@ -15,17 +15,26 @@
  */
 package com.osinka.subset
 
-/** A field's path
-  *
-  * MongoDB field paths are separated by dot. They can be relative to some enclosing
-  * document. Or they can include a positional segment (dollar sign)
+/** == A path ==
+  * MongoDB field/subdocument paths are separated by dot.
+  * 
+  * It is possible to say a path is relative to the enclosing path if they share the same prefix.
+  * `relativeTo` methods returns a suffix:
+  * {{{ 
+  * Path("sub" :: "f" :: Nil).relativeTo(Path("sub" :: Nil)) must equal(Path("f" :: Nil))
+  * }}}
+  * 
+  * Paths can include a positional segment (dollar sign). `positionIn` method builds a ''positional'' path:
+  * {{{
+  * Path("sub" :: "f" :: Nil).positionIn(Path("sub" :: Nil)) must equal(Path("sub" :: "$" :: "f" :: Nil))
+  * }}}
   *
   * @see [[http://www.mongodb.org/display/DOCS/Dot+Notation+%28Reaching+into+Objects%29 MongoDB dot notation]]
   */
 trait Path {
   def path: List[String]
 
-  /** dotNotation
+  /** Path in dot notation
     * @see [[http://www.mongodb.org/display/DOCS/Dot+Notation+%28Reaching+into+Objects%29 MongoDB dot notation]]
     */
   def longName = path mkString "."
@@ -50,6 +59,8 @@ trait Path {
 object Path {
   private class DefaultPath(override val path: List[String]) extends Path
 
+  /** Empty [[com.osinka.subset.Path]]
+    */
   val empty: Path = new DefaultPath(Nil)
 
   def apply(l: List[String]): Path = new DefaultPath(l)

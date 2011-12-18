@@ -21,7 +21,7 @@ import com.mongodb.{DBObject,BasicDBObjectBuilder}
   * 
   * === Using Lens in subset ===
   * Most ''subset'' classes are subtypes of `Lens`, so that it becomes possible to
-  * compose them and apply to already existing `DBObject` values:
+  * compose them and apply to already existing `DBObject` values.
   * 
   * === Example ===
   * Basically the lens is just a function taking one `DBObject` and returning another.
@@ -38,8 +38,14 @@ import com.mongodb.{DBObject,BasicDBObjectBuilder}
   * }}}
   */
 trait Lens extends (DBObject => DBObject) {
+  /** Applies this lens to an empty `DBObject`
+    * @return `DBObject`
+    */
   def get: DBObject = apply(BasicDBObjectBuilder.start.get)
 
+  /** Compose two lenses.
+    * @return a composition of lenses
+    */
   def ~ (other: Lens): Lens = Lens(this andThen other)
 
   def prefixString = "Lens"
@@ -52,6 +58,9 @@ trait Lens extends (DBObject => DBObject) {
   override def hashCode: Int = get.hashCode
 }
 
+/** Provides a factory method to create lenses from `DBObject => DBObject` functions and a couple
+  * convenience methods.
+  */
 object Lens {
   // Factory object
   def apply(f: DBObject => DBObject): Lens =
@@ -62,9 +71,21 @@ object Lens {
   implicit def fToLens(f: DBObject => DBObject): Lens = apply(f)
   implicit def lensWriter: ValueWriter[Lens] = ValueWriter[Lens](_.get)
 
+  /** Reads a value from `DBObject` by key.
+    *
+    * This method makes use of [[com.osinka.subset.ValueReader]] implicit to unpack the object correctly.
+    * 
+    * @see [[com.osinka.subset.ValueReader]]
+    */
   def read[T](key: String, dbo: DBObject)(implicit reader: ValueReader[T]): Option[T] =
     Option(dbo.get(key)) flatMap {reader.unpack(_)}
 
+  /** Creates a lens that writes a typed key-value.
+    * 
+    * Makes use of [[com.osinka.subset.ValueWriter]] implicit.
+    * 
+    * @see [[com.osinka.subset.ValueWriter]]
+    */
   def writer[T](key: String, x: T)(implicit w: ValueWriter[T]): Lens =
     (dbo: DBObject) => {
         w.pack(x) foreach {dbo.put(key, _)}

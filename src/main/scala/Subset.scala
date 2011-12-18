@@ -22,6 +22,13 @@ import update._
 import Lens._
 import QueryLens._
 
+/** == Subset ==
+  * Subset is a sub-document builder. It
+  * 
+  *  - encloses fields, so that they have correct path in a `DBObject`.
+  *  - lets serialize/deserialize subdocuments to/from `DBObject`
+  *  - participates in [[com.osinka.subset.query.Query]] and [[com.osinka.subset.update.Update]] creation
+  */
 abstract class Subset(val name: String)(implicit outer: Path = Path.empty) extends Path {
   override val path: List[String] = outer.path :+ name
   implicit def scope: Path = this

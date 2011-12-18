@@ -17,6 +17,9 @@ package com.osinka
 
 import com.mongodb.DBObject
 
+/** = Subset =
+  * 
+  */
 package object subset {
   import query._
   import update._
@@ -53,12 +56,21 @@ package object subset {
   val StrictValues = values.StrictValues
   val SmartValues = values.SmartValues
 
-  /**
-   * Conjunction for use in pattern matching
-   *
-   * Based on idea from
-   * http://stackoverflow.com/questions/2261358/pattern-matching-with-conjunctions-patterna-and-patternb
-   */
+  /** Convenience extractor
+    *
+    * It provides conjunction for use in pattern matching, e.g.
+    *
+    * {{{
+    * val FieldI = "i".fieldOf[Int]
+    * val FieldS = "s".fieldOf[String]
+    * 
+    * dbo match {
+    *   case FieldI(i) ~ FieldS(s) => 
+    * }
+    * }}}
+    * 
+    * Based on the idea from [[http://stackoverflow.com/questions/2261358/pattern-matching-with-conjunctions-patterna-and-patternb Pattern Matching with Conjunctions (PatternA AND PatternB)]]
+    */
   object ~ {
     def unapply[A](a: A) = Some((a,a))
   }

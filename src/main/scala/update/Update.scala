@@ -44,11 +44,11 @@ trait Modifications[T] extends Path {
 object Update {
   def apply(t: (String, QueryLens)) = new Update(Map(t))
 
-  implicit def updateWriter(implicit scope: Path) = ValueWriter[Update](_.get(scope).get)
+  implicit def updateWriter(implicit scope: Path = Path.empty) = ValueWriter[Update](_.get(scope).get)
 }
 
 case class Update(ops: Map[String,QueryLens]) {
-  def get(implicit scope: Path): Lens =
+  def get(implicit scope: Path = Path.empty): Lens =
     ops map {t => writer(t._1, t._2(scope))} reduceLeft {_ ~ _}
 
   def ~(other: Update) = {
@@ -69,5 +69,5 @@ case class Update(ops: Map[String,QueryLens]) {
 
   override def hashCode: Int = ops.hashCode
 
-  override def toString = "Update"+get(Path.empty)
+  override def toString = "Update"+get
 }

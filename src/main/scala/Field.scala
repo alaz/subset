@@ -20,27 +20,52 @@ import query._
 import update._
 import Lens._
 
+/** == A typed field ==
+  * 
+  * === Serialization ===
+  * A field provides serialization/deserialization capabilities. 
+  * 
+  * === Tuples ===
+  * It is possible to build Tuple serializers from several fields.
+  * 
+  * === Querying ===
+  * A field is where query terms get created.
+  * 
+  * === Update operators ===
+  * A field provides methods to create update operations.
+  * 
+  * === Convenience fields ===
+  * There is a number of typical field types that can be of help. `Int` field (created by `int` method) is usually
+  * used in MongoDB to declare sorting and indexes. `Any` field (created by `any` method) may be helpful to write
+  * or read a field "as is". There is also a "positional" field (created by `first` method) that may be used
+  * to update the first matched element in an array (in [[com.osinka.subset.update.Update]] operations),
+  * see [[http://www.mongodb.org/display/DOCS/Updating#Updating-The%24positionaloperator The $ positional operator]] for
+  * details.
+  * 
+  * @see [[com.osinka.subset.Lens]]
+  * @see [[com.osinka.subset.ValueReader]]
+  * @see [[com.osinka.subset.ValueWriter]]
+  */
 class Field[T](val name: String)(implicit outer: Path = Path.empty) extends Path with FieldConditions[T] with Modifications[T] {
   override val path: List[String] = outer.path :+ name
 
-  /**
-   * Get "Index" field
+  /** "Index" field
    * 
-   * Field[Int] is of much help to produce [Int] queries (in $special, $maxKey, $minKey, sort, index, etc.)
+   * `Field[Int]` is of much help to produce `[Int]` queries (in `$special`, `$maxKey`, `$minKey`, sort, index, etc.)
    */
   def int: Field[Int] = new Field[Int](name)(outer)
 
-  /**
-   * Get "Any" field
+  /** "Any" field
    * 
-   * Field[Any] is of much help to insert custom objects or e.g. org.bson.types.{MaxKey, MinKey}
+   * `Field[Any]` is of much help to insert custom objects or e.g. `org.bson.types.{MaxKey, MinKey}`
    */
   def any: Field[Any] = new Field[Any](name)(outer)
 
-  /**
-   * Creates a positional field to update the first matched element in an array
+  /** "Positional" field
+   *
+   * Creates a positional field to update the first matched element in an array.
    * 
-   * http://www.mongodb.org/display/DOCS/Updating#Updating-The%24positionaloperator
+   * @see [[http://www.mongodb.org/display/DOCS/Updating#Updating-The%24positionaloperator The $ positional operator]]
    */
   def first: Field[T] = new Field[T]("$")(Path(path))
 
@@ -57,5 +82,7 @@ class Field[T](val name: String)(implicit outer: Path = Path.empty) extends Path
 }
 
 object Field {
+  /** Field factory method
+    */
   def apply[T](name: String)(implicit outer: Path = Path.empty): Field[T] = new Field[T](name)
 }
