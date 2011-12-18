@@ -25,8 +25,7 @@ import BasicDBObjectBuilder.start
 
 @RunWith(classOf[JUnitRunner])
 class subsetSpec extends Spec with MustMatchers with MongoMatchers with Routines {
-  import Implicits._
-  import Values._
+  import StrictValues._
 
   describe("Subset") {
     object Doc extends Subset("doc") {

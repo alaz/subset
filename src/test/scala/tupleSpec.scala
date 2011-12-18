@@ -23,7 +23,6 @@ import org.scalatest.junit.JUnitRunner
 import com.mongodb.{DBObject,BasicDBObjectBuilder}
 import BasicDBObjectBuilder.start
 
-import Implicits._
 import SmartValues._
 
 @RunWith(classOf[JUnitRunner])

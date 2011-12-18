@@ -14,6 +14,7 @@
  * limitations under the License.
  */
 package com.osinka.subset
+package query
 
 import org.scalatest.Spec
 import org.scalatest.matchers.MustMatchers
@@ -28,7 +29,6 @@ import BasicDBObjectBuilder.{start => dbo}
 
 @RunWith(classOf[JUnitRunner])
 class querySpec extends Spec with MustMatchers with MongoMatchers with Routines {
-  import Implicits._
   import SmartValues._
 
   describe("Field query") {

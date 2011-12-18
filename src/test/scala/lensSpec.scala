@@ -52,8 +52,4 @@ class lensSpec extends Spec with MustMatchers with MongoMatchers with Routines {
       conj must equal(lens)
     }
   }
-  describe("QueryLens") {
-    it("has conjunction") { pending }
-    it("writes relative keys") { pending }
-  }
 }

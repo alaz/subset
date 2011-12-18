@@ -14,8 +14,9 @@
  * limitations under the License.
  */
 package com.osinka.subset
+package update
 
-import Implicits._
+import query._
 import Lens._
 import QueryLens._
 

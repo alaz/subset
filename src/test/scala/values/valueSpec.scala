@@ -14,6 +14,7 @@
  * limitations under the License.
  */
 package com.osinka.subset
+package values
 
 import org.scalatest.Spec
 import org.scalatest.matchers.MustMatchers
@@ -29,7 +30,7 @@ import BasicDBObjectBuilder.{start => dbo}
 @RunWith(classOf[JUnitRunner])
 class valueSpec extends Spec with MustMatchers with MongoMatchers with Routines {
   describe("Default reader") {
-    val reader = new LowPriorityValuePacking {}
+    val reader = new LowPrioritySerialization {}
     it("reads AnyRef types") {
       unpackValue[String]("str")(reader.defaultReader[String]) must equal(Some("str"))
       unpackValue[AnyRef]("str")(reader.defaultReader[AnyRef]) must equal(Some("str"))
@@ -37,7 +38,7 @@ class valueSpec extends Spec with MustMatchers with MongoMatchers with Routines 
     }
   }
   describe("Base primitives serializer") {
-    import Values._
+    import StrictValues._
     import org.bson.types.{Symbol => BsonSymbol}
 
     it("must set explicitly") {
@@ -49,7 +50,7 @@ class valueSpec extends Spec with MustMatchers with MongoMatchers with Routines 
     }
   }
   describe("Scala types serializer") {
-    import Values._
+    import StrictValues._
     it("sets Some") {
       packValue(Some(1)) must equal(Some(1))
     }

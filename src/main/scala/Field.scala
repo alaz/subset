@@ -16,6 +16,8 @@
 package com.osinka.subset
 
 import com.mongodb.DBObject
+import query._
+import update._
 import Lens._
 
 class Field[T](val name: String)(implicit outer: Path = Path.empty) extends Path with FieldConditions[T] with Modifications[T] {

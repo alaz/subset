@@ -25,7 +25,6 @@ import BasicDBObjectBuilder.start
 
 @RunWith(classOf[JUnitRunner])
 class fieldSpec extends Spec with MustMatchers with MongoMatchers with Routines {
-  import Implicits._
   import SmartValues._
 
   describe("Field") {

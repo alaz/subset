@@ -14,20 +14,19 @@
  * limitations under the License.
  */
 package com.osinka.subset
+package query
 
-import java.util.Date
-import org.joda.time.DateTime
+import org.scalatest.Spec
+import org.scalatest.matchers.MustMatchers
+import org.junit.runner.RunWith
+import org.scalatest.junit.JUnitRunner
 
-// TODO: move to "subset-joda" project (?)
-object JodaValues extends JodaValues
-trait JodaValues {
-  implicit val jodaDateTimeReader = ValueReader[DateTime]({
-      case d: Date => new DateTime(d)
-      case l: Long => new DateTime(l)
-      case i: Int => new DateTime(i*1000L)
-    })
+import com.mongodb.BasicDBObjectBuilder.start
 
-  implicit val jodaDateTimeWriter = ValueWriter[DateTime](_.toDate)
-
-  // TODO: Duration and/or Period reader and writer
+@RunWith(classOf[JUnitRunner])
+class queryLensSpec extends Spec with MustMatchers with MongoMatchers with Routines {
+  describe("QueryLens") {
+    it("has conjunction") { pending }
+    it("writes relative keys") { pending }
+  }
 }

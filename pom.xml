@@ -3,7 +3,7 @@
   <modelVersion>4.0.0</modelVersion>
   <groupId>com.osinka.subset</groupId>
   <artifactId>subset_2.8.2</artifactId>
-  <version>0.2.0-SNAPSHOT</version>
+  <version>0.3.0-SNAPSHOT</version>
   <packaging>bundle</packaging>
   <name>MongoDB Document data serialization and query builder library</name>
   <inceptionYear>2011</inceptionYear>
@@ -39,16 +39,6 @@
       <timezone>+4</timezone>
     </developer>
   </developers>
-
-  <mailingLists>
-    <mailingList>
-      <name>subset Developer mailing list</name>
-      <archive>http://groups.google.com/group/mongodb-scala/topics</archive>
-      <post>mongodb-scala@googlegroups.com</post>
-      <subscribe>mongodb-scala+subscribe@googlegroups.com</subscribe>
-      <unsubscribe>mongodb-scala+unsubscribe@googlegroups.com</unsubscribe>
-    </mailingList>
-  </mailingLists>
 
   <issueManagement>
     <system>github</system>
@@ -152,9 +142,6 @@
           <includes>
             <include>**/*Spec.class</include>
           </includes>
-          <excludes>
-            <exclude>helpers/**</exclude>
-          </excludes>
         </configuration>
       </plugin>
       <plugin>

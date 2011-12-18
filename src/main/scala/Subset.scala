@@ -17,6 +17,8 @@ package com.osinka.subset
 
 import com.mongodb.DBObject
 
+import query._
+import update._
 import Lens._
 import QueryLens._
 

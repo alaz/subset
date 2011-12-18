@@ -14,12 +14,12 @@
  * limitations under the License.
  */
 package com.osinka.subset
+package query
 
 import java.util.regex.Pattern
 import util.matching.Regex
 import com.mongodb.DBObject
 
-import Implicits._
 import Lens._
 import QueryLens._
 
