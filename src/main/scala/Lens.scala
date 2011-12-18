@@ -17,7 +17,26 @@ package com.osinka.subset
 
 import com.mongodb.{DBObject,BasicDBObjectBuilder}
 
-// Ordinary lens, modifying an DBObject
+/** The low level mechanism for modifying DBObjects.
+  * 
+  * === Using Lens in subset ===
+  * Most ''subset'' classes are subtypes of `Lens`, so that it becomes possible to
+  * compose them and apply to already existing `DBObject` values:
+  * 
+  * === Example ===
+  * Basically the lens is just a function taking one `DBObject` and returning another.
+  * We can compose them into a single Lens. A Lens is suitable to modify existing
+  * `DBObject`, thus providing interobility with existing code (e.g. Java).
+  * 
+  * {{{
+  * val dbo: DBObject =
+  * val lens1 = Lens.writer[Int]("x", 10)
+  * val lens2 = Lens.writer[String]("s", "str")
+  * 
+  * val lens = lens1 ~ lens2
+  * lens(dbo) must (containKeyValue("x" -> 10) and containKeyValue("s" -> "str"))
+  * }}}
+  */
 trait Lens extends (DBObject => DBObject) {
   def get: DBObject = apply(BasicDBObjectBuilder.start.get)
 
@@ -34,6 +53,7 @@ trait Lens extends (DBObject => DBObject) {
 }
 
 object Lens {
+  // Factory object
   def apply(f: DBObject => DBObject): Lens =
     new Lens {
       def apply(dbo: DBObject): DBObject = f(dbo)
@@ -54,7 +74,10 @@ object Lens {
 
 import Lens._
 
-// Query lenses are little bit more complex, they get a "scope" parameter as well
+/** The low level mechanism for constructing lenses dependant on Path.
+  * 
+  * Thus QueryLens is a function from Path to Lens. They compose well too.
+  */
 trait QueryLens extends (Path => Lens) {
   def ~(other: QueryLens): QueryLens =
     QueryLens( (p: Path) => this(p) ~ other(p) )
@@ -79,7 +102,4 @@ object QueryLens {
 
   def embed(s: String, ql: QueryLens): QueryLens =
     (scope: Path) => writer(s, ql(scope))
-
-  def embed(p: Path, ql: QueryLens): QueryLens =
-    (scope: Path) => writer(p.relativeTo(scope).longName, ql(scope))
 }

@@ -15,9 +15,19 @@
  */
 package com.osinka.subset
 
+/** A field's path
+  *
+  * MongoDB field paths are separated by dot. They can be relative to some enclosing
+  * document. Or they can include a positional segment (dollar sign)
+  *
+  * @see [[http://www.mongodb.org/display/DOCS/Dot+Notation+%28Reaching+into+Objects%29 MongoDB dot notation]]
+  */
 trait Path {
   def path: List[String]
 
+  /** dotNotation
+    * @see [[http://www.mongodb.org/display/DOCS/Dot+Notation+%28Reaching+into+Objects%29 MongoDB dot notation]]
+    */
   def longName = path mkString "."
 
   def relativeTo(scope: Path) =
