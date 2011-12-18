@@ -5,7 +5,7 @@
   <artifactId>subset_2.8.2</artifactId>
   <version>0.2.0-SNAPSHOT</version>
   <packaging>bundle</packaging>
-  <name>MongoDB Document serialization and query builder library</name>
+  <name>MongoDB Document data serialization and query builder library</name>
   <inceptionYear>2011</inceptionYear>
 
   <description>
