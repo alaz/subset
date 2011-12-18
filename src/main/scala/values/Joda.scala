@@ -14,10 +14,19 @@
  * limitations under the License.
  */
 package com.osinka.subset
+package values
 
-import com.mongodb.DBObject
+import java.util.Date
+import org.joda.time.DateTime
 
-trait Routines {
-  def unpackValue[T](o: Any)(implicit getter: ValueReader[T]) = getter.unpack(o)
-  def packValue[T](x: T)(implicit setter: ValueWriter[T]): Option[Any] = setter.pack(x)
+object Joda {
+  implicit val jodaDateTimeReader = ValueReader[DateTime]({
+      case d: Date => new DateTime(d)
+      case l: Long => new DateTime(l)
+      case i: Int => new DateTime(i*1000L)
+    })
+
+  implicit val jodaDateTimeWriter = ValueWriter[DateTime](_.toDate)
+
+  // TODO: Duration and/or Period reader and writer
 }

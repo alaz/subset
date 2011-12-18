@@ -14,10 +14,19 @@
  * limitations under the License.
  */
 package com.osinka.subset
+package query
 
-import com.mongodb.DBObject
+import org.scalatest.Spec
+import org.scalatest.matchers.MustMatchers
+import org.junit.runner.RunWith
+import org.scalatest.junit.JUnitRunner
 
-trait Routines {
-  def unpackValue[T](o: Any)(implicit getter: ValueReader[T]) = getter.unpack(o)
-  def packValue[T](x: T)(implicit setter: ValueWriter[T]): Option[Any] = setter.pack(x)
+import com.mongodb.BasicDBObjectBuilder.start
+
+@RunWith(classOf[JUnitRunner])
+class queryLensSpec extends Spec with MustMatchers with MongoMatchers with Routines {
+  describe("QueryLens") {
+    it("has conjunction") { pending }
+    it("writes relative keys") { pending }
+  }
 }

@@ -1,4 +1,20 @@
+/**
+ * Copyright (C) 2011 Alexander Azarov <azarov@osinka.com>
+ *
+ * Licensed under the Apache License, Version 2.0 (the "License");
+ * you may not use this file except in compliance with the License.
+ * You may obtain a copy of the License at
+ *
+ *         http://www.apache.org/licenses/LICENSE-2.0
+ *
+ * Unless required by applicable law or agreed to in writing, software
+ * distributed under the License is distributed on an "AS IS" BASIS,
+ * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ * See the License for the specific language governing permissions and
+ * limitations under the License.
+ */
 package com.osinka.subset
+package values
 
 import org.scalatest.Spec
 import org.scalatest.matchers.MustMatchers
@@ -14,7 +30,7 @@ import BasicDBObjectBuilder.{start => dbo}
 @RunWith(classOf[JUnitRunner])
 class valueSpec extends Spec with MustMatchers with MongoMatchers with Routines {
   describe("Default reader") {
-    val reader = new LowPriorityValuePacking {}
+    val reader = new LowPrioritySerialization {}
     it("reads AnyRef types") {
       unpackValue[String]("str")(reader.defaultReader[String]) must equal(Some("str"))
       unpackValue[AnyRef]("str")(reader.defaultReader[AnyRef]) must equal(Some("str"))
@@ -22,7 +38,7 @@ class valueSpec extends Spec with MustMatchers with MongoMatchers with Routines 
     }
   }
   describe("Base primitives serializer") {
-    import Values._
+    import StrictValues._
     import org.bson.types.{Symbol => BsonSymbol}
 
     it("must set explicitly") {
@@ -34,7 +50,7 @@ class valueSpec extends Spec with MustMatchers with MongoMatchers with Routines 
     }
   }
   describe("Scala types serializer") {
-    import Values._
+    import StrictValues._
     it("sets Some") {
       packValue(Some(1)) must equal(Some(1))
     }

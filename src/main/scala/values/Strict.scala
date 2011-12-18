@@ -14,10 +14,6 @@
  * limitations under the License.
  */
 package com.osinka.subset
+package values
 
-import com.mongodb.DBObject
-
-trait Routines {
-  def unpackValue[T](o: Any)(implicit getter: ValueReader[T]) = getter.unpack(o)
-  def packValue[T](x: T)(implicit setter: ValueWriter[T]): Option[Any] = setter.pack(x)
-}
+object StrictValues extends BaseSerialization with ScalaTypesSerialization
