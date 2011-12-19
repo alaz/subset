@@ -19,7 +19,7 @@ import com.mongodb.DBObject
 
 import query._
 import update._
-import Lens._
+import DBObjectLens._
 import QueryLens._
 
 /** == Subset ==
@@ -33,7 +33,7 @@ abstract class Subset(val name: String)(implicit outer: Path = Path.empty) exten
   override val path: List[String] = outer.path :+ name
   implicit def scope: Path = this
 
-  def apply(flist: Lens*): Lens = writer(name, flist reduceLeft {_ ~ _})
+  def apply(flist: DBObjectLens*): DBObjectLens = writer(name, flist reduceLeft {_ ~ _})
 
   def from(dbo: DBObject)(implicit r: ValueReader[DBObject]): Option[DBObject] = read[DBObject](name, dbo)
 
@@ -49,7 +49,7 @@ abstract class Subset(val name: String)(implicit outer: Path = Path.empty) exten
    * 
    * http://www.mongodb.org/display/DOCS/Updating#Updating-The%24positionaloperator
    */
-  def updateMatch(f: this.type => Update): Lens = f(this).get(this)
+  def updateMatch(f: this.type => Update): DBObjectLens = f(this).get(this)
 
   override def toString: String = "Subset "+longName
 

@@ -18,7 +18,7 @@ package com.osinka.subset
 import com.mongodb.DBObject
 import query._
 import update._
-import Lens._
+import DBObjectLens._
 
 /** == A typed field ==
   * 
@@ -42,7 +42,7 @@ import Lens._
   * see [[http://www.mongodb.org/display/DOCS/Updating#Updating-The%24positionaloperator The $ positional operator]] for
   * details.
   * 
-  * @see [[com.osinka.subset.Lens]]
+  * @see [[com.osinka.subset.DBObjectLens]]
   * @see [[com.osinka.subset.ValueReader]]
   * @see [[com.osinka.subset.ValueWriter]]
   */
@@ -71,7 +71,7 @@ class Field[T](val name: String)(implicit outer: Path = Path.empty) extends Path
 
   def ~[T2](f2: Field[T2]) = new Tuple2Subset[T,T2](this.name, f2.name)
 
-  def apply(x: T)(implicit setter: ValueWriter[T]): Lens = writer(name, x)
+  def apply(x: T)(implicit setter: ValueWriter[T]): DBObjectLens = writer(name, x)
 
   def unapply(dbo: DBObject)(implicit getter: ValueReader[T]): Option[T] = read[T](name, dbo)
 

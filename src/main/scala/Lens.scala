@@ -19,25 +19,25 @@ import com.mongodb.{DBObject,BasicDBObjectBuilder}
 
 /** The low level mechanism for modifying DBObjects.
   * 
-  * === Using Lens in subset ===
-  * Most ''subset'' classes are subtypes of `Lens`, so that it becomes possible to
+  * === Using DBObjectLens in subset ===
+  * Most ''subset'' classes are subtypes of `DBObjectLens`, so that it becomes possible to
   * compose them and apply to already existing `DBObject` values.
   * 
   * === Example ===
   * Basically the lens is just a function taking one `DBObject` and returning another.
-  * We can compose them into a single Lens. A Lens is suitable to modify existing
+  * We can compose them into a single DBObjectLens. A DBObjectLens is suitable to modify existing
   * `DBObject`, thus providing interobility with existing code (e.g. Java).
   * 
   * {{{
   * val dbo: DBObject =
-  * val lens1 = Lens.writer[Int]("x", 10)
-  * val lens2 = Lens.writer[String]("s", "str")
+  * val lens1 = DBObjectLens.writer[Int]("x", 10)
+  * val lens2 = DBObjectLens.writer[String]("s", "str")
   * 
   * val lens = lens1 ~ lens2
   * lens(dbo) must (containKeyValue("x" -> 10) and containKeyValue("s" -> "str"))
   * }}}
   */
-trait Lens extends (DBObject => DBObject) {
+trait DBObjectLens extends (DBObject => DBObject) {
   /** Applies this lens to an empty `DBObject`
     * @return `DBObject`
     */
@@ -46,14 +46,14 @@ trait Lens extends (DBObject => DBObject) {
   /** Compose two lenses.
     * @return a composition of lenses
     */
-  def ~ (other: Lens): Lens = Lens(this andThen other)
+  def ~ (other: DBObjectLens): DBObjectLens = DBObjectLens(this andThen other)
 
-  def prefixString = "Lens"
+  def prefixString = "DBObjectLens"
 
   override def toString: String = prefixString+get
 
   override def equals(o: Any): Boolean =
-    PartialFunction.cond(o) { case other: Lens if prefixString == other.prefixString => get == other.get }
+    PartialFunction.cond(o) { case other: DBObjectLens if prefixString == other.prefixString => get == other.get }
 
   override def hashCode: Int = get.hashCode
 }
@@ -61,15 +61,15 @@ trait Lens extends (DBObject => DBObject) {
 /** Provides a factory method to create lenses from `DBObject => DBObject` functions and a couple
   * convenience methods.
   */
-object Lens {
+object DBObjectLens {
   // Factory object
-  def apply(f: DBObject => DBObject): Lens =
-    new Lens {
+  def apply(f: DBObject => DBObject): DBObjectLens =
+    new DBObjectLens {
       def apply(dbo: DBObject): DBObject = f(dbo)
     }
 
-  implicit def fToLens(f: DBObject => DBObject): Lens = apply(f)
-  implicit def lensWriter: ValueWriter[Lens] = ValueWriter[Lens](_.get)
+  implicit def fToDBObjectLens(f: DBObject => DBObject): DBObjectLens = apply(f)
+  implicit def lensWriter: ValueWriter[DBObjectLens] = ValueWriter[DBObjectLens](_.get)
 
   /** Reads a value from `DBObject` by key.
     *
@@ -86,7 +86,7 @@ object Lens {
     * 
     * @see [[com.osinka.subset.ValueWriter]]
     */
-  def writer[T](key: String, x: T)(implicit w: ValueWriter[T]): Lens =
+  def writer[T](key: String, x: T)(implicit w: ValueWriter[T]): DBObjectLens =
     (dbo: DBObject) => {
         w.pack(x) foreach {dbo.put(key, _)}
         dbo

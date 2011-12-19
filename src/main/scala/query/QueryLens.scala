@@ -16,24 +16,24 @@
 package com.osinka.subset
 package query
 
-import Lens._
+import DBObjectLens._
 
 /** The low level mechanism for constructing lenses dependant on Path.
   * 
-  * Thus QueryLens is a function from Path to Lens. They compose well too.
+  * Thus QueryLens is a function from Path to DBObjectLens. They compose well too.
   */
-trait QueryLens extends (Path => Lens) {
+trait QueryLens extends (Path => DBObjectLens) {
   def ~(other: QueryLens): QueryLens =
     QueryLens( (p: Path) => this(p) ~ other(p) )
 }
 
 object QueryLens {
-  def apply(f: Path => Lens): QueryLens =
+  def apply(f: Path => DBObjectLens): QueryLens =
     new QueryLens {
-      def apply(p: Path): Lens = f(p)
+      def apply(p: Path): DBObjectLens = f(p)
     }
 
-  implicit def fToQLens(f: Path => Lens): QueryLens = apply(f)
+  implicit def fToQDBObjectLens(f: Path => DBObjectLens): QueryLens = apply(f)
 
   def relative[T : ValueWriter](p: Path, x: T): QueryLens =
     (scope: Path) => writer(p.relativeTo(scope).longName, x)

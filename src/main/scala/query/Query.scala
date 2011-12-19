@@ -20,11 +20,11 @@ import java.util.regex.Pattern
 import util.matching.Regex
 import com.mongodb.DBObject
 
-import Lens._
+import DBObjectLens._
 import QueryLens._
 
 trait Conditions[T] extends Path {
-  protected def fquery(condition: Lens): FieldQuery[T]
+  protected def fquery(condition: DBObjectLens): FieldQuery[T]
 
   def exists(v: Boolean) = fquery("$exists" -> v)
   def >(x: T)(implicit writer: ValueWriter[T]) = fquery("$gt" -> x)
@@ -50,7 +50,7 @@ trait Conditions[T] extends Path {
 }
 
 trait FieldConditions[T] extends Conditions[T] {
-  override def fquery(condition: Lens) = FieldQuery[T](this, condition)
+  override def fquery(condition: DBObjectLens) = FieldQuery[T](this, condition)
 
   def ===(x: T)(implicit writer: ValueWriter[T]) = Query(this, x)
   def ===(x: Option[T])(implicit writer: ValueWriter[T]): Query = x map {this ===} getOrElse exists(false)
@@ -58,7 +58,7 @@ trait FieldConditions[T] extends Conditions[T] {
   def ===(x: Pattern): Query = Query(this, x) // TODO: for String only
 }
 
-trait Query extends Lens {
+trait Query extends DBObjectLens {
   def queryLens: QueryLens
 
   override def apply(dbo: DBObject): DBObject = queryLens(Path.empty)(dbo)
@@ -105,10 +105,10 @@ object Query {
 }
 
 
-case class FieldQuery[T](p: Path, condition: Lens) extends Query with Conditions[T] {
+case class FieldQuery[T](p: Path, condition: DBObjectLens) extends Query with Conditions[T] {
   override def path: List[String] = p.path
 
-  override def fquery(cond: Lens) = copy(condition = condition andThen cond)
+  override def fquery(cond: DBObjectLens) = copy(condition = condition andThen cond)
 
   override def queryLens: QueryLens = relative(p, condition)
 

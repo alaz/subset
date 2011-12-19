@@ -24,10 +24,10 @@ import com.mongodb.BasicDBObjectBuilder.start
 
 @RunWith(classOf[JUnitRunner])
 class lensSpec extends Spec with MustMatchers with MongoMatchers with Routines {
-  describe("Lens") {
+  describe("DBObjectLens") {
     // FIXME: cannot compare arrays https://jira.mongodb.org/browse/JAVA-482
     def dbo = start("i", 10).push("inner").add("s", "string")/*.add("a", Array(1,2))*/.get
-    def lens = Lens(_ => dbo)
+    def lens = DBObjectLens(_ => dbo)
 
     it("has `equals`") {
       lens must equal(lens)
@@ -38,17 +38,17 @@ class lensSpec extends Spec with MustMatchers with MongoMatchers with Routines {
       lens.get.hashCode must equal(dbo.hashCode)
     }
     it("has `toString`") {
-      lens.toString must startWith("Lens")
+      lens.toString must startWith("DBObjectLens")
     }
     it("initialized from empty DBObject") {
-      Lens(identity).get must be('empty)
+      DBObjectLens(identity).get must be('empty)
     }
     it("has ValueWriter") {
-      val w = implicitly[ValueWriter[Lens]]
+      val w = implicitly[ValueWriter[DBObjectLens]]
     }
     it("allows conjunction") {
-      val conj = lens ~ Lens(identity)
-      conj.toString must startWith("Lens")
+      val conj = lens ~ DBObjectLens(identity)
+      conj.toString must startWith("DBObjectLens")
       conj must equal(lens)
     }
   }

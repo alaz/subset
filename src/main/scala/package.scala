@@ -31,25 +31,25 @@ package object subset {
     }
 
   // String Tuple
-  implicit def stringTupleSerializer[T : ValueWriter](t: (String, T)): Lens = Lens.writer(t._1, t._2)
+  implicit def stringTupleSerializer[T : ValueWriter](t: (String, T)): DBObjectLens = DBObjectLens.writer(t._1, t._2)
 
   // Field conversions
-  implicit def fieldTupleSerializer[T : ValueWriter](t: (Field[T], T)): Lens = Lens.writer(t._1.name, t._2)
+  implicit def fieldTupleSerializer[T : ValueWriter](t: (Field[T], T)): DBObjectLens = DBObjectLens.writer(t._1.name, t._2)
   implicit def fieldTupleDBO[T : ValueWriter](t: (Field[T], T)): DBObject = fieldTupleSerializer[T](t).get
 
-  // Lenses
-  implicit def lensToDBO(l: Lens): DBObject = l.get
-  implicit def fToLens(f: DBObject => DBObject): Lens = Lens.fToLens(f)
-  implicit def fToQLens(f: Path => Lens): QueryLens = QueryLens.fToQLens(f)
+  // DBObjectLenses
+  implicit def lensToDBO(l: DBObjectLens): DBObject = l.get
+  implicit def fToDBObjectLens(f: DBObject => DBObject): DBObjectLens = DBObjectLens.fToDBObjectLens(f)
+  implicit def fToQDBObjectLens(f: Path => DBObjectLens): QueryLens = QueryLens.fToQDBObjectLens(f)
 
   // Update
-  implicit def updateToLens(u: Update)(implicit scope: Path = Path.empty): Lens = u.get(scope)
+  implicit def updateToDBObjectLens(u: Update)(implicit scope: Path = Path.empty): DBObjectLens = u.get(scope)
   implicit def updateToDBO(u: Update)(implicit scope: Path = Path.empty): DBObject = lensToDBO(u.get(scope))
 
   // Few pimps
   implicit def enrichDBO(dbo: DBObject) =
     new AnyRef {
-      def %(lens: Lens): DBObject = lens(dbo)
+      def %(lens: DBObjectLens): DBObject = lens(dbo)
     }
 
   // Explicit objects to import serialization strategy

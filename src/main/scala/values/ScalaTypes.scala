@@ -19,7 +19,7 @@ package values
 /** Getters and setters for complex Scala types, e.g. Traversable, Option, etc.
   */
 trait ScalaTypesSerialization {
-  import Lens._
+  import DBObjectLens._
 
   implicit def optionGetter[T](implicit r: ValueReader[T]) =
     new ValueReader[Option[T]] {

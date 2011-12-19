@@ -17,7 +17,7 @@ package com.osinka.subset
 package update
 
 import query._
-import Lens._
+import DBObjectLens._
 import QueryLens._
 
 trait Modifications[T] extends Path {
@@ -48,7 +48,7 @@ object Update {
 }
 
 case class Update(ops: Map[String,QueryLens]) {
-  def get(implicit scope: Path = Path.empty): Lens =
+  def get(implicit scope: Path = Path.empty): DBObjectLens =
     ops map {t => writer(t._1, t._2(scope))} reduceLeft {_ ~ _}
 
   def ~(other: Update) = {
