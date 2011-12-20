@@ -28,10 +28,10 @@ class subsetSpec extends Spec with MustMatchers with MongoMatchers with Routines
   import StrictValues._
 
   describe("Subset") {
-    object Doc extends Subset("doc") with SubsetExtractor {
+    object Doc extends Subset[DBObject]("doc") {
       val f = "f".fieldOf[Int]
 
-      object Sub extends Subset("sub") {
+      object Sub extends Subset[DBObject]("sub") {
         val f = Field[Int]("f")
       }
     }
@@ -64,13 +64,25 @@ class subsetSpec extends Spec with MustMatchers with MongoMatchers with Routines
     }
     it("deserializes correctly") {
       val dbo = start.push("doc").append("f", 10).get
-      Doc.from(dbo) must equal(Some(start("f", 10).get))
-      Doc.Sub.from(dbo) must equal(None)
+      Doc.unapply(dbo) must equal(Some(start("f", 10).get))
+      Doc.Sub.unapply(dbo) must equal(None)
     }
+  }
+  describe("Typed Subset") {
+    class Doc(val f: Int)
+
+    object Doc extends Subset[Doc]("doc") {
+      val f = "f".fieldOf[Int]
+    }
+    
+    implicit val docReader = ValueReader[Doc]({
+        case Doc.f(f) => new Doc(f)
+      })
+
     it("has extractor") {
       val dbo = start.push("doc").append("f", 10).get
       dbo match {
-        case Doc(Doc.f(f)) => f must equal(10)
+        case Doc(doc) => doc.f must equal(10)
         case _ => fail("must match")
       }
     }

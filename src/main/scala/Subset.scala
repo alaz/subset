@@ -29,13 +29,13 @@ import QueryLens._
   *  - lets serialize/deserialize subdocuments to/from `DBObject`
   *  - participates in [[com.osinka.subset.query.Query]] and [[com.osinka.subset.update.Update]] creation
   */
-abstract class Subset(val subsetName: String)(implicit outerPath: Path = Path.empty) extends Path {
+abstract class Subset[T](val subsetName: String)(implicit outerPath: Path = Path.empty) extends Path {
   override val path: List[String] = outerPath.path :+ subsetName
   implicit def scope: Path = this
 
   def apply(flist: DBObjectLens*): DBObjectLens = writer(subsetName, flist reduceLeft {_ ~ _})
 
-  def from(dbo: DBObject)(implicit r: ValueReader[DBObject]): Option[DBObject] = read[DBObject](subsetName, dbo)
+  def unapply(dbo: DBObject)(implicit r: ValueReader[T]): Option[T] = read[T](subsetName, dbo)
 
   /**
    * Creates a query as an $elemMatch relative to this document
@@ -54,9 +54,5 @@ abstract class Subset(val subsetName: String)(implicit outerPath: Path = Path.em
   override def toString: String = "Subset "+longName
 
   override def equals(o: Any): Boolean =
-    PartialFunction.cond(o) { case other: Subset => super.equals(other) }
-}
-
-trait SubsetExtractor { self: Subset =>
-  def unapply(dbo: DBObject)(implicit r: ValueReader[DBObject]): Option[DBObject] = from(dbo)
+    PartialFunction.cond(o) { case other: Subset[_] => super.equals(other) }
 }

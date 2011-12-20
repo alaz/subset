@@ -178,10 +178,10 @@ class querySpec extends Spec with MustMatchers with MongoMatchers with Routines 
     }
   }
   describe("Subset query") {
-    object Doc extends Subset("doc") {
+    object Doc extends Subset[DBObject]("doc") {
       val f = "f".fieldOf[Int]
 
-      object Sub extends Subset("sub") {
+      object Sub extends Subset[DBObject]("sub") {
         val f = Field[Int]("f")
       }
     }
