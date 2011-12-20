@@ -28,7 +28,7 @@ class subsetSpec extends Spec with MustMatchers with MongoMatchers with Routines
   import StrictValues._
 
   describe("Subset") {
-    object Doc extends Subset("doc") {
+    object Doc extends Subset("doc") with SubsetExtractor {
       val f = "f".fieldOf[Int]
 
       object Sub extends Subset("sub") {
@@ -66,6 +66,13 @@ class subsetSpec extends Spec with MustMatchers with MongoMatchers with Routines
       val dbo = start.push("doc").append("f", 10).get
       Doc.from(dbo) must equal(Some(start("f", 10).get))
       Doc.Sub.from(dbo) must equal(None)
+    }
+    it("has extractor") {
+      val dbo = start.push("doc").append("f", 10).get
+      dbo match {
+        case Doc(Doc.f(f)) => f must equal(10)
+        case _ => fail("must match")
+      }
     }
   }
   describe("Array of subsets") {
