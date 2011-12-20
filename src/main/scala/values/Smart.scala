@@ -29,7 +29,7 @@ object SmartValues extends SmartSerialization with ScalaTypesSerialization
   * TODO: should it be in another project "subset-values" or simply rewrite As* extractors here?
   */
 trait SmartSerialization extends BaseSerialization {
-  import net.liftweb.util.BasicTypesHelpers.{AsInt,AsDouble,AsLong}
+  import Extractors._
 
   implicit val booleanRecoveringGetter = ValueReader[Boolean]({
       case b: Boolean => b
@@ -73,3 +73,4 @@ trait SmartSerialization extends BaseSerialization {
       case l: Long => new Date(l)
     })
 }
+

@@ -57,11 +57,6 @@
       <version>[2.7.2,3.0.0)</version>
     </dependency>
     <dependency>
-      <groupId>net.liftweb</groupId>
-      <artifactId>lift-util_2.8.1</artifactId>
-      <version>${lift.version}</version>
-    </dependency>
-    <dependency>
       <groupId>joda-time</groupId>
       <artifactId>joda-time</artifactId>
       <version>1.6.2</version>
