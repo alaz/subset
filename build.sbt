@@ -1,3 +1,4 @@
+import com.jsuereth.sbtsite.SiteKeys
 import sbtrelease.Release._
 
 organization := "com.osinka.subset"
@@ -23,7 +24,12 @@ seq(ghpages.settings:_*)
 
 git.remoteRepo := "git@github.com:osinka/subset.git"
 
-// https://github.com/OlegIlyenko/scaldi/blob/master/build.sbt
+site.addMappingsToSiteDir(mappings in packageDoc in Compile, "api")
+
+SiteKeys.siteMappings <<=
+  (SiteKeys.siteMappings, PamfletKeys.write, PamfletKeys.output) map { (mappings, _, dir) =>
+    mappings ++ (dir ** "*.*" x relativeTo(dir))
+  }
 
 pomExtra := <xml:group>
     <name>Subset - MongoDB Document data serialization and query builder library</name>
