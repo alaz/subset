@@ -5,9 +5,17 @@ organization := "com.osinka.subset"
 
 name := "subset"
 
+startYear := Some(2011)
+
 version := "0.3.0-SNAPSHOT"
 
 scalaVersion := "2.8.2"
+
+organizationName := "Osinka"
+
+description := """Subset is a tiny and simple library for
+  - typed field serializers/deserializers to/from DBObject
+  - typed query/update builders"""
 
 libraryDependencies ++= Seq(
   "org.mongodb" % "mongo-java-driver" % "2.7.2",
