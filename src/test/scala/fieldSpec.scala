@@ -79,5 +79,20 @@ class fieldSpec extends Spec with MustMatchers with MongoMatchers with Routines 
           fail("must extract field value")
       }
     }
+    it("may be attached to Subset") {
+      object Doc extends Subset[DBObject]("doc") {
+        val f = "f".fieldOf[Int]
+      }
+      "f".fieldOf[Int].attach(Doc) must equal(Doc.f)
+    }
+  }
+  describe("Field in Subset") {
+    object Doc extends Subset[DBObject]("doc") {
+      val f = "f".fieldOf[Int]
+    }
+
+    it("may be detached") {
+      Doc.f.detach must equal("f".fieldOf[Int])
+    }
   }
 }

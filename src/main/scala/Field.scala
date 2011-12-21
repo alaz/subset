@@ -49,17 +49,23 @@ import DBObjectLens._
 class Field[T](val name: String)(implicit outer: Path = Path.empty) extends Path with FieldConditions[T] with Modifications[T] {
   override val path: List[String] = outer.path :+ name
 
+  def attach(implicit scope: Path): Field[T] = new Field[T](name)(scope)
+
+  def detach: Field[T] = new Field[T](name)(Path.empty)
+
+  def as[A]: Field[A] = new Field[A](name)(outer)
+
   /** "Index" field
    * 
    * `Field[Int]` is of much help to produce `[Int]` queries (in `$special`, `$maxKey`, `$minKey`, sort, index, etc.)
    */
-  def int: Field[Int] = new Field[Int](name)(outer)
+  def int: Field[Int] = as[Int]
 
   /** "Any" field
    * 
    * `Field[Any]` is of much help to insert custom objects or e.g. `org.bson.types.{MaxKey, MinKey}`
    */
-  def any: Field[Any] = new Field[Any](name)(outer)
+  def any: Field[Any] = as[Any]
 
   /** "Positional" field
    *
