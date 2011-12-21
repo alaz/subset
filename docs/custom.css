@@ -1,7 +1,8 @@
 p {
-  margin-bottom: 0.5em;
+  margin-bottom: 0.7em;
 }
 
-h1[id], h2[id], h3[id], h4[id], h5[id] {
-  border-bottom: solid 1px;
+p + p {
+  margin-top: 0em;
+  text-indent: 0em;
 }
