@@ -5,13 +5,13 @@
   <artifactId>subset_2.8.2</artifactId>
   <version>0.3.0-SNAPSHOT</version>
   <packaging>bundle</packaging>
-  <name>MongoDB Document data serialization and query builder library</name>
+  <name>Subset - MongoDB Document data serialization and query builder library</name>
   <inceptionYear>2011</inceptionYear>
 
   <description>
-    Minimalistic library for
-    - building typed field serializers/deserializers to/from DBObject
-    - typed query builders
+    Subset is a tiny and simple library for
+    - typed field serializers/deserializers to/from DBObject
+    - typed query/update builders
   </description>
 
   <organization>
@@ -149,16 +149,18 @@
           <strictCheck>true</strictCheck>
           <failIfMissing>true</failIfMissing>
           <excludes>
+            <exclude>.gitignore</exclude>
             <exclude>.git/**</exclude>
             <exclude>.idea/**</exclude>
             <exclude>.manager/**</exclude>
-            <exclude>*.gitignore</exclude>
-            <exclude>src/main/license/*.txt</exclude>
-            <exclude>*.xml</exclude>
-            <exclude>*.sbt</exclude>
-            <exclude>*.textile</exclude>
-            <exclude>project/**</exclude>
             <exclude>.ensime</exclude>
+            <exclude>project/**</exclude>
+            <exclude>src/main/license/*.txt</exclude>
+            <exclude>**/*.xml</exclude>
+            <exclude>**/*.sbt</exclude>
+            <exclude>**/*.textile</exclude>
+            <exclude>**/*.md</exclude>
+            <exclude>**/*.properties</exclude>
           </excludes>
           <useDefaultExcludes>true</useDefaultExcludes>
           <mapping>
