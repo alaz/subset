@@ -34,6 +34,13 @@ libraryDependencies <+= scalaVersion({
     error("Unsupported Scala version "+v)
 })
 
+publishTo <<= (version) { version: String =>
+  if (version.trim endsWith "SNAPSHOT")
+    Some(Resolver.file("file", file(Path.userHome.absolutePath+"/.m2/repository")))
+  else
+    Some("Scala Tools Nexus" at "http://nexus.scala-tools.org/content/repositories/releases/")
+}
+
 seq(releaseSettings: _*)
 
 seq(site.settings:_*)
