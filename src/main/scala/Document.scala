@@ -16,8 +16,22 @@
 package com.osinka.subset
 
 import org.bson.types.ObjectId
+import com.mongodb.{DBObject,WriteResult}
 
-object MongoFields {
+object Document {
   val DocumentId = "_id".fieldOf[ObjectId]
   val Namespace = "_ns".fieldOf[String]
+
+  def newDoc[T](obj: T)(op: Any => WriteResult)(implicit reader: ValueReader[ObjectId], t2dbo: T => DBObject): Either[WriteResult, ObjectId] = {
+    val dbo: DBObject = t2dbo(obj)
+    val wr = op(dbo)
+
+    if (wr.getError == null)
+      dbo match {
+        case DocumentId(id) => Right(id)
+        case _ => Left(wr)
+      }
+    else
+      Left(wr)
+  }
 }

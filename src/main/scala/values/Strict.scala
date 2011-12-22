@@ -16,4 +16,11 @@
 package com.osinka.subset
 package values
 
+
+/** StrictValues is a library of implicit ValueReaders and ValueWriters
+  * for common Java / Scala types.
+  *
+  * Usually you don't need to work with ValueReader / ValueWriter from
+  * your code, they get called under the hood.
+  */
 object StrictValues extends BaseSerialization with ScalaTypesSerialization
