@@ -49,7 +49,9 @@ package object subset {
   // Few pimps
   implicit def enrichDBO(dbo: DBObject) =
     new AnyRef {
-      def %(lens: DBObjectLens): DBObject = lens(dbo)
+      /** The symmetric method to `~>` in [[com.osinka.subset.DBObjectLens]], it applies a lens to the `DBObject`
+        */
+      def <~(lens: DBObjectLens): DBObject = lens(dbo)
     }
 
   // Explicit objects to import serialization strategy

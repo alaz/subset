@@ -27,29 +27,36 @@ class lensSpec extends Spec with MustMatchers with MongoMatchers with Routines {
   describe("DBObjectLens") {
     // FIXME: cannot compare arrays https://jira.mongodb.org/browse/JAVA-482
     def dbo = start("i", 10).push("inner").add("s", "string")/*.add("a", Array(1,2))*/.get
-    def lens = DBObjectLens(_ => dbo)
+    def constLens = DBObjectLens(_ => dbo)
+    def identityLens = DBObjectLens(identity)
 
     it("has `equals`") {
-      lens must equal(lens)
-      lens.get must equal(dbo)
+      constLens must equal(constLens)
+      constLens.get must equal(dbo)
     }
     it("has `hashCode`") {
-      lens.hashCode must equal(lens.hashCode)
-      lens.get.hashCode must equal(dbo.hashCode)
+      constLens.hashCode must equal(constLens.hashCode)
+      constLens.get.hashCode must equal(dbo.hashCode)
     }
     it("has `toString`") {
-      lens.toString must startWith("DBObjectLens")
+      constLens.toString must startWith("DBObjectLens")
     }
     it("initialized from empty DBObject") {
-      DBObjectLens(identity).get must be('empty)
+      identityLens.get must be('empty)
     }
     it("has ValueWriter") {
       val w = implicitly[ValueWriter[DBObjectLens]]
     }
     it("allows conjunction") {
-      val conj = lens ~ DBObjectLens(identity)
+      val conj = constLens ~ identityLens
       conj.toString must startWith("DBObjectLens")
-      conj must equal(lens)
+      conj must equal(constLens)
+    }
+    it("supports Scala methods") {
+      (constLens andThen identityLens)(dbo) must equal(dbo)
+    }
+    it("supports DSL") {
+      (constLens ~ identityLens ~> dbo) must equal(dbo)
     }
   }
 }

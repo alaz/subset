@@ -18,24 +18,44 @@ package com.osinka.subset
 import com.mongodb.{DBObject,BasicDBObjectBuilder}
 
 /** The low level mechanism for modifying DBObjects.
-  * 
-  * === Using DBObjectLens in subset ===
-  * Most ''subset'' classes are subtypes of `DBObjectLens`, so that it becomes possible to
-  * compose them and apply to already existing `DBObject` values.
-  * 
-  * === Example ===
+  *
+  * === Composition ===
   * Basically the lens is just a function taking one `DBObject` and returning another.
-  * We can compose them into a single DBObjectLens. A DBObjectLens is suitable to modify existing
-  * `DBObject`, thus providing interobility with existing code (e.g. Java).
-  * 
+  *
+  * ''Note'': Subset does not declare if a lens must return the same `DBObject` or another one.
+  *
+  * We can compose two `DBObjectLens` objects into a single `DBObjectLens` just like function composition.
+  * You may use `andThen` (and you will get `(DBObject => DBObject)` as a result, or you may use method `~`
+  * (and you'll get `DBObjectLens`).
+  *
   * {{{
   * val dbo: DBObject =
   * val lens1 = DBObjectLens.writer[Int]("x", 10)
   * val lens2 = DBObjectLens.writer[String]("s", "str")
-  * 
+  *
   * val lens = lens1 ~ lens2
   * lens(dbo) must (containKeyValue("x" -> 10) and containKeyValue("s" -> "str"))
   * }}}
+  *
+  * === Producing new DBObject ===
+  * It's very typical to apply a `DBObjectLens` to an empty `DBObject`, thus using `DBObjectLens` as a
+  * `DBObject` generator. Method `get` does this explicitly, however ''subset'' provides an implicit
+  * conversion from `DBObjectLens` to `DBObject` as well.
+  *
+  * === Modifying an DBObject ===
+  *
+  * Since `DBObjectLens` is a function `(DBObject => DBObject)`, you may apply it directly
+  * to the DBObject in order to modify it. It also supports DSL `~>`:
+  * {{{
+  * val resultingDBObject = field1(fValue) ~ anotherField(anotherValue) ~> existingDBObject
+  * }}}
+  *
+  * === Using DBObjectLens in subset ===
+  * Most ''subset'' classes are subtypes of `DBObjectLens`, so that it becomes possible to
+  * compose them and apply to already existing `DBObject` values.
+  *
+  * A `DBObjectLens` is a convenient way to stack modifications together and then modify an existing `DBObject`, thus
+  * providing interoperability with existing code.
   */
 trait DBObjectLens extends (DBObject => DBObject) {
   /** Applies this lens to an empty `DBObject`
@@ -47,6 +67,10 @@ trait DBObjectLens extends (DBObject => DBObject) {
     * @return a composition of lenses
     */
   def ~ (other: DBObjectLens): DBObjectLens = DBObjectLens(this andThen other)
+
+  /** Apply this lens to the DBObject
+    */
+  def ~> (dbo: DBObject): DBObject = apply(dbo)
 
   def prefixString = "DBObjectLens"
 
