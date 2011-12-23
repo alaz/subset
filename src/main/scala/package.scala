@@ -46,14 +46,6 @@ package object subset {
   implicit def updateToDBObjectLens(u: Update)(implicit scope: Path = Path.empty): DBObjectLens = u.get(scope)
   implicit def updateToDBO(u: Update)(implicit scope: Path = Path.empty): DBObject = lensToDBO(u.get(scope))
 
-  // Few pimps
-  implicit def enrichDBO(dbo: DBObject) =
-    new AnyRef {
-      /** The symmetric method to `~>` in [[com.osinka.subset.DBObjectLens]], it applies a lens to the `DBObject`
-        */
-      def <~(lens: DBObjectLens): DBObject = lens(dbo)
-    }
-
   // Explicit objects to import serialization strategy
   val StrictValues = values.StrictValues
   val SmartValues = values.SmartValues

@@ -56,7 +56,10 @@ class lensSpec extends Spec with MustMatchers with MongoMatchers with Routines {
       (constLens andThen identityLens)(dbo) must equal(dbo)
     }
     it("supports DSL") {
-      (constLens ~ identityLens ~> dbo) must equal(dbo)
+      val set1 = DBObjectLens.writer[Int]("i", 1)
+      val set2 = DBObjectLens.writer[Int]("i", 2)
+      (set1 ~ set2 :~> dbo) must containKeyValue("i" -> 2)
+      (dbo <~: set1 ~ set2) must containKeyValue("i" -> 2)
     }
   }
 }

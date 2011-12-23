@@ -45,9 +45,14 @@ import com.mongodb.{DBObject,BasicDBObjectBuilder}
   * === Modifying an DBObject ===
   *
   * Since `DBObjectLens` is a function `(DBObject => DBObject)`, you may apply it directly
-  * to the DBObject in order to modify it. It also supports DSL `~>`:
+  * to the DBObject in order to modify it. It also has a method `:~>` that does the same:
   * {{{
-  * val resultingDBObject = field1(fValue) ~ anotherField(anotherValue) ~> existingDBObject
+  * val resultingDBObject = field1(fValue) ~ anotherField(anotherValue) :~> existingDBObject
+  * }}}
+  *
+  * The right-associative method is called `<~:`, so that you may write
+  * {{{
+  * val resultingDBObject = existingDBObject <~: field1(fValue)
   * }}}
   *
   * === Using DBObjectLens in subset ===
@@ -70,7 +75,11 @@ trait DBObjectLens extends (DBObject => DBObject) {
 
   /** Apply this lens to the DBObject
     */
-  def ~> (dbo: DBObject): DBObject = apply(dbo)
+  def :~> (dbo: DBObject): DBObject = apply(dbo)
+
+  /** Apply this lens to the DBObject (right-associative version)
+   */
+  def <~: (dbo: DBObject): DBObject = apply(dbo)
 
   def prefixString = "DBObjectLens"
 

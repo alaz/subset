@@ -15,11 +15,13 @@
  */
 package com.osinka.subset
 
-/** == A path ==
+/** MongoDB field/subdocument path
+  *
+  * == A path ==
   * MongoDB field/subdocument paths are separated by dot.
   * 
   * It is possible to say a path is relative to the enclosing path if they share the same prefix.
-  * `relativeTo` methods returns a suffix:
+  * `relativeTo` method returns a suffix:
   * {{{ 
   * Path("sub" :: "f" :: Nil).relativeTo(Path("sub" :: Nil)) must equal(Path("f" :: Nil))
   * }}}
@@ -39,10 +41,16 @@ trait Path {
     */
   def longName = path mkString "."
 
+  /** Return the common suffix
+    * @param scope the subdocument this path resides in
+    */
   def relativeTo(scope: Path) =
     if (path startsWith scope.path) Path(path.drop(scope.path.size))
     else this
 
+  /** Returns the positional segment
+    * @param scope the subdocument this path resides in
+    */
   def positionIn(scope: Path) =
     if (scope.path.isEmpty) this
     else if (path startsWith scope.path) Path(scope.path ::: "$" :: path.drop(scope.path.size))

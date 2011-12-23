@@ -20,7 +20,7 @@ import query._
 import update._
 import DBObjectLens._
 
-/** == A typed field ==
+/** A typed field
   * 
   * === Serialization ===
   * A field provides serialization/deserialization capabilities. 
@@ -42,9 +42,7 @@ import DBObjectLens._
   * see [[http://www.mongodb.org/display/DOCS/Updating#Updating-The%24positionaloperator The $ positional operator]] for
   * details.
   * 
-  * @see [[com.osinka.subset.DBObjectLens]]
-  * @see [[com.osinka.subset.ValueReader]]
-  * @see [[com.osinka.subset.ValueWriter]]
+  * @see [[com.osinka.subset.DBObjectLens]], [[com.osinka.subset.ValueReader]], [[com.osinka.subset.ValueWriter]]
   */
 class Field[T](val name: String)(implicit outer: Path = Path.empty) extends Path with FieldConditions[T] with Modifications[T] {
   override val path: List[String] = outer.path :+ name
