@@ -18,22 +18,11 @@ package values
 
 import java.util.Date
 
-// Lowest priority
-trait LowPrioritySerialization {
-  implicit def defaultReader[T <: AnyRef](implicit m: Manifest[T]): ValueReader[T] =
-    new ValueReader[T] {
-      def unpack(o: Any): Option[T] =
-        PartialFunction.condOpt(o) {
-          case any: AnyRef if m.erasure isAssignableFrom any.getClass => any.asInstanceOf[T]
-        }
-    }
-}
-
 /** Basic implicit getters and setters along with some explicit transformations
   *
   * Mostly unpacks primitives "as is", without attempt to convert from other type
   */
-trait BaseSerialization extends LowPrioritySerialization {
+trait BaseSerialization {
   import java.util.regex.Pattern
   import util.matching.Regex
   import org.bson.types.{ObjectId, Symbol => BsonSymbol}

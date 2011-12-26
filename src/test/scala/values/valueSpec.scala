@@ -30,11 +30,10 @@ import BasicDBObjectBuilder.{start => dbo}
 @RunWith(classOf[JUnitRunner])
 class valueSpec extends Spec with MustMatchers with MongoMatchers with Routines {
   describe("Default reader") {
-    val reader = new LowPrioritySerialization {}
     it("reads AnyRef types") {
-      unpackValue[String]("str")(reader.defaultReader[String]) must equal(Some("str"))
-      unpackValue[AnyRef]("str")(reader.defaultReader[AnyRef]) must equal(Some("str"))
-      unpackValue[String](10)(reader.defaultReader[String]) must equal(None)
+      unpackValue[String]("str")(ValueReader.defaultReader[String]) must equal(Some("str"))
+      unpackValue[AnyRef]("str")(ValueReader.defaultReader[AnyRef]) must equal(Some("str"))
+      unpackValue[String](10)(ValueReader.defaultReader[String]) must equal(None)
     }
   }
   describe("Base primitives serializer") {

@@ -43,6 +43,14 @@ case class ValueReaderPf[+T](pf: PartialFunction[Any, T]) extends ValueReader[T]
 
 object ValueReader {
   def apply[T](pf: PartialFunction[Any,T]): ValueReaderPf[T] = new ValueReaderPf[T](pf)
+
+  implicit def defaultReader[T <: AnyRef](implicit m: Manifest[T]): ValueReader[T] =
+    new ValueReader[T] {
+      def unpack(o: Any): Option[T] =
+        PartialFunction.condOpt(o) {
+          case any: AnyRef if m.erasure isAssignableFrom any.getClass => any.asInstanceOf[T]
+        }
+    }
 }
 
 object ValueWriter {
