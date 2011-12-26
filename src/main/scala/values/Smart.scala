@@ -18,6 +18,8 @@ package values
 
 import java.util.Date
 
+/** Provides a smart deserialization of BSON values
+  */
 object SmartValues extends SmartSerialization with ScalaTypesSerialization
 
 /** unpack primitives and try to convert from other type:

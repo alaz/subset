@@ -17,12 +17,46 @@ package com.osinka
 
 import com.mongodb.DBObject
 
-/** Collection of default implicits.
+/** == Getting Started ==
+  * This 'package object' provides a number of implicits to ease conversions and
+  * use of the library. Thus the initial step is supposed to be
+  * {{{
+  * import com.osinka.subset._
+  * }}}
+  * 
+  * == Value conversions ==
+  * '''Subset''' provides a means to convert Java/Scala types to/from BSON values.
+  * You have several options:
+  *  - if you are using Casbah, it already contains the conversion library
+  *  - you may `import SmartValues._`. '''Subset''' will try to extract correct
+  *    values from incorrect field contents (e.g. an integer value stored as a
+  *    string field)
+  *  - if you do not need this, do `import StrictValues._`
   *
-  * This 'package object' provides a number of implicits to ease conversions and use of the library.
-  *
-  * == Lens ==
-  * Most of the methods work around [[com.osinka.subset.DBObjectLens]].
+  * == Field ==
+  * It is possible to pimp a string into a [[com.osinka.subset.Field]] with `"fieldName".fieldOf[T]`.
+  * 
+  * Tuples made of `Field[T]` and the object of the same `T` can be implicitly converted into
+  * `DBObject` or [[com.osinka.subset.DBObjectLens]]. This depends on [[com.osinka.subset.ValueWriter]].
+  * {{{
+  * val dbo: DBObject = "i".fieldOf[Int] -> 10
+  * val lens: DBObjectLens = ("i".fieldOf[Int] -> 10) ~ ("s".fieldOf[String] -> "str")
+  * }}}
+  * 
+  * It's possible to simply use a string instead of field as well (but only to create a
+  * `DBObjectLens`):
+  * {{{
+  * val lens: DBObjectLens = ("i".fieldOf[Int] -> 10) ~ ("s" -> "str")
+  * }}}
+  * 
+  * == What's next? ==
+  *  - We recommend to start from [[com.osinka.subset.Field]].
+  *  - [[com.osinka.subset.Subset]] will give you a hint on how to work with subdocuments.
+  *  - [[com.osinka.subset.query]] provides information on building queries.
+  *  - [[com.osinka.subset.update]] is about "update operators".
+  *  - If you need details, [[com.osinka.subset.DBObjectLens]], [[com.osinka.subset.Path]],
+  *    [[com.osinka.subset.ValueReader]] and [[com.osinka.subset.ValueWriter]] are the
+  *    way to go.
   */
 package object subset {
   import query._

@@ -19,6 +19,8 @@ package values
 import scala.util.control.Exception._
 import org.bson.types.ObjectId
 
+/** Few generic extractors.
+  */
 object Extractors {
   /** An extractor you may use to check and build `ObjectId` from a String
     */

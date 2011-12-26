@@ -49,6 +49,16 @@ trait Conditions[T] extends Path {
     fquery("$within" -> writer("$box", Array(Array(x,y), Array(x2,y2)) ).get )
 }
 
+/** Equality condition for a field.
+  *
+  * Equality condition is applicable for fields only and can be expressed in
+  * terms of several methods:
+  *  - `"f".fieldOf[Int] === 1` creates an ordinary equality test `{f: 1}`
+  *  - `"f".fieldOf[Int] === Some(1)` does the same, while
+  *  - `"f".fieldOf[Int] === None` creates `{f: {\$exists: false}}`
+  *  - `"f".fieldOf[String] === "regexp".r` (you may supply Java's `Pattern` as well)
+  *    creates regexp matching operator `{f: /regexp/}`
+  */
 trait FieldConditions[T] extends Conditions[T] {
   override def fquery(condition: DBObjectLens) = FieldQuery[T](this, condition)
 
@@ -58,6 +68,14 @@ trait FieldConditions[T] extends Conditions[T] {
   def ===(x: Pattern): Query = Query(this, x) // TODO: for String only
 }
 
+/** A Query
+  * == Lens ==
+  * TODO: get a `DBObject`
+  * TODO: modify existing `DBObject`
+  * 
+  * == Composition ==
+  * TODO: \$or, \$nor, \$and
+  */
 trait Query extends DBObjectLens {
   def queryLens: QueryLens
 
@@ -104,7 +122,21 @@ object Query {
   }
 }
 
-
+/** A query term that helps define several conditions on the same field.
+  * 
+  * The example shows how it looks like:
+  * {{{
+  * val f = "f".fieldOf[Int]
+  * val query1: DBObject = f >= 2 < 10 in List(1,4,7,12)
+  * }}}
+  * The result would be `{f: {\$gte: 2, \$lt: 10, \$in: [1,4,7,12]}`.
+  * 
+  * There is a negation operator as well, e.g.
+  * {{{
+  * val query2: DBObject = !( f >= 2 < 10 )
+  * }}}
+  * The result would be `{f: {\$not: {\$gte: 2, \$lt: 10}}}`
+  */
 case class FieldQuery[T](p: Path, condition: DBObjectLens) extends Query with Conditions[T] {
   override def path: List[String] = p.path
 

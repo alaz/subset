@@ -19,8 +19,7 @@ import annotation.implicitNotFound
 
 /** ValueReader is responsible for reading types from BSON values
   *
-  * TODO: pf, link to companion
-  * TODO: scala types
+  * @see [[com.osinka.subset.values]]
   */
 @implicitNotFound(msg = "Cannot find ValueReader for ${T}")
 trait ValueReader[+T] {
@@ -28,14 +27,19 @@ trait ValueReader[+T] {
 }
 
 /** ValueWriter is responsible for converting types to BSON values.
-  * 
-  * TODO: link to companion
   */
 @implicitNotFound(msg = "Cannot find ValueWriter for ${T}")
 trait ValueWriter[-T] {
   def pack(x: T): Option[Any]
 }
 
+/** Most typical implementation of [[com.osinka.subset.ValueReader]]
+  *
+  * This class supports not only `orElse` (like `PartialFunction`), but
+  * `andThen` as well.
+  * 
+  * @see [[com.osinka.subset.values]]
+  */
 case class ValueReaderPf[+T](pf: PartialFunction[Any, T]) extends ValueReader[T] {
   override def unpack(o: Any): Option[T] = PartialFunction.condOpt(o)(pf)
 
@@ -50,6 +54,10 @@ case class ValueReaderPf[+T](pf: PartialFunction[Any, T]) extends ValueReader[T]
 
 }
 
+/** ValueReader factory based on `PartialFunction[Any,T]`.
+  *
+  * It contains a default reader implicit as well.
+  */
 object ValueReader {
   def apply[T](pf: PartialFunction[Any,T]): ValueReaderPf[T] = new ValueReaderPf[T](pf)
 
@@ -62,6 +70,10 @@ object ValueReader {
     }
 }
 
+/** ValueWriter factory based on ordinary "sanitization" function.
+  * 
+  * It contains a default writer implicit as well.
+  */
 object ValueWriter {
   def apply[T](sane: (T => Any)): ValueWriter[T] =
     new ValueWriter[T] {

@@ -19,6 +19,11 @@ package values
 import java.util.Date
 import org.joda.time.DateTime
 
+/** [[com.osinka.subset.ValueReader]] and [[com.osinka.subset.ValueWriter]] for Joda Time 
+  *
+  * '''Note''': Do not forget to include Joda Time jar into your project, since
+  * '''Subset''' declares an ''optional'' dependency on joda-time.
+  */
 object Joda {
   implicit val jodaDateTimeReader = ValueReader[DateTime]({
       case d: Date => new DateTime(d)

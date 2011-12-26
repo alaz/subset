@@ -155,6 +155,7 @@
             <exclude>.manager/**</exclude>
             <exclude>.ensime</exclude>
             <exclude>project/**</exclude>
+            <exclude>docs/**</exclude>
             <exclude>src/main/license/*.txt</exclude>
             <exclude>**/*.xml</exclude>
             <exclude>**/*.sbt</exclude>
