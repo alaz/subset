@@ -54,6 +54,11 @@ import DBObjectLens._
   * }
   * }}}
   *
+  * You may create tuples of higher arity:
+  * {{{
+  * val T3 = T2 ~ "bool".fieldOf[Boolean]
+  * }}}
+  * 
   * == Querying ==
   * A field is where query terms get created.
   *
@@ -64,6 +69,7 @@ import DBObjectLens._
   * A field provides methods to create update operations. See [[com.osinka.subset.update.Update]]
   * 
   * == Cloning fields ==
+  * 
   * === Modifying Types ===
   * There is a number of typical field types that can be of help.
   *
@@ -102,8 +108,10 @@ import DBObjectLens._
   *
   * val author = PostCreateEventOwner.author.detach
   * }}}
+  * 
+  * See the longer example in [[com.osinka.subset.Subset]].
   *
-  * @see [[com.osinka.subset.DBObjectLens]], [[com.osinka.subset.ValueReader]], [[com.osinka.subset.ValueWriter]]
+  * @see [[com.osinka.subset.DBObjectLens]], [[com.osinka.subset.ValueReader]], [[com.osinka.subset.ValueWriter]], [[com.osinka.subset.Subset]]
   */
 class Field[T](val name: String)(implicit outer: Path = Path.empty) extends Path with FieldConditions[T] with Modifications[T] {
   override val path: List[String] = outer.path :+ name

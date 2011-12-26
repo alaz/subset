@@ -17,12 +17,21 @@ package com.osinka.subset
 
 import annotation.implicitNotFound
 
-@implicitNotFound(msg = "Cannot find reader from BSON object to ${T}")
+/** ValueReader is responsible for reading types from BSON values
+  *
+  * TODO: pf, link to companion
+  * TODO: scala types
+  */
+@implicitNotFound(msg = "Cannot find ValueReader for ${T}")
 trait ValueReader[+T] {
   def unpack(o: Any): Option[T]
 }
 
-@implicitNotFound(msg = "Cannot find writer from ${T} to BSON object")
+/** ValueWriter is responsible for converting types to BSON values.
+  * 
+  * TODO: link to companion
+  */
+@implicitNotFound(msg = "Cannot find ValueWriter for ${T}")
 trait ValueWriter[-T] {
   def pack(x: T): Option[Any]
 }

@@ -31,7 +31,8 @@ package com.osinka.subset
   * Path("sub" :: "f" :: Nil).positionIn(Path("sub" :: Nil)) must equal(Path("sub" :: "$" :: "f" :: Nil))
   * }}}
   *
-  * @see [[http://www.mongodb.org/display/DOCS/Dot+Notation+%28Reaching+into+Objects%29 MongoDB dot notation]]
+  * @see [[http://www.mongodb.org/display/DOCS/Dot+Notation+%28Reaching+into+Objects%29 MongoDB dot notation]] and
+  * [[http://www.mongodb.org/display/DOCS/Dot+Notation+%28Reaching+into+Objects%29 Dot Notation (Reaching into Objects)]]
   */
 trait Path {
   def path: List[String]

@@ -52,7 +52,7 @@ class subsetSpec extends Spec with MustMatchers with MongoMatchers with Routines
       Doc.Sub.f.path must equal("doc" :: "sub" :: "f" :: Nil)
     }
     it("serializes fields specified") {
-      val dbo: DBObject = Doc(Doc.f -> 10, Doc.Sub(Doc.Sub.f -> 5))
+      val dbo: DBObject = Doc(Doc.f(10) ~ Doc.Sub(Doc.Sub.f -> 5))
 
       val doc = DBObjectLens.read[DBObject]("doc", dbo)
       doc must be('defined)
@@ -78,7 +78,11 @@ class subsetSpec extends Spec with MustMatchers with MongoMatchers with Routines
     implicit val docReader = ValueReader[Doc]({
         case Doc.f(f) => new Doc(f)
       })
+    implicit val docWriter = ValueWriter[Doc](doc => Doc.f(doc.f).get)
 
+    it("has serializer") {
+      Doc(new Doc(10)).get must equal(start.push("doc").append("f", 10).get)
+    }
     it("has extractor") {
       val dbo = start.push("doc").append("f", 10).get
       dbo match {
