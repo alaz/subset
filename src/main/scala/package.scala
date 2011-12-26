@@ -17,8 +17,12 @@ package com.osinka
 
 import com.mongodb.DBObject
 
-/** = Subset =
-  * 
+/** Collection of default implicits.
+  *
+  * This 'package object' provides a number of implicits to ease conversions and use of the library.
+  *
+  * == Lens ==
+  * Most of the methods work around [[com.osinka.subset.DBObjectLens]].
   */
 package object subset {
   import query._

@@ -57,17 +57,6 @@ SiteKeys.siteMappings <<=
   }
 
 pomExtra := <xml:group>
-    <name>Subset - MongoDB Document data serialization and query builder library</name>
-    <inceptionYear>2011</inceptionYear>
-    <description>
-      Minimalistic library for
-      - building typed field serializers/deserializers to/from DBObject
-      - typed query builders
-    </description>
-    <organization>
-      <name>Osinka.com</name>
-      <url>http://www.osinka.com</url>
-    </organization>
     <licenses>
       <license>
         <name>Apache License, Version 2.0</name>

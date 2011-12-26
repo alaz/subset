@@ -55,6 +55,7 @@ class pathSpec extends Spec with MustMatchers with MongoMatchers with Routines {
       val p = Path("doc" :: "field" :: Nil)
       p.positionIn(Path.empty) must equal(p)
       p.positionIn(Path("other")) must equal(p)
+      p.positionIn(Path("doc" :: "field" :: Nil)) must equal(Path("doc" :: "field" :: "$" :: Nil))
       p.positionIn(Path("doc" :: Nil)) must equal(Path("doc" :: "$" :: "field" :: Nil))
       p.positionIn(Path("doc" :: "other" :: Nil)) must equal(p)
     }

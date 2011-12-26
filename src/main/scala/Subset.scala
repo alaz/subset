@@ -22,12 +22,28 @@ import update._
 import DBObjectLens._
 import QueryLens._
 
-/** == Subset ==
-  * Subset is a sub-document builder. It
-  * 
-  *  - encloses fields, so that they have correct path in a `DBObject`.
-  *  - lets serialize/deserialize subdocuments to/from `DBObject`
+/** Subset is a abstract class to build subdocuments
+  *
+  * == Subset ==
+  *  - encloses fields.
+  *  - helps serialize/deserialize subdocuments to/from `DBObject`
   *  - participates in [[com.osinka.subset.query.Query]] and [[com.osinka.subset.update.Update]] creation
+  *
+  * The fields created in ''Subset'' automatically get the scope of it, so that they have correct path in queries, update operators, etc.
+  *
+  * === Nested documents ===
+  * Since MongoDB documents may be nested, they sometimes make up a complex hierarchies with arrays of maps or maps of
+  * maps. "TODO: more MongoDB doc"
+  * ''Subset'' lets you define a subdocument with fields, you may include other subdocuments as well.
+  * {{{
+  * val postId = "pid".fieldOf[Int]
+  * // TODO: ??
+  * object commentDoc extends Subset("comments") {
+  *   val commentId = "cid".fieldOf[Int]
+  *   val text = "text".fieldOf[String]
+  *   val likes = "likes".fieldOf[Int]
+  * }
+  * }}}
   */
 abstract class Subset[T](val subsetName: String)(implicit outerPath: Path = Path.empty) extends Path {
   override val path: List[String] = outerPath.path :+ subsetName
@@ -37,18 +53,16 @@ abstract class Subset[T](val subsetName: String)(implicit outerPath: Path = Path
 
   def unapply(dbo: DBObject)(implicit r: ValueReader[T]): Option[T] = read[T](subsetName, dbo)
 
-  /**
-   * Creates a query as an $elemMatch relative to this document
-   * 
-   * http://www.mongodb.org/display/DOCS/Advanced+Queries#AdvancedQueries-%24elemMatch
-   */
+  /** Creates a query as an \$elemMatch relative to this document
+    *
+    * [[http://www.mongodb.org/display/DOCS/Advanced+Queries#AdvancedQueries-%24elemMatch Advanced Queries - elemMatch]]
+    */
   def elemMatch(f: this.type => Query): Query = Query( relative(this, writer("$elemMatch", f(this).queryLens(this))) )
 
-  /**
-   * Creates an update operator positioned relative to this document
-   * 
-   * http://www.mongodb.org/display/DOCS/Updating#Updating-The%24positionaloperator
-   */
+  /** Creates an update operator positioned relative to this document
+    *
+    * [[http://www.mongodb.org/display/DOCS/Updating#Updating-The%24positionaloperator Updating - The positional operator]]
+    */
   def updateMatch(f: this.type => Update): DBObjectLens = f(this).get(this)
 
   override def toString: String = "Subset "+longName

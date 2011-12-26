@@ -80,19 +80,26 @@ class fieldSpec extends Spec with MustMatchers with MongoMatchers with Routines 
       }
     }
     it("may be attached to Subset") {
+      val f_ext = "f".fieldOf[Int]
+      object Doc extends Subset[DBObject]("doc") {
+        val f = "f".fieldOf[Int]
+        val f1 = f_ext.attach
+      }
+      "f".fieldOf[Int].attach(Doc) must equal(Doc.f)
+      Doc.f1 must equal(Doc.f)
+    }
+    it("may be detached from a Subset") {
       object Doc extends Subset[DBObject]("doc") {
         val f = "f".fieldOf[Int]
       }
-      "f".fieldOf[Int].attach(Doc) must equal(Doc.f)
-    }
-  }
-  describe("Field in Subset") {
-    object Doc extends Subset[DBObject]("doc") {
-      val f = "f".fieldOf[Int]
-    }
-
-    it("may be detached") {
       Doc.f.detach must equal("f".fieldOf[Int])
+    }
+    it("provides a positional operator") {
+      object Doc extends Subset[DBObject]("doc") {
+        val f = "f".fieldOf[Int]
+      }
+      Doc.f.first.longName must equal("doc.f.$")
+      Doc.f.firstIn(Doc).longName must equal("doc.$.f")
     }
   }
 }

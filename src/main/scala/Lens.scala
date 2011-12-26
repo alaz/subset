@@ -20,12 +20,10 @@ import com.mongodb.{DBObject,BasicDBObjectBuilder}
 /** The low level mechanism for modifying DBObjects.
   *
   * === Composition ===
-  * Basically the lens is just a function taking one `DBObject` and returning another.
-  *
-  * ''Note'': Subset does not declare if a lens must return the same `DBObject` or another one.
+  * Basically the lens is a function taking one `DBObject` and returning another.
   *
   * We can compose two `DBObjectLens` objects into a single `DBObjectLens` just like function composition.
-  * You may use `andThen` (and you will get `(DBObject => DBObject)` as a result, or you may use method `~`
+  * You may use `andThen` (and you will get `(DBObject => DBObject)` as a result), or you may use method `~`
   * (and you'll get `DBObjectLens`).
   *
   * {{{
@@ -48,11 +46,15 @@ import com.mongodb.{DBObject,BasicDBObjectBuilder}
   * to the DBObject in order to modify it. It also has a method `:~>` that does the same:
   * {{{
   * val resultingDBObject = field1(fValue) ~ anotherField(anotherValue) :~> existingDBObject
+  * // is the same as
+  * val resultingDBObject = (field1(fValue) ~ anotherField(anotherValue))(existingDBObject)
   * }}}
   *
   * The right-associative method is called `<~:`, so that you may write
   * {{{
   * val resultingDBObject = existingDBObject <~: field1(fValue)
+  * // is the same as
+  * val resultingDBObject = field1(fValue)(existingDBObject)
   * }}}
   *
   * === Using DBObjectLens in subset ===
@@ -61,6 +63,8 @@ import com.mongodb.{DBObject,BasicDBObjectBuilder}
   *
   * A `DBObjectLens` is a convenient way to stack modifications together and then modify an existing `DBObject`, thus
   * providing interoperability with existing code.
+  *
+  * ''Note'': Subset does not declare if a lens must return the same `DBObject` or another one.
   */
 trait DBObjectLens extends (DBObject => DBObject) {
   /** Applies this lens to an empty `DBObject`
