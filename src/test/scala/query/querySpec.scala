@@ -33,6 +33,7 @@ class querySpec extends Spec with MustMatchers with MongoMatchers with Routines 
 
   describe("Field query") {
     val i = "i".fieldOf[Int]
+    val ai = "i".fieldOf[List[Int]]
 
     it("has $exists") {
       (i exists true).get must equal(query("i").exists(true).get)
@@ -61,7 +62,7 @@ class querySpec extends Spec with MustMatchers with MongoMatchers with Routines 
       (i <= 10).get must equal(query("i").lessThanEquals(10).get)
     }
     it("has $size") {
-      (i size 10).get must equal(query("i").size(10).get)
+      (ai size 10).get must equal(query("i").size(10).get)
     }
     it("has $type") {
       (i `type` BSON.NUMBER).get must equal(dbo.push("i").add("$type", BSON.NUMBER).get)
@@ -83,7 +84,7 @@ class querySpec extends Spec with MustMatchers with MongoMatchers with Routines 
       // FIXME: cannot compare arrays https://jira.mongodb.org/browse/JAVA-482
       //(i all List(1,2)).get must equal(query("i").all(Array(1,2)).get)
 
-      val dbo = (i all Array(1,2)).get
+      val dbo = (ai all Array(1,2)).get
 
       val in = DBObjectLens.read[DBObject]("i", dbo)
       in must be('defined)
@@ -123,7 +124,7 @@ class querySpec extends Spec with MustMatchers with MongoMatchers with Routines 
       q.toString must startWith("Query")
       q.get must equal(dbo.push("i").push("$not").add("$lt", 10).get)
     }
-    it("accumulates") {
+    it("makes ranges") {
       (i < 10 > 5).get must equal(query("i").lessThan(10).greaterThan(5).get)
       (i < 10 > 5 <= 15 < 5).get must equal(query("i").lessThan(10).greaterThan(5).lessThanEquals(15).lessThan(5).get)
     }

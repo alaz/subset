@@ -27,7 +27,7 @@ import BasicDBObjectBuilder.start
 class subsetSpec extends Spec with MustMatchers with MongoMatchers with Routines {
   import StrictValues._
 
-  describe("Subset") {
+  describe("Untyped Subset") {
     object Doc extends Subset[DBObject]("doc") {
       val f = "f".fieldOf[Int]
 

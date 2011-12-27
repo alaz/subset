@@ -33,11 +33,11 @@ trait Conditions[T] extends Path {
   def <=(x: T)(implicit writer: ValueWriter[T]) = fquery("$lte" -> x)
   def !==(x: T)(implicit writer: ValueWriter[T]) = fquery("$ne" -> x)
   def mod(by: Int, rest: Int)(implicit writer: ValueWriter[Traversable[Int]]) = fquery("$mod" -> List(by, rest))
-  def size(n: Int) = fquery("$size" -> n) // TODO: for Seq[T] only
+  def size(n: Int)(implicit ev: T <:< Traversable[_]) = fquery("$size" -> n)
   def `type`(n: Int) = fquery("$type" -> n)
-  def in(s: Traversable[T])(implicit writer: ValueWriter[Traversable[T]]) = fquery("$in" -> s) // TODO: for Seq[T] only
-  def notIn(s: Traversable[T])(implicit writer: ValueWriter[Traversable[T]]) = fquery("$nin" -> s) // TODO: for Seq[T] only
-  def all(s: Traversable[T])(implicit writer: ValueWriter[Traversable[T]]) = fquery("$all" -> s) // TODO: for Seq[T] only
+  def in(s: Traversable[T])(implicit writer: ValueWriter[Traversable[T]]) = fquery("$in" -> s)
+  def notIn(s: Traversable[T])(implicit writer: ValueWriter[Traversable[T]]) = fquery("$nin" -> s)
+  def all[A](s: Traversable[A])(implicit writer: ValueWriter[Traversable[A]], ev: T <:< Traversable[A]) = fquery("$all" -> s)
 
   def near(x: Double, y: Double)(implicit writer: ValueWriter[Traversable[Double]]) =
     fquery("$near" -> List(x, y))

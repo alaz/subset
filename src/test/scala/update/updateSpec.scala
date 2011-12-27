@@ -46,12 +46,13 @@ class updateSpec extends Spec with MustMatchers with MongoMatchers with Routines
       dbo.get must containKeyValue("i" -> 10)
     }
     it("has $addToSet for sequences") {
-      val u = i.addToSet(1 :: 2 :: Nil)
+      val iaf = "arr".fieldOf[List[Int]]
+      val u = iaf.addToSet(1 :: 2 :: Nil)
 
       val addToSet = DBObjectLens.read[DBObject]("$addToSet", u: DBObject)
       addToSet must be('defined)
 
-      val v = DBObjectLens.read[DBObject]("i", addToSet.get)
+      val v = DBObjectLens.read[DBObject]("arr", addToSet.get)
       v must be ('defined)
 
       val arr = DBObjectLens.read[Array[Int]]("$each", v.get)

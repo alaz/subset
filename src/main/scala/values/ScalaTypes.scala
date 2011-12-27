@@ -34,6 +34,7 @@ trait ScalaTypesSerialization {
         case list: BasicBSONList => list flatMap {r.unpack _} toList
       })
   }
+  // TODO: ValueReader[Map[String,T]]
 
   implicit def optionSetter[T](implicit w: ValueWriter[T]) =
     new ValueWriter[Option[T]] {
@@ -48,5 +49,5 @@ trait ScalaTypesSerialization {
       override def pack(x: Tuple2[String,T]): Option[Any] =
         w.pack(x._2) map {v => writer(x._1, v)(ValueWriter.defaultWriter[Any]).get}
     }
-  // TODO: ValueWriter[Either[_,T]]
+  // TODO: ValueWriter[Map[String,T]]
 }
