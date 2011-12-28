@@ -99,6 +99,8 @@ trait DBObjectLens extends (DBObject => DBObject) {
   * convenience methods.
   */
 object DBObjectLens {
+  def empty: DBObjectLens = apply { (_: DBObject) => BasicDBObjectBuilder.start.get }
+
   // Factory object
   def apply(f: DBObject => DBObject): DBObjectLens =
     new DBObjectLens {

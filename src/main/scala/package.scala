@@ -80,6 +80,9 @@ package object subset {
   implicit def fToDBObjectLens(f: DBObject => DBObject): DBObjectLens = DBObjectLens.fToDBObjectLens(f)
   implicit def fToQDBObjectLens(f: Path => DBObjectLens): QueryLens = QueryLens.fToQDBObjectLens(f)
 
+  // Query
+  val Query = query.Query
+
   // Update
   implicit def updateToDBObjectLens(u: Update)(implicit scope: Path = Path.empty): DBObjectLens = u.get(scope)
   implicit def updateToDBO(u: Update)(implicit scope: Path = Path.empty): DBObject = lensToDBO(u.get(scope))

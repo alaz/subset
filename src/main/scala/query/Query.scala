@@ -101,6 +101,8 @@ trait Query extends DBObjectLens {
 }
 
 object Query {
+  def empty: Query = apply( QueryLens { (_: Path) => DBObjectLens.empty } )
+
   def apply[T : ValueWriter](p: Path, x: T): Query = apply(relative(p, x))
   def apply(ql: QueryLens): Query = DefaultImpl(ql)
 
