@@ -59,7 +59,7 @@ trait Modifications[T] extends Path {
 object Update {
   def apply(t: (String, QueryLens)) = new Update(Map(t))
 
-  implicit def updateWriter(implicit scope: Path = Path.empty) = ValueWriter[Update](_.get(scope).get)
+  implicit def updateWriter(implicit scope: Path = Path.empty) = ValueWriter[Update](_.lens(scope).get)
 }
 
 /** Update builder
@@ -70,13 +70,12 @@ object Update {
   * collection.update(query, updateOp)
   * }}}
   * 
-  * You may get a [[com.osinka.subset.DBObjectLens]] explicitly with `get` method (there is
-  * an implicit conversion as well)
+  * You may get a [[com.osinka.subset.DBObjectLens]] explicitly with `lens` method
   */
 case class Update(ops: Map[String,QueryLens]) {
   /** Returns a [[com.osinka.subset.DBObjectLens]] with update operations
     */
-  def get(implicit scope: Path = Path.empty): DBObjectLens =
+  def lens(implicit scope: Path = Path.empty): DBObjectLens =
     ops map {t => writer(t._1, t._2(scope))} reduceLeft {_ ~ _}
 
   /** Compose with another `Update` object
@@ -99,5 +98,5 @@ case class Update(ops: Map[String,QueryLens]) {
 
   override def hashCode: Int = ops.hashCode
 
-  override def toString = "Update"+get
+  override def toString = "Update"+lens
 }

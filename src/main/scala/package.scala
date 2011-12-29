@@ -86,8 +86,7 @@ package object subset {
   val Query = query.Query
 
   // Update
-  implicit def updateToDBObjectLens(u: Update)(implicit scope: Path = Path.empty): DBObjectLens = u.get(scope)
-  implicit def updateToDBO(u: Update)(implicit scope: Path = Path.empty): DBObject = lensToDBO(u.get(scope))
+  implicit def updateToDBO(u: Update)(implicit scope: Path = Path.empty): DBObject = lensToDBO(u.lens(scope))
 
   // Explicit objects to import serialization strategy
   val StrictValues = values.StrictValues

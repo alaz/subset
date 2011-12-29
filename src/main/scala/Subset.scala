@@ -143,7 +143,7 @@ abstract class Subset[T](val subsetName: String)(implicit outerPath: Path = Path
     *
     * [[http://www.mongodb.org/display/DOCS/Updating#Updating-The%24positionaloperator Updating - The positional operator]]
     */
-  def updateMatch(f: this.type => Update): DBObjectLens = f(this).get(this)
+  def updateMatch(f: this.type => Update): DBObjectLens = f(this).lens(this)
 
   override def toString: String = "Subset "+longName
 
