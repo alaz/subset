@@ -22,17 +22,19 @@ description := """Subset is a tiny and simple library for
 libraryDependencies ++= Seq(
   "org.mongodb" % "mongo-java-driver" % "2.7.2",
   "joda-time" % "joda-time" % "1.6.2" % "optional",
-  "junit" % "junit" % "4.10" % "test"
+  "junit" % "junit" % "4.10" % "it,test"
 )
 
 libraryDependencies <+= scalaVersion({
   case v: String if v.startsWith("2.8") =>
-    "org.scalatest" %% "scalatest" % "1.5.1" % "test"
+    "org.scalatest" %% "scalatest" % "1.5.1" % "it,test"
   case v: String if v.startsWith("2.9") =>
-    "org.scalatest" %% "scalatest" % "1.6.1" % "test"
+    "org.scalatest" %% "scalatest" % "1.6.1" % "it,test"
   case v =>
     error("Unsupported Scala version "+v)
 })
+
+parallelExecution in IntegrationTest := false
 
 publishTo <<= (version) { version: String =>
   if (version.trim endsWith "SNAPSHOT")
