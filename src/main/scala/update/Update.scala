@@ -34,7 +34,7 @@ trait Modifications[T] extends Path {
   def addToSet[A](seq: Traversable[A])(implicit w: ValueWriter[Traversable[A]], ev: T <:< Traversable[A]) = op("$addToSet", writer("$each", seq))
   def pop(i: Int)(implicit writer: ValueWriter[Int]) = op("$pop", i)
   def pull[A](x: A)(implicit writer: ValueWriter[A], ev: T <:< Traversable[A]) = op("$pull", x)
-  def pull(q: Query) = op("$pull", q)
+  def pull(q: Query) = op("$pull", q.queryLens(this))
   def pull[A](seq: Traversable[A])(implicit writer: ValueWriter[Traversable[A]], ev: T <:< Traversable[A]): Update = pullAll(seq)
   def pullAll[A](seq: Traversable[A])(implicit writer: ValueWriter[Traversable[A]], ev: T <:< Traversable[A]) = op("$pullAll", seq)
   def rename(newName: String)(implicit writer: ValueWriter[String]) = op("$rename", newName)

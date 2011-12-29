@@ -69,10 +69,13 @@ class updateSpec extends Spec with MustMatchers with MongoMatchers with Routines
     }
   }
   describe("Subset modification") {
-    object Doc extends Subset("doc") {
-      val f = "f".fieldOf[Int]
+    val doc = "doc".fieldOf[List[Any]]
 
-      object Sub extends Subset("sub") {
+    object Doc extends Subset[Any]("doc") {
+      val f = "f".fieldOf[Int]
+      val sub = "sub".fieldOf[List[Any]]
+
+      object Sub extends Subset[Any]("sub") {
         val f = Field[Int]("f")
       }
     }
@@ -80,6 +83,10 @@ class updateSpec extends Spec with MustMatchers with MongoMatchers with Routines
     it("supports positional $ operator") {
       Doc.updateMatch(doc => doc.f.set(3)).get must equal(dbo.push("$set").append("doc.$.f", 3).get)
       Doc.Sub.updateMatch(doc => doc.f.set(3)).get must equal(dbo.push("$set").append("doc.sub.$.f", 3).get)
+    }
+    it("knows that $pull supports relative path in query") {
+      val updOp: DBObject = doc.pull(Doc.f > 1)
+      updOp must equal(dbo.push("$pull").push("doc").push("f").append("$gt", 1).get)
     }
   }
 }
