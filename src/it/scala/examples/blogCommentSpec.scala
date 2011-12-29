@@ -243,13 +243,11 @@ class blogCommentSpec extends FeatureSpec with GivenWhenThen with MustMatchers w
 
       then("it's possible to find a blog post by a specific comment's fields")
       val query = BlogPost.Comments.elemMatch {comment => comment.by === "joe" && comment.votes === 2}
-      val record = Option( collection.findOne(query  : DBObject) )
+      val record = Option( collection.findOne(query  : DBObject) ) flatMap { BlogPost.read _ }
       record must be('defined)
 
       and("it has correct comment")
-      val recordComments = DBObjectLens.read[List[Comment]]("comments", record.get)
-      recordComments must be('defined)
-      recordComments.get must contain(Comment("joe",2,"joe's comment"))
+      record.get.comments must contain(Comment("joe",2,"joe's comment"))
     }
   }
 
