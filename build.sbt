@@ -1,3 +1,11 @@
+// Unit tests (invoke with command `test`) do not depend on MongoDB running.
+//
+// Integration tests (invoke with command `it:test`) depend on
+// MongoDB running. By default, they connect to `localhost`, database `test`
+// and use collection `test` (the tests will drop it!).
+//
+// You may change the defaults in src/it/scala/ExampleFixture.scala
+
 import com.jsuereth.sbtsite.SiteKeys
 import sbtrelease.Release._
 
