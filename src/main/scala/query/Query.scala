@@ -23,6 +23,8 @@ import com.mongodb.DBObject
 import DBObjectLens._
 import QueryLens._
 
+/** All the field conditions that MongoDB allows to verify.
+  */
 trait Conditions[T] extends Path {
   protected def fquery(condition: DBObjectLens): FieldQuery[T]
 
@@ -51,6 +53,8 @@ trait Conditions[T] extends Path {
 
 /** Equality condition for a field.
   *
+  * This trait mixes into [[com.osinka.subset.Field]]
+  * 
   * Equality condition is applicable for fields only and can be expressed in
   * terms of several methods:
   *  - `"f".fieldOf[Int] === 1` creates an ordinary equality test `{f: 1}`
@@ -69,12 +73,51 @@ trait FieldConditions[T] extends Conditions[T] {
 }
 
 /** A Query
+  *
   * == Lens ==
-  * TODO: get a `DBObject`
-  * TODO: modify existing `DBObject`
+  * Query is a [[com.osinka.subset.DBObjectLens]], which means you may
+  * get a `DBObject` or apply it to the existing `DBObject` at any time.
+  * 
+  * Thus whenever you have a `Query`, you may get its MongoDB repesentation
+  * explicitly using `get`
+  * {{{
+  * val q = f > 5 < 10
+  * collection.findOne( q.get )
+  * }}}
+  * 
+  * or implicitly
+  * 
+  * {{{
+  * collection.findOne(q : DBObject)
+  * }}}
+  * 
+  * '''NOTE:''' `DBCollection.findOne` is a method that accepts `AnyRef`, that's
+  * why an implicit conversion will not be triggered automatically and you have
+  * to say explicitly you want to convert a `Query` into `DBObject`
   * 
   * == Composition ==
-  * TODO: \$or, \$nor, \$and
+  * Queries allow composition using methods
+  *  - `&&` (the same as `and`), this will result in `\$and`
+  *  - `||` (the same as `or`), this will result in `\$or`
+  *  - `nor`, this will result in `\$nor`
+  * 
+  * Whenever you join queries with `&&`, '''Subset''' tries to determine if
+  * both queries use the same keys. If they does, it creates an `\$and` query.
+  * If not, it simply joins two maps.
+  * 
+  * {{{
+  * val q1 = (f > 0 && f < 10).get
+  * }}}
+  * This results in `{\$and: [{f: {\$gt:0}}, {f: {\$lt:10}}]}`.
+  * 
+  * {{{
+  * val q2 = (f > 0 && g < 10).get
+  * }}}
+  * This results in `{f: {\$gt:0}, g: {\$lt:10}}`
+  * 
+  * The same rules apply to the larger number of query terms.
+  * 
+  * @see [https://github.com/osinka/subset/blob/master/src/it/scala/blogCommentSpec.scala Blog Comment Example]
   */
 trait Query extends DBObjectLens {
   def queryLens: QueryLens
@@ -126,7 +169,7 @@ object Query {
   }
 }
 
-/** A query term that helps define several conditions on the same field.
+/** A query term that helps define several conditions on the same field (e.g. ranges)
   * 
   * The example shows how it looks like:
   * {{{

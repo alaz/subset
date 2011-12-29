@@ -123,7 +123,7 @@ import QueryLens._
   * BlogPost.Comments.votes.firstIn(BlogPost.Comments).longName must equal("comments.$.votes")
   * }}}
   *
-  * @see [[https://gist.github.com/3033b1cc11825870656d REPLable example using array of maps, positional query and update]]
+  * @see [[https://github.com/osinka/subset/blob/master/src/it/scala/blogCommentSpec.scala Blog Comment Example]]
   */
 abstract class Subset[T](val subsetName: String)(implicit outerPath: Path = Path.empty) extends Path {
   override val path: List[String] = outerPath.path :+ subsetName

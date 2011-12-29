@@ -57,6 +57,8 @@ import com.mongodb.DBObject
   *  - If you need details, [[com.osinka.subset.DBObjectLens]], [[com.osinka.subset.Path]],
   *    [[com.osinka.subset.ValueReader]] and [[com.osinka.subset.ValueWriter]] are the
   *    way to go.
+  *
+  * @see [[https://github.com/osinka/subset/blob/master/src/it/scala/blogCommentSpec.scala Blog Comment Example]]
   */
 package object subset {
   import query._
