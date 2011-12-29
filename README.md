@@ -17,7 +17,7 @@ serializing them back and constructing queries.
 
 ## More Information
 
-* [API Reference (scaladoc)](http://osinka.github.com/subset/api/index.html)
+* [API Reference (scaladoc)](http://osinka.github.com/subset/api/index.html#com.osinka.subset.package)
 * [Documentation](http://osinka.github.com/subset/Subset.html)
 
 ## Using
