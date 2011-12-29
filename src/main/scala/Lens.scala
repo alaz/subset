@@ -99,9 +99,13 @@ trait DBObjectLens extends (DBObject => DBObject) {
   * convenience methods.
   */
 object DBObjectLens {
-  def empty: DBObjectLens = apply(BasicDBObjectBuilder.start.get)
+  /** @return A lens that removes all the contents
+    */
+  def empty: DBObjectLens = const(BasicDBObjectBuilder.start.get)
 
-  def apply(dbo: DBObject): DBObjectLens = apply { (_: DBObject) => dbo }
+  /** @return A lens that replaces the contents with the `DBObject` specified
+    */
+  def const(dbo: DBObject): DBObjectLens = apply {_: DBObject => dbo}
   
   // Factory object
   def apply(f: DBObject => DBObject): DBObjectLens =
@@ -124,7 +128,8 @@ object DBObjectLens {
   /** Creates a lens that writes a typed key-value.
     * 
     * Makes use of [[com.osinka.subset.ValueWriter]] implicit.
-    * 
+    *
+    * @return a lens writing the key-value specified
     * @see [[com.osinka.subset.ValueWriter]]
     */
   def writer[T](key: String, x: T)(implicit w: ValueWriter[T]): DBObjectLens =

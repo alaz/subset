@@ -144,10 +144,13 @@ trait Query extends DBObjectLens {
 }
 
 object Query {
-  def empty: Query = apply(DBObjectLens.empty)
+  /** @return an empty query
+    */
+  def empty: Query = const(DBObjectLens.empty)
 
-  def apply(dbo: DBObject): Query = apply(DBObjectLens(dbo))
-  def apply(lens: DBObjectLens): Query = apply(QueryLens { (_: Path) => lens})
+  def const(dbo: DBObject): Query = const(DBObjectLens const dbo)
+  def const(lens: DBObjectLens): Query = apply(QueryLens {_: Path => lens})
+
   def apply[T : ValueWriter](p: Path, x: T): Query = apply(relative(p, x))
   def apply(ql: QueryLens): Query = DefaultImpl(ql)
 

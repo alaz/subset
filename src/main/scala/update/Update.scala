@@ -57,6 +57,8 @@ trait Modifications[T] extends Path {
 }
 
 object Update {
+  def empty: Update = new Update(Map.empty)
+
   def apply(t: (String, QueryLens)) = new Update(Map(t))
 
   implicit def updateWriter(implicit scope: Path = Path.empty) = ValueWriter[Update](_.lens(scope).get)

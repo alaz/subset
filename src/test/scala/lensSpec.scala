@@ -28,7 +28,7 @@ class lensSpec extends Spec with MustMatchers with MongoMatchers with Routines {
   describe("DBObjectLens") {
     // FIXME: cannot compare arrays https://jira.mongodb.org/browse/JAVA-482
     def dbo = start("i", 10).push("inner").add("s", "string")/*.add("a", Array(1,2))*/.get
-    def constLens = DBObjectLens(dbo)
+    def constLens = DBObjectLens.const(dbo)
     def identityLens = DBObjectLens(identity[DBObject] _)
 
     it("has `equals`") {
