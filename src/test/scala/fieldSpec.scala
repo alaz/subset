@@ -99,7 +99,10 @@ class fieldSpec extends Spec with MustMatchers with MongoMatchers with Routines 
         val f = "f".fieldOf[Int]
       }
       Doc.f.first.longName must equal("doc.f.$")
-      Doc.f.firstIn(Doc).longName must equal("doc.$.f")
+      Doc.f.first.in(Doc).longName must equal("doc.$.f")
+
+      Doc.f.at(1) must equal( Field[Int]("1")(Path("doc" :: "f" :: Nil)) )
+      Doc.f.at(1).in(Doc).longName must equal("doc.1.f")
     }
   }
 }

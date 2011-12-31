@@ -169,7 +169,7 @@ class blogCommentSpec extends FeatureSpec with GivenWhenThen with MustMatchers w
       collection.count must equal(2)
 
       when("the specific comment vote count has been incremented")
-      successful { collection.update(BlogPost.Comments.by === "joe", BlogPost.Comments.votes.firstIn(BlogPost.Comments) inc 1) }
+      successful { collection.update(BlogPost.Comments.by === "joe", BlogPost.Comments.votes.first.in(BlogPost.Comments) inc 1) }
 
       then("the record contains the new updated comment")
       val record = Option( collection.findOne(BlogPost.title === "title" : DBObject) )

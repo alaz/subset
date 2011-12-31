@@ -92,7 +92,12 @@ import DBObjectLens._
   * see [[http://www.mongodb.org/display/DOCS/Updating#Updating-The%24positionaloperator The $ positional operator]] for
   * details.
   * {{{
-  * collection.update( Comments.By === "joe", Comments.Votes.firstIn(Comments).inc(1) )
+  * collection.update( Comments.By === "joe", Comments.Votes.first.in(Comments).inc(1) )
+  * }}}
+  *
+  * Analogously, in the case a query or update modifier need to be created for an element of array,
+  * {{{
+  * collection.find( Comments.Votes.at(0).in(Comments) === "joe" )
   * }}}
   *
   * === Subset ===
@@ -114,6 +119,8 @@ import DBObjectLens._
   * @see [[com.osinka.subset.DBObjectLens]], [[com.osinka.subset.ValueReader]], [[com.osinka.subset.ValueWriter]], [[com.osinka.subset.Subset]]
   */
 class Field[T](val name: String)(implicit outer: Path = Path.empty) extends Path with FieldConditions[T] with Modifications[T] {
+  field =>
+
   override val path: List[String] = outer.path :+ name
 
   /** Create a new field attached to the scope
@@ -140,24 +147,35 @@ class Field[T](val name: String)(implicit outer: Path = Path.empty) extends Path
    */
   def any: Field[Any] = as[Any]
 
+  class PositionalField private[Field] (override val name: String) extends Field[T](name)(this) {
+    /** Move the position to another scope.
+     *
+     * Creates a positional field relative to the scope specified
+     *
+     * @see [[http://www.mongodb.org/display/DOCS/Updating#Updating-The%24positionaloperator The $ positional operator]],
+     *      [[http://www.mongodb.org/display/DOCS/Dot+Notation+(Reaching+into+Objects)#DotNotation%28ReachingintoObjects%29-ArrayElementbyPosition Array element by position]]
+     */
+    def in(scope: Path): Field[T] = {
+      val p = field.positionIn(scope, name)
+      new Field[T](p.path.last)(Path(p.path dropRight 1))
+    }
+  }
+
+  /** Create a field representing array element
+    *
+    * @param index an index of array element
+    *
+    * @see [[http://www.mongodb.org/display/DOCS/Dot+Notation+(Reaching+into+Objects)#DotNotation%28ReachingintoObjects%29-ArrayElementbyPosition Array element by position]]
+    */
+  def at(index: Int) = new PositionalField(index.toString)
+
   /** Create a new positional field with the same type. The last element is "$"
    *
    * Creates a positional field to update the first matched element in an array.
    * 
    * @see [[http://www.mongodb.org/display/DOCS/Updating#Updating-The%24positionaloperator The $ positional operator]]
    */
-  def first: Field[T] = firstIn(Path(path))
-
-  /** Create a new positional field witt the same type. It is "positioned" in some scope
-   *
-   * Creates a positional field to update the first matched element in an array.
-   *
-   * @see [[http://www.mongodb.org/display/DOCS/Updating#Updating-The%24positionaloperator The $ positional operator]]
-   */
-  def firstIn(scope: Path): Field[T] = {
-    val p = this.positionIn(scope)
-    new Field[T](p.path.last)(Path(p.path dropRight 1))
-  }
+  def first = new PositionalField("$")
 
   def ~[T2](f2: Field[T2]) = new Tuple2Subset[T,T2](this.name, f2.name)
 

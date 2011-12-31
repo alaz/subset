@@ -43,7 +43,7 @@ trait Path {
   def longName = path mkString "."
 
   /** Return the common suffix
-    * @param scope the subdocument this path resides in
+    * @param scope the sub-document this path resides in
     */
   def relativeTo(scope: Path) =
     if (path startsWith scope.path) Path(path.drop(scope.path.size))
@@ -51,10 +51,11 @@ trait Path {
 
   /** Returns the positional segment
     * @param scope the subdocument this path resides in
+    * @param delimiter is a name to embed between the scope and the field segments. Defaults to `$`
     */
-  def positionIn(scope: Path) =
+  def positionIn(scope: Path, delimiter: String = "$") =
     if (scope.path.isEmpty) this
-    else if (path startsWith scope.path) Path(scope.path ::: "$" :: path.drop(scope.path.size))
+    else if (path startsWith scope.path) Path(scope.path ::: delimiter :: path.drop(scope.path.size))
     else this
 
   override def toString: String = "Path "+longName

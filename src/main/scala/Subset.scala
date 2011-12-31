@@ -120,7 +120,7 @@ import QueryLens._
   * Since both `Subset` and [[com.osinka.subset.Field]] are [[com.osinka.subset.Path]], you may
   * check what "dot notation" ''Subset'' creates:
   * {{{
-  * BlogPost.Comments.votes.firstIn(BlogPost.Comments).longName must equal("comments.$.votes")
+  * BlogPost.Comments.votes.at(1).in(BlogPost.Comments).longName must equal("comments.1.votes")
   * }}}
   *
   * @see [[https://github.com/osinka/subset/blob/master/src/it/scala/blogCommentSpec.scala Blog Comment Example]]
