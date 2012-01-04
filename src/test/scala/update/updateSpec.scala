@@ -69,24 +69,51 @@ class updateSpec extends Spec with MustMatchers with MongoMatchers with Routines
     }
   }
   describe("Subset modification") {
-    val doc = "doc".fieldOf[List[Any]]
-
-    object Doc extends Subset[Any]("doc") {
+    object Sub {
+      val f = Field[Int]("f")
+    }
+    object Doc {
       val f = "f".fieldOf[Int]
-      val sub = "sub".fieldOf[List[Any]]
-
-      object Sub extends Subset[Any]("sub") {
-        val f = Field[Int]("f")
-      }
+      val sub = "sub".subset(Sub).of[List[Int]]
     }
+    val doc = "doc".subset(Doc).of[List[Int]]
 
-    it("supports positional $ operator") {
-      Doc.updateMatch(doc => doc.f.set(3)).get must equal(dbo.push("$set").append("doc.$.f", 3).get)
-      Doc.Sub.updateMatch(doc => doc.f.set(3)).get must equal(dbo.push("$set").append("doc.sub.$.f", 3).get)
+    it("builds update modifiers") {
+      doc.modify{_.f.set(3)}.get must equal(
+        dbo.push("$set").append("doc.f", 3).get
+      )
+      doc.modify{_.sub.modify{_.f.set(3)}}.get must equal(
+        dbo.push("$set").append("doc.sub.f", 3).get
+      )
     }
-    it("knows that $pull supports relative path in query") {
-      val updOp: DBObject = doc.pull(Doc.f > 1)
-      updOp must equal(dbo.push("$pull").push("doc").push("f").append("$gt", 1).get)
+    it("stacks modifications under its operator") {
+      doc.modify{d => d.sub.modify{_.f.inc(2)} ~ d.f.inc(1)}.get must equal(
+        dbo.push("$inc").append("doc.sub.f", 2).append("doc.f", 1).get
+      )
+    }
+    it("may create positional update") {
+      doc.matched.modify{_.f set 3}.get must equal(
+        dbo.push("$set").append("doc.$.f", 3).get
+      )
+      doc.modify{_.sub.matched.modify{_.f set 3}}.get must equal(
+        dbo.push("$set").append("doc.sub.$.f", 3).get
+      )
+    }
+    it("updates the first element") {
+      doc.modify{_.f.first set 3}.get must equal(
+        dbo.push("$set").append("doc.f.$", 3).get
+      )
+    }
+    it("supports query in $pull") {
+      doc.pullWhere{_.f > 1}.get must equal(
+        dbo.push("$pull").push("doc").push("f").append("$gt", 1).get
+      )
+      doc.modify{_.sub.pullWhere{_.f > 1}}.get must equal(
+        dbo.push("$pull").push("doc.sub").push("f").append("$gt", 1).get
+      )
+      doc.pullWhere{_.sub.where{_.f > 1}}.get must equal(
+        dbo.push("$pull").push("doc").push("sub.f").append("$gt", 1).get
+      )
     }
   }
 }

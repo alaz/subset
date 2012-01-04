@@ -179,24 +179,78 @@ class querySpec extends Spec with MustMatchers with MongoMatchers with Routines 
     }
   }
   describe("Subset query") {
-    object Doc extends Subset[DBObject]("doc") {
-      val f = "f".fieldOf[Int]
-
-      object Sub extends Subset[DBObject]("sub") {
-        val f = Field[Int]("f")
-      }
+    object Sub {
+      val f = Field[Int]("f")
     }
+    object Doc {
+      val f = "f".fieldOf[Int]
+      val sub = "sub".subset(Sub).of[DBObject]
+    }
+    val doc = "doc".subset(Doc).of[DBObject]
+
+    // a field alias, in case of frequent queries
+    val alias = Doc.f.in(Doc.sub).in(doc)
 
     it("writes long names") {
-      (Doc.f === 10).get must equal(dbo("doc.f", 10).get)
-      (Doc.Sub.f === 10).get must equal(dbo("doc.sub.f", 10).get)
+      (doc.where{_.f === 10}).get must equal(dbo("doc.f", 10).get)
+      (doc.where{_.sub.where {_.f > 10}}).get must equal(
+        dbo.push("doc.sub.f").append("$gt", 10).get
+      )
+      
+      (alias > 10).get must equal(
+        dbo.push("doc.sub.f").append("$gt", 10).get
+      )
     }
     it("supports conjunction") {
-      (Doc.f === 10 && Doc.Sub.f === 3).get must equal(dbo("doc.f", 10).append("doc.sub.f", 3).get)
+      doc.where{d => d.f <= 10 && d.sub.where{_.f === 3}}.get must equal(
+        dbo.
+          push("doc.f").
+          append("$lte", 10).
+          pop.
+          append("doc.sub.f", 3).get
+      )
     }
     it("supports $elemMatch") {
-      Doc.elemMatch(doc => doc.f === 10).get must equal(dbo.push("doc").push("$elemMatch").append("f", 10).get)
-      Doc.Sub.elemMatch(doc => doc.f === 3).get must equal(dbo.push("doc.sub").push("$elemMatch").append("f", 3).get)
+      doc.elemMatch{_.f > 10}.get must equal(
+        dbo.
+          push("doc").
+          push("$elemMatch").
+          push("f").
+          append("$gt", 10).get
+      )
+      doc.where{_.sub.elemMatch{_.f === 3}}.get must equal(
+        dbo.
+          push("doc.sub").
+          push("$elemMatch").
+          append("f", 3).get
+      )
+    }
+    it("builds positional query") {
+      doc(0).where{_.f === 3}.get must equal(
+        dbo("doc.0.f", 3).get
+      )
+      doc.where{_.sub(1).where{_.f > 5}}.get must equal(
+        dbo.push("doc.sub.1.f").append("$gt", 5).get
+      )
+    }
+    it("honors top-level queries like $and, $or") {
+      val q1 = doc.where{_.sub.where{s => s.f > 3 && s.f < 2}}.get
+      q1 must containField("$and")
+      val andArr = DBObjectLens.read[List[DBObject]]("$and", q1)
+      andArr must be('defined)
+      andArr.get must (
+          contain(dbo.push("doc.sub.f").append("$gt", 3).get) and
+          contain(dbo.push("doc.sub.f").append("$lt", 2).get)
+        )
+
+      val q2 = doc.where{_.sub.where{s => s.f > 3 || s.f < 2}}.get
+      q2 must containField("$or")
+      val orArr = DBObjectLens.read[List[DBObject]]("$or", q2)
+      orArr must be('defined)
+      orArr.get must (
+          contain(dbo.push("doc.sub.f").append("$gt", 3).get) and
+          contain(dbo.push("doc.sub.f").append("$lt", 2).get)
+        )
     }
   }
 }

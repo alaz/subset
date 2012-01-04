@@ -16,6 +16,7 @@
 package com.osinka.subset
 package update
 
+import com.mongodb.DBObject
 import query._
 import DBObjectLens._
 import QueryLens._
@@ -36,8 +37,8 @@ import QueryLens._
   * @see [[https://github.com/osinka/subset/blob/master/src/it/scala/blogCommentSpec.scala Blog Comment Example]]
   */
 trait Modifications[T] extends Path {
-  private def op[B](op: String, x: B)(implicit writer: ValueWriter[B]) =
-    Update(op -> positional(this, x))
+  protected def op[B](op: String, x: B)(implicit writer: ValueWriter[B]) =
+    Update(op -> write(this, x))
 
   def set(x: T)(implicit writer: ValueWriter[T]) = op("$set", x)
   def inc(x: T)(implicit writer: ValueWriter[T]) = op("$inc", x)
@@ -49,7 +50,6 @@ trait Modifications[T] extends Path {
   def addToSet[A](seq: Traversable[A])(implicit w: ValueWriter[Traversable[A]], ev: T <:< Traversable[A]) = op("$addToSet", writer("$each", seq))
   def pop(i: Int)(implicit writer: ValueWriter[Int], ev: T <:< Traversable[_]) = op("$pop", i)
   def pull[A](x: A)(implicit writer: ValueWriter[A], ev: T <:< Traversable[A]) = op("$pull", x)
-  def pull(q: Query)(implicit ev: T <:< Traversable[_]) = op("$pull", q.queryLens(this))
   def pull[A](seq: Traversable[A])(implicit writer: ValueWriter[Traversable[A]], ev: T <:< Traversable[A]): Update = pullAll(seq)
   def pullAll[A](seq: Traversable[A])(implicit writer: ValueWriter[Traversable[A]], ev: T <:< Traversable[A]) = op("$pullAll", seq)
   def rename(newName: String)(implicit writer: ValueWriter[String]) = op("$rename", newName)
@@ -60,8 +60,6 @@ object Update {
   def empty: Update = new Update(Map.empty)
 
   def apply(t: (String, QueryLens)) = new Update(Map(t))
-
-  implicit def updateWriter(implicit scope: Path = Path.empty) = ValueWriter[Update](_.lens(scope).get)
 }
 
 /** Update builder
@@ -74,11 +72,11 @@ object Update {
   * 
   * You may get a [[com.osinka.subset.DBObjectLens]] explicitly with `lens` method
   */
-case class Update(ops: Map[String,QueryLens]) {
-  /** Returns a [[com.osinka.subset.DBObjectLens]] with update operations
-    */
-  def lens(implicit scope: Path = Path.empty): DBObjectLens =
-    ops map {t => writer(t._1, t._2(scope))} reduceLeft {_ ~ _}
+case class Update(ops: Map[String,QueryLens]) extends DBObjectLens {
+  override def apply(dbo: DBObject): DBObject = {
+    val lens = ops map {t => writer(t._1, t._2(Path.empty))} reduceLeft {_ ~ _}
+    lens(dbo)
+  }
 
   /** Compose with another `Update` object
     */
@@ -100,5 +98,5 @@ case class Update(ops: Map[String,QueryLens]) {
 
   override def hashCode: Int = ops.hashCode
 
-  override def toString = "Update"+lens
+  override def prefixString = "Update"
 }

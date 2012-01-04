@@ -28,70 +28,67 @@ class subsetSpec extends Spec with MustMatchers with MongoMatchers with Routines
   import StrictValues._
 
   describe("Untyped Subset") {
-    object Doc extends Subset[DBObject]("doc") {
-      val f = "f".fieldOf[Int]
-
-      object Sub extends Subset[DBObject]("sub") {
-        val f = Field[Int]("f")
-      }
+    object Sub {
+      val f = Field[Int]("f")
     }
+    object Doc {
+      val f = "f".fieldOf[Int]
+      val sub = "sub".subset(Sub).of[DBObject]
+    }
+    val doc = "doc".subset(Doc).of[DBObject]
 
     it("has correct java methods") {
-      Doc.toString must startWith("Subset")
-      Doc.path must equal("doc" :: Nil)
-      Doc must equal(Doc)
-
-      Doc.Sub.path must equal("doc" :: "sub" :: Nil)
+      doc.toString must startWith("Subset")
+      doc.path must equal("doc" :: Nil)
+      doc must equal(doc)
     }
     it("has correct longNames") {
-      Doc.longName must equal("doc")
-      Doc.Sub.longName must equal("doc.sub")
+      doc.longName must equal("doc")
+      Doc.sub.longName must equal("sub")
     }
     it("provides correct fields") {
-      Doc.f.path must equal("doc" :: "f" :: Nil)
-      Doc.Sub.f.path must equal("doc" :: "sub" :: "f" :: Nil)
+      Doc.f.path must equal("f" :: Nil)
+      Sub.f.path must equal("f" :: Nil)
     }
     it("serializes fields specified") {
-      val dbo: DBObject = Doc(Doc.f(10) ~ Doc.Sub(Doc.Sub.f -> 5))
+      val dbo: DBObject = doc(Doc.f(10) ~ Doc.sub(Sub.f -> 5))
 
-      val doc = DBObjectLens.read[DBObject]("doc", dbo)
-      doc must be('defined)
-      doc.get must containKeyValue("f" -> 10)
+      val d = DBObjectLens.read[DBObject]("doc", dbo)
+      d must be('defined)
+      d.get must containKeyValue("f" -> 10)
 
-      val sub = DBObjectLens.read[DBObject]("sub", doc.get)
-      sub must be('defined)
-      sub.get must containKeyValue("f" -> 5)
+      val s = DBObjectLens.read[DBObject]("sub", d.get)
+      s must be('defined)
+      s.get must containKeyValue("f" -> 5)
     }
     it("deserializes correctly") {
       val dbo = start.push("doc").append("f", 10).get
-      Doc.unapply(dbo) must equal(Some(start("f", 10).get))
-      Doc.Sub.unapply(dbo) must equal(None)
+      doc.unapply(dbo) must equal(Some(start("f", 10).get))
+      Doc.sub.unapply(dbo) must equal(None)
     }
   }
   describe("Typed Subset") {
     class Doc(val f: Int)
 
-    object Doc extends Subset[Doc]("doc") {
+    object Doc {
       val f = "f".fieldOf[Int]
     }
-    
+    val doc = "doc".subset(Doc).of[Doc]
+
     implicit val docReader = ValueReader[Doc]({
-        case Doc.f(f) => new Doc(f)
-      })
-    implicit val docWriter = ValueWriter[Doc](doc => Doc.f(doc.f).get)
+      case Doc.f(f) => new Doc(f)
+    })
+    implicit val docWriter = ValueWriter[Doc](d => Doc.f(d.f).get)
 
     it("has serializer") {
-      Doc(new Doc(10)).get must equal(start.push("doc").append("f", 10).get)
+      doc(new Doc(10)).get must equal(start.push("doc").append("f", 10).get)
     }
     it("has extractor") {
       val dbo = start.push("doc").append("f", 10).get
       dbo match {
-        case Doc(doc) => doc.f must equal(10)
+        case doc(d) => d.f must equal(10)
         case _ => fail("must match")
       }
     }
-  }
-  describe("Array of subsets") {
-    it("works") { pending }
   }
 }

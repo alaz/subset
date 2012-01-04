@@ -151,7 +151,7 @@ object Query {
   def const(dbo: DBObject): Query = const(DBObjectLens const dbo)
   def const(lens: DBObjectLens): Query = apply(QueryLens {_: Path => lens})
 
-  def apply[T : ValueWriter](p: Path, x: T): Query = apply(relative(p, x))
+  def apply[T : ValueWriter](p: Path, x: T): Query = apply(write(p, x))
   def apply(ql: QueryLens): Query = DefaultImpl(ql)
 
   private case class DefaultImpl(override val queryLens: QueryLens) extends Query
@@ -192,9 +192,9 @@ case class FieldQuery[T](p: Path, condition: DBObjectLens) extends Query with Co
 
   override def fquery(cond: DBObjectLens) = copy(condition = condition andThen cond)
 
-  override def queryLens: QueryLens = relative(p, condition)
+  override def queryLens: QueryLens = write(p, condition)
 
-  def not : Query = Query(relative(p, writer("$not", condition)))
+  def not : Query = Query(write(p, writer("$not", condition)))
   def unary_! = not
 
   override def prefixString = "FieldQuery"

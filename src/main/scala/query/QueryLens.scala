@@ -35,15 +35,17 @@ object QueryLens {
 
   implicit def fToQDBObjectLens(f: Path => DBObjectLens): QueryLens = apply(f)
 
-  def relative[T : ValueWriter](p: Path, x: T): QueryLens =
-    (scope: Path) => writer(p.relativeTo(scope).longName, x)
+  def wrap(p: Path,  ql: QueryLens): QueryLens =
+    (scope: Path) => ql(scope + p)
 
-  def positional[T : ValueWriter](p: Path, x: T): QueryLens =
-    (scope: Path) => writer(p.positionIn(scope).longName, x)
+  def write[T : ValueWriter](p: Path, x: T): QueryLens =
+    (scope: Path) => writer[T]((scope + p).longName, x)
 
-  def embed(s: String, ql: Traversable[QueryLens]): QueryLens =
-    (scope: Path) => writer(s, ql map {_.apply(scope).get} toArray)
+  def embed(s: String, ql: Traversable[QueryLens]): QueryLens = embed(Path(s), ql)
+  def embed(p: Path, ql: Traversable[QueryLens]): QueryLens =
+    (scope: Path) => writer(p.longName, ql map {_.apply(scope).get} toArray)
 
-  def embed(s: String, ql: QueryLens): QueryLens =
-    (scope: Path) => writer(s, ql(scope))
+  def embed(s: String, ql: QueryLens): QueryLens = embed(Path(s), ql)
+  def embed(p: Path, ql: QueryLens): QueryLens =
+    (scope: Path) => writer(p.longName, ql(scope))
 }

@@ -91,49 +91,37 @@ import DBObjectLens._
   * to update the first matched element in an array (in [[com.osinka.subset.update.Update]] operations),
   * see [[http://www.mongodb.org/display/DOCS/Updating#Updating-The%24positionaloperator The $ positional operator]] for
   * details.
+  *
+  * E.g. if `seq` is storing an array of `Int`
   * {{{
-  * collection.update( Comments.By === "joe", Comments.Votes.first.in(Comments).inc(1) )
+  * collection.update(seq > 3, seq.first inc -1)
   * }}}
   *
-  * Analogously, in the case a query or update modifier need to be created for an element of array,
+  * A field representing an array element at index `i` is created with `field.at(i)`
   * {{{
-  * collection.find( Comments.Votes.at(0).in(Comments) === "joe" )
+  * collection.update(Query.empty, seq.at(2) set 5)
   * }}}
   *
   * === Subset ===
-  * When you create a field, it gets attached to the enclosing scope (determined via an implicit). Though you certainly
-  * may explicitly create a field in the scope you'd like, there are a couple of helper methods to clone the fields
-  * you like to the outer (collection) scope or any subdocument:
+  * It is possible to create a field alias for a Subset's field. The idea here is to avoid repetiting code like
   * {{{
-  * val userName = "uname".fieldOf[String]
+  * val query = subset.where{_.field === 10}
+  * }}
   *
-  * object PostCreateEventOwner extends Subset[DBObject]("postAuthor") {
-  *   val author = userName.attach
-  * }
-  *
-  * val author = PostCreateEventOwner.author.detach
+  * and instead write
+  * {{{
+  * val alias = field.in(subset)
+  * val query = alias === 10
   * }}}
-  * 
-  * See the longer example in [[com.osinka.subset.Subset]].
   *
   * @see [[com.osinka.subset.DBObjectLens]], [[com.osinka.subset.ValueReader]], [[com.osinka.subset.ValueWriter]], [[com.osinka.subset.Subset]]
   */
-class Field[T](val name: String)(implicit outer: Path = Path.empty) extends Path with FieldConditions[T] with Modifications[T] {
+class Field[T](override val path: List[String]) extends Path with FieldConditions[T] with Modifications[T] {
   field =>
-
-  override val path: List[String] = outer.path :+ name
-
-  /** Create a new field attached to the scope
-   */
-  def attach(implicit scope: Path): Field[T] = new Field[T](name)(scope)
-
-  /** Create a new field detached from the scope
-   */
-  def detach: Field[T] = new Field[T](name)(Path.empty)
 
   /** Create a new field, that has the same name and scope, but with another type.
    */
-  def as[A]: Field[A] = new Field[A](name)(outer)
+  def as[A]: Field[A] = new Field[A](path)
 
   /** Create a new field, that has the same name and scope, but `Int` type
    * 
@@ -147,27 +135,13 @@ class Field[T](val name: String)(implicit outer: Path = Path.empty) extends Path
    */
   def any: Field[Any] = as[Any]
 
-  class PositionalField private[Field] (override val name: String) extends Field[T](name)(this) {
-    /** Move the position to another scope.
-     *
-     * Creates a positional field relative to the scope specified
-     *
-     * @see [[http://www.mongodb.org/display/DOCS/Updating#Updating-The%24positionaloperator The $ positional operator]],
-     *      [[http://www.mongodb.org/display/DOCS/Dot+Notation+(Reaching+into+Objects)#DotNotation%28ReachingintoObjects%29-ArrayElementbyPosition Array element by position]]
-     */
-    def in(scope: Path): Field[T] = {
-      val p = field.positionIn(scope, name)
-      new Field[T](p.path.last)(Path(p.path dropRight 1))
-    }
-  }
-
   /** Create a field representing array element
     *
     * @param index an index of array element
     *
     * @see [[http://www.mongodb.org/display/DOCS/Dot+Notation+(Reaching+into+Objects)#DotNotation%28ReachingintoObjects%29-ArrayElementbyPosition Array element by position]]
     */
-  def at(index: Int) = new PositionalField(index.toString)
+  def at(index: Int) = new Field[T](path :+ index.toString)
 
   /** Create a new positional field with the same type. The last element is "$"
    *
@@ -175,7 +149,9 @@ class Field[T](val name: String)(implicit outer: Path = Path.empty) extends Path
    * 
    * @see [[http://www.mongodb.org/display/DOCS/Updating#Updating-The%24positionaloperator The $ positional operator]]
    */
-  def first = new PositionalField("$")
+  def first = new Field[T](path :+ "$")
+
+  def in(subset: Subset[_]): Field[T] = new Field[T]( (subset + this).path )
 
   def ~[T2](f2: Field[T2]) = new Tuple2Subset[T,T2](this.name, f2.name)
 
@@ -186,11 +162,11 @@ class Field[T](val name: String)(implicit outer: Path = Path.empty) extends Path
   override def equals(o: Any): Boolean =
     PartialFunction.cond(o) { case other: Field[_] => super.equals(other) }
 
-  override def toString: String = "Field "+longName
+  override def prefixString: String = "Field"
 }
 
 object Field {
   /** Field factory method
     */
-  def apply[T](name: String)(implicit outer: Path = Path.empty): Field[T] = new Field[T](name)
+  def apply[T](name: String): Field[T] = new Field[T](name :: Nil)
 }

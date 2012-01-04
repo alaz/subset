@@ -43,21 +43,5 @@ class pathSpec extends Spec with MustMatchers with MongoMatchers with Routines {
       p.longName must equal("doc.field")
       p.path must equal("doc" :: "field" :: Nil)
     }
-    it("calculates relative path") {
-      val p = Path("doc" :: "field" :: Nil)
-      p.relativeTo(Path.empty) must equal(p)
-      p.relativeTo(Path("other")) must equal(p)
-      p.relativeTo(Path("doc")) must equal(Path("field" :: Nil))
-      p.relativeTo(Path("doc")) must equal(Path("field" :: Nil))
-      p.relativeTo(Path("doc" :: "other" :: Nil)) must equal(p)
-    }
-    it("makes positional path") {
-      val p = Path("doc" :: "field" :: Nil)
-      p.positionIn(Path.empty) must equal(p)
-      p.positionIn(Path("other")) must equal(p)
-      p.positionIn(Path("doc" :: "field" :: Nil)) must equal(Path("doc" :: "field" :: "$" :: Nil))
-      p.positionIn(Path("doc" :: Nil)) must equal(Path("doc" :: "$" :: "field" :: Nil))
-      p.positionIn(Path("doc" :: "other" :: Nil)) must equal(p)
-    }
   }
 }

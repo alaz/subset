@@ -66,8 +66,12 @@ package object subset {
 
   // String to Field
   implicit def stringToField(name: String) =
-    new AnyRef {
-      def fieldOf[T](implicit outer: Path = Path.empty): Field[T] = Field[T](name)(outer)
+    new {
+      def fieldOf[T]: Field[T] = Field[T](name)
+      def subset[Self](self: Self) =
+        new {
+          def of[T] = Subset[T,Self](name, self)
+        }
     }
 
   // String Tuple
@@ -87,7 +91,6 @@ package object subset {
 
   // Update
   val Update = update.Update
-  implicit def updateToDBO(u: Update)(implicit scope: Path = Path.empty): DBObject = lensToDBO(u.lens(scope))
 
   // Explicit objects to import serialization strategy
   val StrictValues = values.StrictValues

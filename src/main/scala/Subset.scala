@@ -22,27 +22,18 @@ import update._
 import DBObjectLens._
 import QueryLens._
 
-/** Subset is an abstract class to build subdocuments
+/** Subset wrap facilities for working with subdocuments.
   *
-  * == Subset ==
-  *  - encloses fields.
-  *  - helps serialize/deserialize subdocuments to/from `DBObject`
-  *  - participates in [[com.osinka.subset.query.Query]] and [[com.osinka.subset.update.Update]] creation
-  *
-  * === Nested documents ===
   * Since MongoDB documents may be nested, they sometimes make up a complex hierarchies
   * with arrays of maps or maps of maps.
-  * 
-  * The fields created in ''Subset'' automatically get the scope of it, so that they
-  * have correct path in queries, update operators, etc.
   *
-  * The following is based upon a simple
-  * [[https://gist.github.com/3033b1cc11825870656d REPLable example (gist.github.com)]],
-  * showing a Blog post with comments (which resembles MongoDB's example
-  * [[http://www.mongodb.org/display/DOCS/Updating#Updating-The%24positionaloperator here]])
-  * Every comment has an author, a text and a
-  * number of votes.
-  * 
+  * The easiest way to create a `Subset` object is via a helper String pimp:
+  * {{{
+  * val subset = "votes".subsetOf[List[Vote]]
+  * }}}
+  *
+  * === Queries and update modifiers ===
+  * An example:
   * {{{
   * case class Comment(by: String, votes: Int, text: String)
   * case class BlogPost(title: String, comments: List[Comment])
@@ -55,24 +46,19 @@ import QueryLens._
   * 
   * object BlogPost {
   *   val title = "title".fieldOf[String]
-  *   val comments = "comments".fieldOf[List[Comment]]
-  *
-  *   object Comments extends Subset("comments") {
-  *     val by = Comment.by.attach
-  *     val votes = Comment.votes.attach
-  *     val text = Comment.votes.attach
-  *   }
+  *   val comments = "comments".subsetOf[List[Comment]]
   * }
   * }}}
   * 
-  * `BlogPost.Comments` is a `Subset`. Fields `by`, `votes` and `text` are created
-  * inside it, use its scope (we call [[com.osinka.subset.Field]]'s `attach` method
-  * to avoid repetiting field names.
-  * 
-  * From now on, you may create queries and update operators using these fields
-  * and they will have long names in "dot notation", e.g. `Comments.by === 10`
+  * `BlogPost.comments` is a `Subset`. From now on, you may create queries and update operators using these fields
+  * and they will have long names in "dot notation", e.g.
+  * {{{
+  * BlogPost.comments.where { Comment.by === 10 }
+  * }}}
   * will result in a query `{"comments.by": 10}`. Analogously, update operation
-  * `comments.vote.inc(1)` will result in `{\$inc: {"comments.vote": 1}}`
+  * {{{
+  * BlogPost.comments.modify{Comment.vote inc 1}`
+  * will result in `{\$inc: {"comments.vote": 1}}`
   * 
   * === Serialization ===
   * `Subset` provides a couple of helper methods for serializing an arbitrary number
@@ -125,28 +111,57 @@ import QueryLens._
   *
   * @see [[https://github.com/osinka/subset/blob/master/src/it/scala/blogCommentSpec.scala Blog Comment Example]]
   */
-abstract class Subset[T](val subsetName: String)(implicit outerPath: Path = Path.empty) extends Path {
-  override val path: List[String] = outerPath.path :+ subsetName
-  implicit def scope: Path = this
+class Subset[T](override val path: List[String]) extends Field[T](path) {
 
-  def apply(obj: T)(implicit w: ValueWriter[T]): DBObjectLens = writer[T](subsetName, obj)
+  def apply(i: Int): Subset[T] = new Subset[T](path :+ i.toString)
 
-  def unapply(dbo: DBObject)(implicit r: ValueReader[T]): Option[T] = read[T](subsetName, dbo)
+  def matched = new Subset[T](path :+ "$")
+
+  def where(q: Query): Query = Query( wrap(this, q.queryLens) )
 
   /** Creates a query as an \$elemMatch relative to this document
     *
     * [[http://www.mongodb.org/display/DOCS/Advanced+Queries#AdvancedQueries-%24elemMatch Advanced Queries - elemMatch]]
     */
-  def elemMatch(f: this.type => Query): Query = Query( relative(this, writer("$elemMatch", f(this).queryLens(this))) )
+  def elemMatch(q: Query): Query = Query( write(this, writer("$elemMatch", q.get)) )
 
   /** Creates an update operator positioned relative to this document
     *
     * [[http://www.mongodb.org/display/DOCS/Updating#Updating-The%24positionaloperator Updating - The positional operator]]
     */
-  def updateMatch(f: this.type => Update): DBObjectLens = f(this).lens(this)
+  def modify(u: Update): Update = u.copy(ops = u.ops mapValues {wrap(this, _)})
 
-  override def toString: String = "Subset "+longName
+  def pullWhere(q: Query)(implicit ev: T <:< Traversable[_]): Update = op("$pull", q.get)
+
+  override def prefixString: String = "Subset"
 
   override def equals(o: Any): Boolean =
     PartialFunction.cond(o) { case other: Subset[_] => super.equals(other) }
+}
+
+class TypedSubset[T,Self](override val path: List[String], val self: Self) extends Subset[T](path) {
+  override def apply(i: Int): TypedSubset[T,Self] = new TypedSubset[T,Self](path :+ i.toString,  self)
+
+  override def matched: TypedSubset[T,Self] = new TypedSubset[T,Self](path :+ "$", self)
+
+  def where(f: Self => Query): Query = where( f(self) )
+
+  /** Creates a query as an \$elemMatch relative to this document
+    *
+    * [[http://www.mongodb.org/display/DOCS/Advanced+Queries#AdvancedQueries-%24elemMatch Advanced Queries - elemMatch]]
+    */
+  def elemMatch(f: Self => Query): Query = elemMatch(f(self))
+
+  /** Creates an update operator positioned relative to this document
+    *
+    * [[http://www.mongodb.org/display/DOCS/Updating#Updating-The%24positionaloperator Updating - The positional operator]]
+    */
+  def modify(f: Self => Update): Update = modify(f(self))
+
+  def pullWhere(f: Self => Query)(implicit ev: T <:< Traversable[_]): Update = pullWhere(f(self))
+}
+
+object Subset {
+  def apply[T](name: String) = new Subset[T](name :: Nil)
+  def apply[T,Self](name: String, self: Self) = new TypedSubset[T,Self](name :: Nil, self)
 }
