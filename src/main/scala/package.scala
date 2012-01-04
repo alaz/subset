@@ -36,24 +36,24 @@ import com.mongodb.DBObject
   * == Field ==
   * It is possible to pimp a string into a [[com.osinka.subset.Field]] with `"fieldName".fieldOf[T]`.
   * 
-  * Tuples made of `Field[T]` and the object of the same `T` can be implicitly converted into
-  * `DBObject` or [[com.osinka.subset.DBObjectLens]]. This depends on [[com.osinka.subset.ValueWriter]].
+  * Tuples made of `Field[T]` and an object of the same `T` can be implicitly converted into
+  * `DBObject` or [[com.osinka.subset.DBObjectLens]] if `T` has a [[com.osinka.subset.ValueWriter]].
   * {{{
   * val dbo: DBObject = "i".fieldOf[Int] -> 10
   * val lens: DBObjectLens = ("i".fieldOf[Int] -> 10) ~ ("s".fieldOf[String] -> "str")
   * }}}
   * 
-  * It's possible to simply use a string instead of field as well (but only to create a
+  * It's possible to use a string instead of field as well (but only to create a
   * `DBObjectLens`):
   * {{{
   * val lens: DBObjectLens = ("i".fieldOf[Int] -> 10) ~ ("s" -> "str")
   * }}}
   * 
   * == What's next? ==
-  *  - We recommend to start from [[com.osinka.subset.Field]].
+  *  - Start from [[com.osinka.subset.Field]].
   *  - [[com.osinka.subset.Subset]] will give you a hint on how to work with subdocuments.
   *  - [[com.osinka.subset.query]] provides information on building queries.
-  *  - [[com.osinka.subset.update]] is about "update operators".
+  *  - [[com.osinka.subset.update]] is about "update modifiers".
   *  - If you need details, [[com.osinka.subset.DBObjectLens]], [[com.osinka.subset.Path]],
   *    [[com.osinka.subset.ValueReader]] and [[com.osinka.subset.ValueWriter]] are the
   *    way to go.
