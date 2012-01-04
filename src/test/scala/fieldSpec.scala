@@ -81,7 +81,7 @@ class fieldSpec extends Spec with MustMatchers with MongoMatchers with Routines 
     }
     it("has positional operator") {
       val f = "f".fieldOf[Int]
-      f.first.longName must equal("f.$")
+      f.matched.longName must equal("f.$")
     }
     it("has index operator") {
       val f = "f".fieldOf[Int]

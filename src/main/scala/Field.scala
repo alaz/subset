@@ -19,6 +19,7 @@ import com.mongodb.DBObject
 import query._
 import update._
 import DBObjectLens._
+import QueryLens._
 
 /** A typed field
   * 
@@ -149,10 +150,34 @@ class Field[T](override val path: List[String]) extends Path with FieldCondition
    * 
    * @see [[http://www.mongodb.org/display/DOCS/Updating#Updating-The%24positionaloperator The $ positional operator]]
    */
-  def first = new Field[T](path :+ "$")
+  def matched = new Field[T](path :+ "$")
 
-  def in(subset: Subset[_]): Field[T] = new Field[T]( (subset + this).path )
+  /** Create an alias
+    */
+  def in(subset: Field[_]): Field[T] = new Field[T]( (subset + this).path )
 
+  /**Create a query relative to this field
+    */
+  def where(q: Query): Query = Query( wrap(this, q.queryLens) )
+
+  /** Creates a query as an \$elemMatch relative to this document
+    *
+    * @see [[http://www.mongodb.org/display/DOCS/Advanced+Queries#AdvancedQueries-%24elemMatch Advanced Queries - elemMatch]]
+    */
+  def elemMatch(q: Query): Query = Query( write(this, writer("$elemMatch", q.get)) )
+
+  /** Creates an update operator positioned relative to this document
+    *
+    * @see [[http://www.mongodb.org/display/DOCS/Updating#Updating-The%24positionaloperator Updating - The positional operator]]
+    */
+  def modify(u: Update): Update = u.copy(ops = u.ops mapValues {wrap(this, _)})
+
+  /**`\$pull` based on a condition
+    */
+  def pullWhere(q: Query)(implicit ev: T <:< Traversable[_]): Update = op("$pull", q.get)
+
+  /**Create a tuple subset
+    */
   def ~[T2](f2: Field[T2]) = new Tuple2Subset[T,T2](this.name, f2.name)
 
   def apply(x: T)(implicit setter: ValueWriter[T]): DBObjectLens = writer(name, x)

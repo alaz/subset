@@ -111,38 +111,10 @@ import QueryLens._
   *
   * @see [[https://github.com/osinka/subset/blob/master/src/it/scala/blogCommentSpec.scala Blog Comment Example]]
   */
-class Subset[T](override val path: List[String]) extends Field[T](path) {
+class Subset[T,Self](override val path: List[String], val self: Self) extends Field[T](path) {
+  def apply(i: Int): Subset[T,Self] = new Subset[T,Self](path :+ i.toString,  self)
 
-  def apply(i: Int): Subset[T] = new Subset[T](path :+ i.toString)
-
-  def matched = new Subset[T](path :+ "$")
-
-  def where(q: Query): Query = Query( wrap(this, q.queryLens) )
-
-  /** Creates a query as an \$elemMatch relative to this document
-    *
-    * [[http://www.mongodb.org/display/DOCS/Advanced+Queries#AdvancedQueries-%24elemMatch Advanced Queries - elemMatch]]
-    */
-  def elemMatch(q: Query): Query = Query( write(this, writer("$elemMatch", q.get)) )
-
-  /** Creates an update operator positioned relative to this document
-    *
-    * [[http://www.mongodb.org/display/DOCS/Updating#Updating-The%24positionaloperator Updating - The positional operator]]
-    */
-  def modify(u: Update): Update = u.copy(ops = u.ops mapValues {wrap(this, _)})
-
-  def pullWhere(q: Query)(implicit ev: T <:< Traversable[_]): Update = op("$pull", q.get)
-
-  override def prefixString: String = "Subset"
-
-  override def equals(o: Any): Boolean =
-    PartialFunction.cond(o) { case other: Subset[_] => super.equals(other) }
-}
-
-class TypedSubset[T,Self](override val path: List[String], val self: Self) extends Subset[T](path) {
-  override def apply(i: Int): TypedSubset[T,Self] = new TypedSubset[T,Self](path :+ i.toString,  self)
-
-  override def matched: TypedSubset[T,Self] = new TypedSubset[T,Self](path :+ "$", self)
+  override def matched: Subset[T,Self] = new Subset[T,Self](path :+ "$", self)
 
   def where(f: Self => Query): Query = where( f(self) )
 
@@ -159,9 +131,13 @@ class TypedSubset[T,Self](override val path: List[String], val self: Self) exten
   def modify(f: Self => Update): Update = modify(f(self))
 
   def pullWhere(f: Self => Query)(implicit ev: T <:< Traversable[_]): Update = pullWhere(f(self))
+
+  override def prefixString: String = "Subset"
+
+  override def equals(o: Any): Boolean =
+    PartialFunction.cond(o) { case other: Subset[_,_] => super.equals(other) }
 }
 
 object Subset {
-  def apply[T](name: String) = new Subset[T](name :: Nil)
-  def apply[T,Self](name: String, self: Self) = new TypedSubset[T,Self](name :: Nil, self)
+  def apply[T,Self](name: String, self: Self) = new Subset[T,Self](name :: Nil, self)
 }
