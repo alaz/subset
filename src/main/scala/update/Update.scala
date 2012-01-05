@@ -25,15 +25,6 @@ import QueryLens._
   *
   * This trait mixes into [[com.osinka.subset.Field]]
   * 
-  * == `\$pull` ==
-  * `pull` allows specifying a [[com.osinka.subset.query.Query]] to select an object
-  * that needs to be removed from an array, e.g.
-  * 
-  * {{{
-  * collection.update(BlogPost.title === "empty",
-  *                   BlogPost.comments.pull(Comment.by === "user2" && Comment.votes === 0))
-  * }}}
-  * 
   * @see [[https://github.com/osinka/subset/blob/master/src/it/scala/blogCommentSpec.scala Blog Comment Example]]
   */
 trait Modifications[T] extends Path {

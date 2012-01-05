@@ -117,7 +117,7 @@ trait FieldConditions[T] extends Conditions[T] {
   * 
   * The same rules apply to the larger number of query terms.
   * 
-  * @see [https://github.com/osinka/subset/blob/master/src/it/scala/blogCommentSpec.scala Blog Comment Example]
+  * @see [[https://github.com/osinka/subset/blob/master/src/it/scala/blogCommentSpec.scala Blog Comment Example]]
   */
 trait Query extends DBObjectLens {
   def queryLens: QueryLens

@@ -32,7 +32,7 @@ package com.osinka.subset
   * queries, when you need to match all the conditions on a specific subdocument.
   * 
   * {{{
-  * val query = BlogPost.Comments.elemMatch { comment =>
+  * val query = BlogPost.comments.elemMatch { comment =>
   *   comment.by === "joe" && comment.votes === 2
   * }
   * 

@@ -27,7 +27,6 @@ import com.mongodb.DBObject
   * == Value conversions ==
   * '''Subset''' provides a means to convert Java/Scala types to/from BSON values.
   * You have several options:
-  *  - if you are using Casbah, it already contains the conversion library
   *  - you may `import SmartValues._`. '''Subset''' will try to extract correct
   *    values from incorrect field contents (e.g. an integer value stored as a
   *    string field)
@@ -48,6 +47,14 @@ import com.mongodb.DBObject
   * {{{
   * val lens: DBObjectLens = ("i".fieldOf[Int] -> 10) ~ ("s" -> "str")
   * }}}
+  *
+  * == Subset ==
+  * You may pimp a `String` into Subset with
+  * {{{
+  * val subset = "name".subset(Obj).of[T]
+  * }}}
+  *
+  * where `Obj` is a container of fields and `T` is a subset's type
   * 
   * == What's next? ==
   *  - Start from [[com.osinka.subset.Field]].

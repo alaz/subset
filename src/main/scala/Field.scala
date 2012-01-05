@@ -26,15 +26,15 @@ import QueryLens._
   * == Serialization ==
   * The first of all, a field provides serialization/deserialization capabilities.
   *
-  * It's always possible to apply a field to its type and get a [[com.osinka.subset.DBObjectLens]]
-  * as a result
+  * It's always possible to apply a field to its type and get a
+  * [[com.osinka.subset.DBObjectLens]] as a result
   * {{{
   * val f = Field[Int]("a")
   * val lens = f(10)
   * }}}
   *
-  * Any field is an extractor as well. It accepts `DBObject` and returns `Option[T]`, so that it's possible
-  * to write
+  * Any field is an extractor as well. It accepts `DBObject` and returns
+  * `Option[T]`, so that one may write
   * {{{
   * dbo match {
   *   case Field(value) => ...
@@ -42,10 +42,11 @@ import QueryLens._
   * }}}
   *
   * == Tuples ==
-  * It is possible to build Tuple serializers from several fields.
+  * '''Subset''' provides a kind of Tuple serializers for reading and
+  * writing `TupleN` to/from `DBObject`
   *
-  * As soon as you join two fields with a `~` method, you build a [[com.osinka.subset.Tuple2Subset]] ,
-  * suitable for serializing tuples:
+  * As soon as you join two fields with a `~` method, you build a
+  * [[com.osinka.subset.Tuple2Subset]], suitable for serializing tuples:
   * {{{
   * val T2 = "int".fieldOf[Int] ~ "str".fieldOf[String]
   * val lens = t( 10 -> "str" )
@@ -58,6 +59,7 @@ import QueryLens._
   * You may create tuples of higher arity:
   * {{{
   * val T3 = T2 ~ "bool".fieldOf[Boolean]
+  * val dbo: DBObject = T3( (10, "str", false) )
   * }}}
   * 
   * == Querying ==
@@ -74,40 +76,45 @@ import QueryLens._
   * === Modifying Types ===
   * There is a number of typical field types that can be of help.
   *
-  * `Int` field (created by `int` method) is usually used in MongoDB to declare sorting and indexes.
+  * `Int` field (created by `int` method) is usually used in MongoDB to declare
+  * sorting and indexes:
   * {{{
   * val userName = "uname".fieldOf[String]
   * collection.ensureIndex(userName.int === 1, userName.int === -1)
   * }}}
   *
-  * `Any` field (created by `any` method) may be helpful to write or read a field "as is". If you absolutely certain in what
-  * you are doing,
+  * `Any` field (created by `any` method) may be helpful to write or read a
+  * field "as is". If you absolutely certain in what you are doing,
   * {{{
   * val userName = "uname".fieldOf[String]
-  * collection.update(userName === "john", userName.any.set(10566))
+  * collection.modify(userName === "john", userName.any.set(10566))
   * }}}
   *
   * === Modifying name & scope ===
   * It is possible to create a "positional" field, that may be used
-  * to update the first matched element in an array (in [[com.osinka.subset.update.Update]] operations),
-  * see [[http://www.mongodb.org/display/DOCS/Updating#Updating-The%24positionaloperator The $ positional operator]] for
-  * details.
+  * to update the first matched element in an array (in [[com.osinka.subset.update.Update]]
+  * operations), see
+  * [[http://www.mongodb.org/display/DOCS/Updating#Updating-The%24positionaloperator The $ positional operator]]
+  * for details.
   *
-  * E.g. if `seq` is storing an array of `Int`
+  * E.g. assuming `seq` is a field of `Seq[Int]`
   * {{{
-  * collection.update(seq > 3, seq.first inc -1)
+  * collection.modify(seq > 3, seq.first inc -1)
   * }}}
+  * creates update modifier `{\$inc: {"seq.\$": -1}}`.
   *
   * A field representing an array element at index `i` is created with `field.at(i)`
   * {{{
-  * collection.update(Query.empty, seq.at(2) set 5)
+  * collection.modify(Query.empty, seq.at(2) set 5)
   * }}}
+  * creates update modifier `{\$set: {"seq.2": 5}}`.
   *
   * === Subset ===
-  * It is possible to create a field alias for a Subset's field. The idea here is to avoid repetiting code like
+  * Sometimes a subset's field can be used so frequently, that it makes sense to
+  * create a field alias. The idea is to avoid repetiting code like
   * {{{
   * val query = subset.where{_.field === 10}
-  * }}
+  * }}}
   *
   * and instead write
   * {{{
@@ -115,7 +122,9 @@ import QueryLens._
   * val query = alias === 10
   * }}}
   *
-  * @see [[com.osinka.subset.DBObjectLens]], [[com.osinka.subset.ValueReader]], [[com.osinka.subset.ValueWriter]], [[com.osinka.subset.Subset]]
+  * @tparam T is a type of the field.
+  * @see [[com.osinka.subset.DBObjectLens]], [[com.osinka.subset.ValueReader]],
+  *      [[com.osinka.subset.ValueWriter]], [[com.osinka.subset.Subset]]
   */
 class Field[T](override val path: List[String]) extends Path with FieldConditions[T] with Modifications[T] {
   field =>
