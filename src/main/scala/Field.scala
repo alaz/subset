@@ -41,6 +41,40 @@ import QueryLens._
   * }
   * }}}
   *
+  * == Lenses ==
+  * `Field` is a source for a number of lenses (see [[com.osinka.subset.DBObjectLens]])
+  *
+  * The simplest one is that sets a key to some value
+  * {{{
+  * val f = "f".fieldOf[Int]
+  * val lens = f(10)
+  *
+  * val newDbo: DBObject = lens.get
+  * val modifiedDbo: DBObject = lens :~> dbo
+  * }}}
+  *
+  * here, in the example, `newDbo` will be `{f: 10}` (because `get` applies a lens to an empty
+  * `DBObject`), but `modifiedDbo` may have a lot of fields, though `lens` makes sure the only
+  * one, `f`, gets set to `10`.
+  *
+  * There is a lens that removes a key
+  * {{{
+  * val lens = -f
+  * val newDbo = lens :~> exisingDbo
+  * }}}
+  * if ever `existingDbo` had a key `f`, `newDbo` will not have it.
+  *
+  * "Modifier" lens mutates an existing key value. The result may be of another type,
+  * so this operation depends both on [[com.osinka.subset.ValueReader]] and
+  * [[com.osinka.subset.ValueWriter]] type classes:
+  * {{{
+  * val lens = f.update{i => (i+1).toString}
+  * val newDbo = lens :~> existingDbo
+  * }}}
+  *
+  * Thus, if `existingDbo` contains a key `f` which can be read as an `Int`, it get
+  * transformed and written back under the same key.
+  * 
   * == Tuples ==
   * '''Subset''' provides a kind of Tuple serializers for reading and
   * writing `TupleN` to/from `DBObject`
@@ -129,6 +163,10 @@ import QueryLens._
 class Field[T](override val path: List[String]) extends Path with FieldConditions[T] with Modifications[T] {
   field =>
 
+  //
+  // Mutators
+  //
+  
   /** Create a new field, that has the same name and scope, but with another type.
    */
   def as[A]: Field[A] = new Field[A](path)
@@ -165,6 +203,14 @@ class Field[T](override val path: List[String]) extends Path with FieldCondition
     */
   def in(subset: Field[_]): Field[T] = new Field[T]( (subset + this).path )
 
+  /**Create a tuple subset
+   */
+  def ~[T2](f2: Field[T2]) = new Tuple2Subset[T,T2](this.name, f2.name)
+
+  //
+  // Queries / Update modifiers
+  //
+  
   /**Create a query relative to this field
     */
   def where(q: Query): Query = Query( wrap(this, q.queryLens) )
@@ -185,11 +231,25 @@ class Field[T](override val path: List[String]) extends Path with FieldCondition
     */
   def pullWhere(q: Query)(implicit ev: T <:< Traversable[_]): Update = op("$pull", q.get)
 
-  /**Create a tuple subset
+  //
+  // Lenses
+  //
+  
+  /** Writer lens
     */
-  def ~[T2](f2: Field[T2]) = new Tuple2Subset[T,T2](this.name, f2.name)
-
   def apply(x: T)(implicit setter: ValueWriter[T]): DBObjectLens = writer(name, x)
+
+  /** (an alias for `drop`)
+    */
+  def unary_- : DBObjectLens = remove
+
+  /** Removing lens
+   */
+  def remove: DBObjectLens = DBObjectLens.remover(name)
+
+  /**Lens modifying a value
+    */
+  def update[R](f: T => R)(implicit r: ValueReader[T], w: ValueWriter[R]): DBObjectLens = DBObjectLens.modifier(name, f)
 
   def unapply(dbo: DBObject)(implicit getter: ValueReader[T]): Option[T] = read[T](name, dbo)
 

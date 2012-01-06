@@ -137,5 +137,17 @@ object DBObjectLens {
         w.pack(x) foreach {dbo.put(key, _)}
         dbo
       }
+
+  def modifier[T,R](key: String, f: T => R)(implicit r: ValueReader[T], w: ValueWriter[R]): DBObjectLens =
+    (dbo: DBObject) =>
+      read[T](key, dbo) map {t => writer[R](key, f(t)) :~> dbo} getOrElse dbo
+
+  /** A lens that removes a key
+    */
+  def remover(key: String): DBObjectLens =
+    (dbo: DBObject) => {
+        dbo.removeField(key)
+        dbo
+      }
 }
 

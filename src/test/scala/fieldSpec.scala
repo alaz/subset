@@ -27,29 +27,43 @@ import BasicDBObjectBuilder.start
 class fieldSpec extends Spec with MustMatchers with MongoMatchers with Routines {
   import SmartValues._
 
+  describe("Field lenses") {
+    it("write explicitly") {
+      val f = Field[Int]("i")
+      (f(10) : DBObject) must containKeyValue("i" -> 10)
+    }
+    it("write implicitly") {
+      val f = Field[Int]("i")
+      val dbo: DBObject = f -> 10
+      dbo must containKeyValue("i" -> 10)
+    }
+    it("chains writers 1") {
+      val f1 = "i".fieldOf[Int]
+      val f2 = "s".fieldOf[String]
+      ( (f1 -> 12) ~ (f2 -> "string") : DBObject) must (containKeyValue("i" -> 12) and containKeyValue("s" -> "string"))
+    }
+    it("chains writers 2") {
+      val obj = ("i".fieldOf[Int] -> 12) ~ ("s".fieldOf[String] -> "string")
+      (obj : DBObject) must (containKeyValue("i" -> 12) and containKeyValue("s" -> "string"))
+    }
+    it("remove") {
+      val f = "i".fieldOf[Int]
+      ( -f :~> start("i", 10).get) must equal(start.get)
+      ( f.remove :~> start("i", 10).get) must equal(start.get)
+      ( -f :~> start("i", 10).append("s", "str").get) must equal(start("s", "str").get)
+    }
+    it("update") {
+      val f = "i".fieldOf[Int]
+      (f.update{i => (i+1).toString} :~> start("i", 5).get) must equal(start("i", "6").get)
+      (f.update{i => (i+1).toString} :~> start("i", "str").get) must equal(start("i", "str").get)
+      (f.update{i => (i+1).toString} :~> start("s", "str").get) must equal(start("s", "str").get)
+    }
+  }
   describe("Field") {
     it("has proper basic Java methods") {
       Field[Int]("i") must equal(Field[String]("i"))
       Field[Int]("i").hashCode must equal(Field[String]("i").hashCode)
       Field[Int]("i").toString must startWith("Field")
-    }
-    it("serializes explicitly") {
-      val f = Field[Int]("i")
-      (f(10) : DBObject) must containKeyValue("i" -> 10)
-    }
-    it("serializes implicitly") {
-      val f = Field[Int]("i")
-      val dbo: DBObject = f -> 10
-      dbo must containKeyValue("i" -> 10)
-    }
-    it("chains serializers 1") {
-      val f1 = "i".fieldOf[Int]
-      val f2 = "s".fieldOf[String]
-      ( (f1 -> 12) ~ (f2 -> "string") : DBObject) must (containKeyValue("i" -> 12) and containKeyValue("s" -> "string"))
-    }
-    it("chains serializers 2") {
-      val obj = ("i".fieldOf[Int] -> 12) ~ ("s".fieldOf[String] -> "string")
-      (obj : DBObject) must (containKeyValue("i" -> 12) and containKeyValue("s" -> "string"))
     }
     it("has extractor") {
       val F1 = "i".fieldOf[Int]

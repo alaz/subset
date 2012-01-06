@@ -63,4 +63,40 @@ class lensSpec extends Spec with MustMatchers with MongoMatchers with Routines {
       (dbo <~: set1 ~ set2) must containKeyValue("i" -> 2)
     }
   }
+  describe("Writer lens") {
+    def w = DBObjectLens.writer("i", 10)
+    it("writes into empty object") {
+      w(start.get) must equal(start("i", 10).get)
+      w(w(start.get)) must equal(start("i", 10).get)
+    }
+    it("appends to an existing object") {
+      w(start("a", "str").get) must equal(start("a", "str").append("i", 10).get)
+    }
+    it("overwrites old value in an obejct") {
+      w(start("a", "str").append("i", 5).get) must equal(start("a", "str").append("i", 10).get)
+      w(w(start("a", "str").append("i", 5).get)) must equal(start("a", "str").append("i", 10).get)
+    }
+  }
+  describe("Remover lens") {
+    def r = DBObjectLens.remover("i")
+    it("keeps old object intact") {
+      r(start.get) must equal(start.get)
+      r(start("s", "str").get) must equal(start("s", "str").get)
+    }
+    it("removes the key only") {
+      r(start("i", 5).append("s", "str").get) must equal(start("s", "str").get)
+      r(start("i", 5).get) must equal(start.get)
+    }
+  }
+  describe("Modifier lens") {
+    def m = DBObjectLens.modifier("i", (i: Int) => (i+1).toString)
+    it("keeps an object intact") {
+      m(start.get) must equal(start.get)
+      m(start("s", "str").get) must equal(start("s", "str").get)
+    }
+    it("modifies only the key") {
+      m(start("i",5).get) must equal(start("i","6").get)
+      m(start("i",5).append("s","str").get) must equal(start("i","6").append("s", "str").get)
+    }
+  }
 }
