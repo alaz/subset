@@ -14,7 +14,6 @@
  * limitations under the License.
  */
 package com.osinka.subset
-package values
 
 import scala.util.control.Exception._
 import org.bson.types.ObjectId

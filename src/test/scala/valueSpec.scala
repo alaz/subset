@@ -14,7 +14,6 @@
  * limitations under the License.
  */
 package com.osinka.subset
-package values
 
 import org.scalatest.Spec
 import org.scalatest.matchers.MustMatchers
@@ -37,19 +36,17 @@ class valueSpec extends Spec with MustMatchers with MongoMatchers with Routines 
     }
   }
   describe("Base primitives serializer") {
-    import StrictValues._
     import org.bson.types.{Symbol => BsonSymbol}
 
     it("must set explicitly") {
       packValue("val")(ValueWriter.defaultWriter[String]) must equal(Some("val"))
-      val sym = packValue('Sym)(symbolSetter)
+      val sym = packValue('Sym)(ValueWriter.symbolSetter)
       sym must be('defined)
       sym.get.asInstanceOf[AnyRef].getClass must equal(classOf[BsonSymbol])
       sym.get.asInstanceOf[BsonSymbol].getSymbol must equal("Sym")
     }
   }
   describe("Scala types serializer") {
-    import StrictValues._
     it("sets Some") {
       packValue(Some(1)) must equal(Some(1))
     }

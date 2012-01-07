@@ -25,8 +25,6 @@ import BasicDBObjectBuilder.start
 
 @RunWith(classOf[JUnitRunner])
 class subsetSpec extends Spec with MustMatchers with MongoMatchers with Routines {
-  import StrictValues._
-
   describe("Untyped Subset") {
     object Sub {
       val f = Field[Int]("f")

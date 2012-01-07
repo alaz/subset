@@ -69,7 +69,6 @@ import com.mongodb.DBObject
   */
 package object subset {
   import query._
-  import update._
 
   // String to Field
   implicit def stringToField(name: String) =
@@ -89,7 +88,6 @@ package object subset {
   implicit def fieldTupleDBO[T : ValueWriter](t: (Field[T], T)): DBObject = fieldTupleSerializer[T](t).get
 
   // DBObjectLenses
-  implicit def lensToDBO(l: DBObjectLens): DBObject = l.get
   implicit def fToDBObjectLens(f: DBObject => DBObject): DBObjectLens = DBObjectLens.fToDBObjectLens(f)
   implicit def fToQDBObjectLens(f: Path => DBObjectLens): QueryLens = QueryLens.fToQDBObjectLens(f)
 
@@ -98,10 +96,6 @@ package object subset {
 
   // Update
   val Update = update.Update
-
-  // Explicit objects to import serialization strategy
-  val StrictValues = values.StrictValues
-  val SmartValues = values.SmartValues
 
   /** Convenience extractor
     *

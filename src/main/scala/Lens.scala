@@ -115,6 +115,7 @@ object DBObjectLens {
 
   implicit def fToDBObjectLens(f: DBObject => DBObject): DBObjectLens = apply(f)
   implicit def lensWriter: ValueWriter[DBObjectLens] = ValueWriter[DBObjectLens](_.get)
+  implicit def lensToDBO(l: DBObjectLens): DBObject = l.get
 
   /** Reads a value from `DBObject` by key.
     *

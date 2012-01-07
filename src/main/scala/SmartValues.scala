@@ -14,24 +14,22 @@
  * limitations under the License.
  */
 package com.osinka.subset
-package values
 
 import java.util.Date
 
 /** Provides a smart deserialization of BSON values
   */
-object SmartValues extends SmartSerialization with ScalaTypesSerialization
+object SmartValues extends SmartValues
 
 /** unpack primitives and try to convert from other type:
   * 
   * - tries to get Int, Long, Double, Byte from String
   * - tries to get DateTime (java.util.Date) from Int (as a number of seconds from the epoch)
   *   or Long (as a number of milliseconds from the epoch)
-  *
-  * TODO: should it be in another project "subset-values" or simply rewrite As* extractors here?
   */
-trait SmartSerialization extends BaseSerialization {
+trait SmartValues {
   import Extractors._
+  import ValueReader._
 
   implicit val booleanRecoveringGetter = ValueReader[Boolean]({
       case b: Boolean => b
