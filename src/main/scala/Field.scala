@@ -22,29 +22,12 @@ import DBObjectLens._
 import QueryLens._
 
 /** A typed field
-  * 
-  * == Serialization ==
-  * The first of all, a field provides serialization/deserialization capabilities.
-  *
-  * It's always possible to apply a field to its type and get a
-  * [[com.osinka.subset.DBObjectLens]] as a result
-  * {{{
-  * val f = Field[Int]("a")
-  * val lens = f(10)
-  * }}}
-  *
-  * Any field is an extractor as well. It accepts `DBObject` and returns
-  * `Option[T]`, so that one may write
-  * {{{
-  * dbo match {
-  *   case Field(value) => ...
-  * }
-  * }}}
   *
   * == Lenses ==
   * `Field` is a source for a number of lenses (see [[com.osinka.subset.DBObjectLens]])
   *
-  * The simplest one is that sets a key to some value
+  * It's always possible to apply a field to its type and get a
+  * [[com.osinka.subset.DBObjectLens]] as a result
   * {{{
   * val f = "f".fieldOf[Int]
   * val lens = f(10)
@@ -55,26 +38,35 @@ import QueryLens._
   *
   * here, in the example, `newDbo` will be `{f: 10}` (because `get` applies a lens to an empty
   * `DBObject`), but `modifiedDbo` may have a lot of fields, though `lens` makes sure the only
-  * one, `f`, gets set to `10`.
+  * one, `f`, gets set to `10`. By the way, `f(10)` is an alias for `f.added(10)`
   *
   * There is a lens that removes a key
   * {{{
   * val lens = -f
   * val newDbo = lens :~> exisingDbo
   * }}}
-  * if ever `existingDbo` had a key `f`, `newDbo` will not have it.
+  * if ever `existingDbo` had a key `f`, `newDbo` will not have it. `-f` is an alias for `f.removed`
   *
   * "Modifier" lens mutates an existing key value. The result may be of another type,
   * so this operation depends both on [[com.osinka.subset.ValueReader]] and
   * [[com.osinka.subset.ValueWriter]] type classes:
   * {{{
-  * val lens = f.update{i => (i+1).toString}
+  * val lens = f.updated {i => (i+1).toString}
   * val newDbo = lens :~> existingDbo
   * }}}
   *
   * Thus, if `existingDbo` contains a key `f` which can be read as an `Int`, it get
   * transformed and written back under the same key.
-  * 
+  *
+  * == Extractor ==
+  * Any field is an extractor as well. It accepts `DBObject` and returns
+  * `Option[T]`, so that one may write
+  * {{{
+  * dbo match {
+  *   case Field(value) => ...
+  * }
+  * }}}
+  *
   * == Tuples ==
   * '''Subset''' provides a kind of Tuple serializers for reading and
   * writing `TupleN` to/from `DBObject`
@@ -234,22 +226,26 @@ class Field[T](override val path: List[String]) extends Path with FieldCondition
   //
   // Lenses
   //
-  
+
+  /** (an alias for `added`)
+    */
+  def apply(x: T)(implicit setter: ValueWriter[T]): DBObjectLens = added(x)
+
   /** Writer lens
     */
-  def apply(x: T)(implicit setter: ValueWriter[T]): DBObjectLens = writer(name, x)
+  def added(x: T)(implicit setter: ValueWriter[T]): DBObjectLens = writer(name, x)
 
   /** (an alias for `drop`)
     */
-  def unary_- : DBObjectLens = remove
+  def unary_- : DBObjectLens = removed
 
   /** Removing lens
    */
-  def remove: DBObjectLens = DBObjectLens.remover(name)
+  def removed: DBObjectLens = DBObjectLens.remover(name)
 
   /**Lens modifying a value
     */
-  def update[R](f: T => R)(implicit r: ValueReader[T], w: ValueWriter[R]): DBObjectLens = DBObjectLens.modifier(name, f)
+  def updated[R](f: T => R)(implicit r: ValueReader[T], w: ValueWriter[R]): DBObjectLens = DBObjectLens.modifier(name, f)
 
   def unapply(dbo: DBObject)(implicit getter: ValueReader[T]): Option[T] = read[T](name, dbo)
 

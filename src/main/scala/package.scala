@@ -18,19 +18,37 @@ package com.osinka
 import com.mongodb.DBObject
 
 /** == Getting Started ==
-  * This 'package object' provides a number of implicits to ease conversions and
+  * This 'package object' provides a number of implicits to ease the
   * use of the library. Thus the initial step is supposed to be
   * {{{
   * import com.osinka.subset._
   * }}}
   * 
   * == Value conversions ==
-  * '''Subset''' provides a means to convert Java/Scala types to/from BSON values.
-  * You have several options:
-  *  - you may `import SmartValues._`. '''Subset''' will try to extract correct
-  *    values from incorrect field contents (e.g. an integer value stored as a
-  *    string field)
-  *  - if you do not need this, do `import StrictValues._`
+  * MongoDB Java driver is capable to encode/decode few Java types to/from BSON.
+  * E.g. it encodes any subtype of `List[T]` into BSON array. However, it cannot
+  * work with Scala types (`Symbol`, sequences, `Option[T]`). '''Subset''' provides
+  * a couple of type classes, `ValueReader[T]` and `ValueWriter[T]` to define
+  * mechanisms of converting values to and from BSON values, and a library of
+  * ''implicit''s for common Scala types.
+  *
+  * A developer may define own instances to support other types, e.g. if one needs
+  * to store `BigDecimal` values in an integer BSON value
+  * {{{
+  * implicit val bigDecimalReader = ValueReader[BigDecimal]({
+  *     case l: Long => BigDecimal(l, 2)
+  *   })
+  * implicit val bigDecimalWriter = ValueWriter[BigDecimal](bd => {
+  *     assert(bd.scale == 2)
+  *     (bd*100).setScale(0).toLong
+  *   })
+  * }}}
+  *
+  * There are few optional ''import''s:
+  *  - `import JodaValues._` will make available a conversions for JodaTime `DateTime`
+  *  - `import SmartValues._` provides extended readers for primitive types and date, when
+  *    readers try to extract a value even from incorrect BSON type (e.g. when an Int
+  *    is stored in Double or in String)
   *
   * == Field ==
   * It is possible to pimp a string into a [[com.osinka.subset.Field]] with `"fieldName".fieldOf[T]`.
@@ -61,7 +79,7 @@ import com.mongodb.DBObject
   *  - [[com.osinka.subset.Subset]] will give you a hint on how to work with subdocuments.
   *  - [[com.osinka.subset.query]] provides information on building queries.
   *  - [[com.osinka.subset.update]] is about "update modifiers".
-  *  - If you need details, [[com.osinka.subset.DBObjectLens]], [[com.osinka.subset.Path]],
+  *  - If you need details, [[com.osinka.subset.DBObjectLens]],
   *    [[com.osinka.subset.ValueReader]] and [[com.osinka.subset.ValueWriter]] are the
   *    way to go.
   *

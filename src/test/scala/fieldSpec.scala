@@ -49,14 +49,14 @@ class fieldSpec extends Spec with MustMatchers with MongoMatchers with Routines 
     it("remove") {
       val f = "i".fieldOf[Int]
       ( -f :~> start("i", 10).get) must equal(start.get)
-      ( f.remove :~> start("i", 10).get) must equal(start.get)
+      ( f.removed :~> start("i", 10).get) must equal(start.get)
       ( -f :~> start("i", 10).append("s", "str").get) must equal(start("s", "str").get)
     }
     it("update") {
       val f = "i".fieldOf[Int]
-      (f.update{i => (i+1).toString} :~> start("i", 5).get) must equal(start("i", "6").get)
-      (f.update{i => (i+1).toString} :~> start("i", "str").get) must equal(start("i", "str").get)
-      (f.update{i => (i+1).toString} :~> start("s", "str").get) must equal(start("s", "str").get)
+      (f.updated{i => (i+1).toString} :~> start("i", 5).get) must equal(start("i", "6").get)
+      (f.updated{i => (i+1).toString} :~> start("i", "str").get) must equal(start("i", "str").get)
+      (f.updated{i => (i+1).toString} :~> start("s", "str").get) must equal(start("s", "str").get)
     }
   }
   describe("Field") {

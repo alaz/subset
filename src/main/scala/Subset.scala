@@ -50,8 +50,8 @@ import QueryLens._
   * }
   * }}}
   * 
-  * `BlogPost.comments` is a `Subset`. From now on, you can create queries and update modifiers
-  * using the fields defined in `Comment`:
+  * `BlogPost.comments` represents an array of `Comment` sub-documents. From now on, you can
+  * create queries and update modifiers using the fields defined in `Comment`:
   * {{{
   * BlogPost.comments.where { _.by === 10 }
   * }}}

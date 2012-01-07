@@ -25,8 +25,6 @@ import com.mongodb.DBObject
 import DBObjectLens._
 
 /** ValueReader is responsible for reading types from BSON values
-  *
-  * @see [[com.osinka.subset.values]]
   */
 @implicitNotFound(msg = "Cannot find ValueReader for ${T}")
 trait ValueReader[+T] {
@@ -44,8 +42,6 @@ trait ValueWriter[-T] {
   *
   * This class supports not only `orElse` (like `PartialFunction`), but
   * `andThen` as well.
-  * 
-  * @see [[com.osinka.subset.values]]
   */
 case class ValueReaderPf[+T](pf: PartialFunction[Any, T]) extends ValueReader[T] {
   override def unpack(o: Any): Option[T] = PartialFunction.condOpt(o)(pf)

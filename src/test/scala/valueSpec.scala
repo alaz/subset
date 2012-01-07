@@ -34,6 +34,13 @@ class valueSpec extends Spec with MustMatchers with MongoMatchers with Routines 
       unpackValue[AnyRef]("str")(ValueReader.defaultReader[AnyRef]) must equal(Some("str"))
       unpackValue[String](10)(ValueReader.defaultReader[String]) must equal(None)
     }
+    it("can be overridden") {
+      val dbobj = dbo("i", 10).get
+      DBObjectLens.read[Int]("i", dbobj) must equal(Some(10))
+
+      implicit val ir = ValueReader[Int]({ case i: Int => i+1 })
+      DBObjectLens.read[Int]("i", dbobj) must equal(Some(11))
+    }
   }
   describe("Base primitives serializer") {
     import org.bson.types.{Symbol => BsonSymbol}
