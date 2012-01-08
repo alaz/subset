@@ -25,9 +25,7 @@ import com.mongodb.DBObject
   * }}}
   * 
   * == Value conversions ==
-  * MongoDB Java driver is capable to encode/decode few Java types to/from BSON.
-  * E.g. it encodes any subtype of `List[T]` into BSON array. However, it cannot
-  * work with Scala types (`Symbol`, sequences, `Option[T]`). '''Subset''' provides
+  * '''Subset''' provides
   * a couple of type classes, `ValueReader[T]` and `ValueWriter[T]` to define
   * mechanisms of converting values to and from BSON values, and a library of
   * ''implicit''s for common Scala types.
@@ -45,7 +43,7 @@ import com.mongodb.DBObject
   * }}}
   *
   * There are few optional ''import''s:
-  *  - `import JodaValues._` will make available a conversions for JodaTime `DateTime`
+  *  - `import JodaValues._` will make available conversions for Joda's `DateTime` values
   *  - `import SmartValues._` provides extended readers for primitive types and date, when
   *    readers try to extract a value even from incorrect BSON type (e.g. when an Int
   *    is stored in Double or in String)
