@@ -27,7 +27,7 @@ import BasicDBObjectBuilder.start
 class fieldSpec extends Spec with MustMatchers with MongoMatchers with Routines {
   import SmartValues._
 
-  describe("Field lenses") {
+  describe("Field mutations") {
     it("write explicitly") {
       val f = Field[Int]("i")
       (f(10) : DBObject) must containKeyValue("i" -> 10)

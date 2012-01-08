@@ -51,11 +51,11 @@ class subsetSpec extends Spec with MustMatchers with MongoMatchers with Routines
     it("serializes fields specified") {
       val dbo: DBObject = doc(Doc.f(10) ~ Doc.sub(Sub.f -> 5))
 
-      val d = DBObjectLens.read[DBObject]("doc", dbo)
+      val d = Mutation.read[DBObject]("doc", dbo)
       d must be('defined)
       d.get must containKeyValue("f" -> 10)
 
-      val s = DBObjectLens.read[DBObject]("sub", d.get)
+      val s = Mutation.read[DBObject]("sub", d.get)
       s must be('defined)
       s.get must containKeyValue("f" -> 5)
     }

@@ -20,13 +20,13 @@ import java.util.regex.Pattern
 import util.matching.Regex
 import com.mongodb.DBObject
 
-import DBObjectLens._
-import QueryLens._
+import Mutation._
+import QueryMutation._
 
 /** All the field conditions that MongoDB allows to verify.
   */
 trait Conditions[T] extends Path {
-  protected def fquery(condition: DBObjectLens): FieldQuery[T]
+  protected def fquery(condition: Mutation): FieldQuery[T]
 
   def exists(v: Boolean) = fquery("$exists" -> v)
   def >(x: T)(implicit writer: ValueWriter[T]) = fquery("$gt" -> x)
@@ -64,7 +64,7 @@ trait Conditions[T] extends Path {
   *    creates regexp matching operator `{f: /regexp/}`
   */
 trait FieldConditions[T] extends Conditions[T] {
-  override def fquery(condition: DBObjectLens) = FieldQuery[T](this, condition)
+  override def fquery(condition: Mutation) = FieldQuery[T](this, condition)
 
   def ===(x: T)(implicit writer: ValueWriter[T]) = Query(this, x)
   def ===(x: Option[T])(implicit writer: ValueWriter[T]): Query = x map {this ===} getOrElse exists(false)
@@ -74,8 +74,8 @@ trait FieldConditions[T] extends Conditions[T] {
 
 /** A Query
   *
-  * == Lens ==
-  * Query is a [[com.osinka.subset.DBObjectLens]], which means you may
+  * == Mutation ==
+  * Query is a [[com.osinka.subset.Mutation]], which means you may
   * get a `DBObject` or apply it to the existing `DBObject` at any time.
   * 
   * Thus whenever you have a `Query`, you may get its MongoDB repesentation
@@ -119,16 +119,16 @@ trait FieldConditions[T] extends Conditions[T] {
   * 
   * @see [[https://github.com/osinka/subset/blob/master/src/it/scala/blogCommentSpec.scala Blog Comment Example]]
   */
-trait Query extends DBObjectLens {
-  def queryLens: QueryLens
+trait Query extends Mutation {
+  def queryMutation: QueryMutation
 
-  override def apply(dbo: DBObject): DBObject = queryLens(Path.empty)(dbo)
+  override def apply(dbo: DBObject): DBObject = queryMutation(Path.empty)(dbo)
 
   def &&(other: Query): Query = and(other)
   def and(other: Query): Query = {
     import collection.JavaConversions._
 
-    if ( (get.keySet & other.get.keySet).isEmpty ) Query(queryLens ~ other.queryLens)
+    if ( (get.keySet & other.get.keySet).isEmpty ) Query(queryMutation ~ other.queryMutation)
     else Query.And(other :: this :: Nil)
   }
 
@@ -146,29 +146,29 @@ trait Query extends DBObjectLens {
 object Query {
   /** @return an empty query
     */
-  def empty: Query = const(DBObjectLens.empty)
+  def empty: Query = const(Mutation.empty)
 
-  def const(dbo: DBObject): Query = const(DBObjectLens const dbo)
-  def const(lens: DBObjectLens): Query = apply(QueryLens {_: Path => lens})
+  def const(dbo: DBObject): Query = const(Mutation const dbo)
+  def const(mutation: Mutation): Query = apply(QueryMutation {_: Path => mutation})
 
   def apply[T : ValueWriter](p: Path, x: T): Query = apply(write(p, x))
-  def apply(ql: QueryLens): Query = DefaultImpl(ql)
+  def apply(ql: QueryMutation): Query = DefaultImpl(ql)
 
-  private case class DefaultImpl(override val queryLens: QueryLens) extends Query
+  private case class DefaultImpl(override val queryMutation: QueryMutation) extends Query
 
   private[subset] case class And(queries: List[Query]) extends Query {
     override def and(other: Query): Query = copy(queries = other :: queries)
-    override def queryLens: QueryLens = embed("$and", queries map {_.queryLens} reverse)
+    override def queryMutation: QueryMutation = embed("$and", queries map {_.queryMutation} reverse)
   }
 
   private[subset] case class Or(queries: List[Query]) extends Query {
     override def or(other: Query): Query = copy(queries = other :: queries)
-    override def queryLens: QueryLens = embed("$or", queries map {_.queryLens} reverse)
+    override def queryMutation: QueryMutation = embed("$or", queries map {_.queryMutation} reverse)
   }
 
   private[subset] case class Nor(queries: List[Query]) extends Query {
     override def nor(other: Query): Query = copy(queries = other :: queries)
-    override def queryLens: QueryLens = embed("$nor", queries map {_.queryLens} reverse)
+    override def queryMutation: QueryMutation = embed("$nor", queries map {_.queryMutation} reverse)
   }
 }
 
@@ -187,12 +187,12 @@ object Query {
   * }}}
   * The result would be `{f: {\$not: {\$gte: 2, \$lt: 10}}}`
   */
-case class FieldQuery[T](p: Path, condition: DBObjectLens) extends Query with Conditions[T] {
+case class FieldQuery[T](p: Path, condition: Mutation) extends Query with Conditions[T] {
   override def path: List[String] = p.path
 
-  override def fquery(cond: DBObjectLens) = copy(condition = condition andThen cond)
+  override def fquery(cond: Mutation) = copy(condition = condition andThen cond)
 
-  override def queryLens: QueryLens = write(p, condition)
+  override def queryMutation: QueryMutation = write(p, condition)
 
   def not : Query = Query(write(p, writer("$not", condition)))
   def unary_! = not

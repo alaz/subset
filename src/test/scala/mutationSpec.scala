@@ -24,47 +24,47 @@ import com.mongodb.{DBObject,BasicDBObjectBuilder}
 import BasicDBObjectBuilder.start
 
 @RunWith(classOf[JUnitRunner])
-class lensSpec extends Spec with MustMatchers with MongoMatchers with Routines {
-  describe("DBObjectLens") {
+class mutationSpec extends Spec with MustMatchers with MongoMatchers with Routines {
+  describe("Mutation") {
     // FIXME: cannot compare arrays https://jira.mongodb.org/browse/JAVA-482
     def dbo = start("i", 10).push("inner").add("s", "string")/*.add("a", Array(1,2))*/.get
-    def constLens = DBObjectLens.const(dbo)
-    def identityLens = DBObjectLens(identity[DBObject] _)
+    def constMutation = Mutation.const(dbo)
+    def identityMutation = Mutation(identity[DBObject] _)
 
     it("has `equals`") {
-      constLens must equal(constLens)
-      constLens.get must equal(dbo)
+      constMutation must equal(constMutation)
+      constMutation.get must equal(dbo)
     }
     it("has `hashCode`") {
-      constLens.hashCode must equal(constLens.hashCode)
-      constLens.get.hashCode must equal(dbo.hashCode)
+      constMutation.hashCode must equal(constMutation.hashCode)
+      constMutation.get.hashCode must equal(dbo.hashCode)
     }
     it("has `toString`") {
-      constLens.toString must startWith("DBObjectLens")
+      constMutation.toString must startWith("Mutation")
     }
     it("initialized from empty DBObject") {
-      identityLens.get must be('empty)
+      identityMutation.get must be('empty)
     }
     it("has ValueWriter") {
-      val w = implicitly[ValueWriter[DBObjectLens]]
+      val w = implicitly[ValueWriter[Mutation]]
     }
     it("allows conjunction") {
-      val conj = constLens ~ identityLens
-      conj.toString must startWith("DBObjectLens")
-      conj must equal(constLens)
+      val conj = constMutation ~ identityMutation
+      conj.toString must startWith("Mutation")
+      conj must equal(constMutation)
     }
     it("supports Scala methods") {
-      (constLens andThen identityLens)(dbo) must equal(dbo)
+      (constMutation andThen identityMutation)(dbo) must equal(dbo)
     }
     it("supports DSL") {
-      val set1 = DBObjectLens.writer[Int]("i", 1)
-      val set2 = DBObjectLens.writer[Int]("i", 2)
+      val set1 = Mutation.writer[Int]("i", 1)
+      val set2 = Mutation.writer[Int]("i", 2)
       (set1 ~ set2 :~> dbo) must containKeyValue("i" -> 2)
       (dbo <~: set1 ~ set2) must containKeyValue("i" -> 2)
     }
   }
-  describe("Writer lens") {
-    def w = DBObjectLens.writer("i", 10)
+  describe("Writer mutation") {
+    def w = Mutation.writer("i", 10)
     it("writes into empty object") {
       w(start.get) must equal(start("i", 10).get)
       w(w(start.get)) must equal(start("i", 10).get)
@@ -77,8 +77,8 @@ class lensSpec extends Spec with MustMatchers with MongoMatchers with Routines {
       w(w(start("a", "str").append("i", 5).get)) must equal(start("a", "str").append("i", 10).get)
     }
   }
-  describe("Remover lens") {
-    def r = DBObjectLens.remover("i")
+  describe("Remover mutation") {
+    def r = Mutation.remover("i")
     it("keeps old object intact") {
       r(start.get) must equal(start.get)
       r(start("s", "str").get) must equal(start("s", "str").get)
@@ -88,8 +88,8 @@ class lensSpec extends Spec with MustMatchers with MongoMatchers with Routines {
       r(start("i", 5).get) must equal(start.get)
     }
   }
-  describe("Modifier lens") {
-    def m = DBObjectLens.modifier("i", (i: Int) => (i+1).toString)
+  describe("Modifier mutation") {
+    def m = Mutation.modifier("i", (i: Int) => (i+1).toString)
     it("keeps an object intact") {
       m(start.get) must equal(start.get)
       m(start("s", "str").get) must equal(start("s", "str").get)

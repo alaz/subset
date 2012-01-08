@@ -54,16 +54,16 @@ import com.mongodb.DBObject
   * It is possible to pimp a string into a [[com.osinka.subset.Field]] with `"fieldName".fieldOf[T]`.
   * 
   * Tuples made of `Field[T]` and an object of the same `T` can be implicitly converted into
-  * `DBObject` or [[com.osinka.subset.DBObjectLens]] if `T` has a [[com.osinka.subset.ValueWriter]].
+  * `DBObject` or [[com.osinka.subset.Mutation]] if `T` has a [[com.osinka.subset.ValueWriter]].
   * {{{
   * val dbo: DBObject = "i".fieldOf[Int] -> 10
-  * val lens: DBObjectLens = ("i".fieldOf[Int] -> 10) ~ ("s".fieldOf[String] -> "str")
+  * val mutation: Mutation = ("i".fieldOf[Int] -> 10) ~ ("s".fieldOf[String] -> "str")
   * }}}
   * 
   * It's possible to use a string instead of field as well (but only to create a
-  * `DBObjectLens`):
+  * `Mutation`):
   * {{{
-  * val lens: DBObjectLens = ("i".fieldOf[Int] -> 10) ~ ("s" -> "str")
+  * val mutation: Mutation = ("i".fieldOf[Int] -> 10) ~ ("s" -> "str")
   * }}}
   *
   * == Subset ==
@@ -79,7 +79,7 @@ import com.mongodb.DBObject
   *  - [[com.osinka.subset.Subset]] will give you a hint on how to work with subdocuments.
   *  - [[com.osinka.subset.query]] provides information on building queries.
   *  - [[com.osinka.subset.update]] is about "update modifiers".
-  *  - If you need details, [[com.osinka.subset.DBObjectLens]],
+  *  - If you need details, [[com.osinka.subset.Mutation]],
   *    [[com.osinka.subset.ValueReader]] and [[com.osinka.subset.ValueWriter]] are the
   *    way to go.
   *
@@ -99,15 +99,15 @@ package object subset {
     }
 
   // String Tuple
-  implicit def stringTupleSerializer[T : ValueWriter](t: (String, T)): DBObjectLens = DBObjectLens.writer(t._1, t._2)
+  implicit def stringTupleSerializer[T : ValueWriter](t: (String, T)): Mutation = Mutation.writer(t._1, t._2)
 
   // Field conversions
-  implicit def fieldTupleSerializer[T : ValueWriter](t: (Field[T], T)): DBObjectLens = DBObjectLens.writer(t._1.name, t._2)
+  implicit def fieldTupleSerializer[T : ValueWriter](t: (Field[T], T)): Mutation = Mutation.writer(t._1.name, t._2)
   implicit def fieldTupleDBO[T : ValueWriter](t: (Field[T], T)): DBObject = fieldTupleSerializer[T](t).get
 
-  // DBObjectLenses
-  implicit def fToDBObjectLens(f: DBObject => DBObject): DBObjectLens = DBObjectLens.fToDBObjectLens(f)
-  implicit def fToQDBObjectLens(f: Path => DBObjectLens): QueryLens = QueryLens.fToQDBObjectLens(f)
+  // Mutations
+  implicit def fToMutation(f: DBObject => DBObject): Mutation = Mutation.fToMutation(f)
+  implicit def fToQMutation(f: Path => Mutation): QueryMutation = QueryMutation.fToQMutation(f)
 
   // Query
   val Query = query.Query

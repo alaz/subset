@@ -18,8 +18,8 @@ package update
 
 import com.mongodb.DBObject
 import query._
-import DBObjectLens._
-import QueryLens._
+import Mutation._
+import QueryMutation._
 
 /** All the update operators MongoDB allows to create.
   *
@@ -50,7 +50,7 @@ trait Modifications[T] extends Path {
 object Update {
   def empty: Update = new Update(Map.empty)
 
-  def apply(t: (String, QueryLens)) = new Update(Map(t))
+  def apply(t: (String, QueryMutation)) = new Update(Map(t))
 }
 
 /** Update builder
@@ -61,19 +61,19 @@ object Update {
   * collection.update(query, updateOp)
   * }}}
   * 
-  * You may get a [[com.osinka.subset.DBObjectLens]] explicitly with `lens` method
+  * You may get a [[com.osinka.subset.Mutation]] explicitly with `mutation` method
   */
-case class Update(ops: Map[String,QueryLens]) extends DBObjectLens {
+case class Update(ops: Map[String,QueryMutation]) extends Mutation {
   override def apply(dbo: DBObject): DBObject = {
-    val lens = ops map {t => writer(t._1, t._2(Path.empty))} reduceLeft {_ ~ _}
-    lens(dbo)
+    val mutation = ops map {t => writer(t._1, t._2(Path.empty))} reduceLeft {_ ~ _}
+    mutation(dbo)
   }
 
   /** Compose with another `Update` object
     */
   def ~(other: Update) = {
-    def mergeMaps(ms: Map[String,QueryLens]*)(f: (QueryLens, QueryLens) => QueryLens) =
-      (Map[String,QueryLens]() /: ms.flatten) { (m, kv) =>
+    def mergeMaps(ms: Map[String,QueryMutation]*)(f: (QueryMutation, QueryMutation) => QueryMutation) =
+      (Map[String,QueryMutation]() /: ms.flatten) { (m, kv) =>
         m + (if (m contains kv._1) kv._1 -> f(m(kv._1), kv._2)
              else kv)
       }

@@ -22,7 +22,7 @@ import util.matching.Regex
 import org.bson.types.{ObjectId, Symbol => BsonSymbol}
 import com.mongodb.DBObject
 
-import DBObjectLens._
+import Mutation._
 
 /** ValueReader is responsible for reading types from BSON values
   */

@@ -168,7 +168,7 @@ class blogCommentSpec extends FeatureSpec with GivenWhenThen with MustMatchers w
       then("the record contains the new updated comment")
       val record = Option( collection.findOne(BlogPost.title === "title" : DBObject) )
       record must be ('defined)
-      val recordComments = DBObjectLens.read[List[Comment]]("comments", record.get)
+      val recordComments = Mutation.read[List[Comment]]("comments", record.get)
       recordComments must be('defined)
       recordComments.get must contain(Comment("joe", 1, "joe's comment"))
 

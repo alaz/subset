@@ -18,41 +18,41 @@ package com.osinka.subset
 import com.mongodb.DBObject
 import query._
 import update._
-import DBObjectLens._
-import QueryLens._
+import Mutation._
+import QueryMutation._
 
 /** A typed field
   *
-  * == Lenses ==
-  * `Field` is a source for a number of lenses (see [[com.osinka.subset.DBObjectLens]])
+  * == Mutations ==
+  * `Field` is a source for a number of mutations (see [[com.osinka.subset.Mutation]])
   *
   * It's always possible to apply a field to its type and get a
-  * [[com.osinka.subset.DBObjectLens]] as a result
+  * [[com.osinka.subset.Mutation]] as a result
   * {{{
   * val f = "f".fieldOf[Int]
-  * val lens = f(10)
+  * val mutation = f(10)
   *
-  * val newDbo: DBObject = lens.get
-  * val modifiedDbo: DBObject = lens :~> dbo
+  * val newDbo: DBObject = mutation.get
+  * val modifiedDbo: DBObject = mutation :~> dbo
   * }}}
   *
-  * here, in the example, `newDbo` will be `{f: 10}` (because `get` applies a lens to an empty
-  * `DBObject`), but `modifiedDbo` may have a lot of fields, though `lens` makes sure the only
+  * here, in the example, `newDbo` will be `{f: 10}` (because `get` applies a mutation to an empty
+  * `DBObject`), but `modifiedDbo` may have a lot of fields, though `mutation` makes sure the only
   * one, `f`, gets set to `10`. By the way, `f(10)` is an alias for `f.added(10)`
   *
-  * There is a lens that removes a key
+  * There is a mutation that removes a key
   * {{{
-  * val lens = -f
-  * val newDbo = lens :~> exisingDbo
+  * val mutation = -f
+  * val newDbo = mutation :~> exisingDbo
   * }}}
   * if ever `existingDbo` had a key `f`, `newDbo` will not have it. `-f` is an alias for `f.removed`
   *
-  * "Modifier" lens mutates an existing key value. The result may be of another type,
+  * "Modifier" mutation mutates an existing key value. The result may be of another type,
   * so this operation depends both on [[com.osinka.subset.ValueReader]] and
   * [[com.osinka.subset.ValueWriter]] type classes:
   * {{{
-  * val lens = f.updated {i => (i+1).toString}
-  * val newDbo = lens :~> existingDbo
+  * val mutation = f.updated {i => (i+1).toString}
+  * val newDbo = mutation :~> existingDbo
   * }}}
   *
   * Thus, if `existingDbo` contains a key `f` which can be read as an `Int`, it get
@@ -75,7 +75,7 @@ import QueryLens._
   * [[com.osinka.subset.Tuple2Subset]], suitable for serializing tuples:
   * {{{
   * val T2 = "int".fieldOf[Int] ~ "str".fieldOf[String]
-  * val lens = t( 10 -> "str" )
+  * val mutation = t( 10 -> "str" )
   *
   * dbo match {
   *   case T2(i, s) => ...
@@ -149,14 +149,14 @@ import QueryLens._
   * }}}
   *
   * @tparam T is a type of the field.
-  * @see [[com.osinka.subset.DBObjectLens]], [[com.osinka.subset.ValueReader]],
+  * @see [[com.osinka.subset.Mutation]], [[com.osinka.subset.ValueReader]],
   *      [[com.osinka.subset.ValueWriter]], [[com.osinka.subset.Subset]]
   */
 class Field[T](override val path: List[String]) extends Path with FieldConditions[T] with Modifications[T] {
   field =>
 
   //
-  // Mutators
+  // Cloning Fields
   //
   
   /** Create a new field, that has the same name and scope, but with another type.
@@ -203,9 +203,9 @@ class Field[T](override val path: List[String]) extends Path with FieldCondition
   // Queries / Update modifiers
   //
   
-  /**Create a query relative to this field
+  /** Create a query relative to this field
     */
-  def where(q: Query): Query = Query( wrap(this, q.queryLens) )
+  def where(q: Query): Query = Query( wrap(this, q.queryMutation) )
 
   /** Creates a query as an \$elemMatch relative to this document
     *
@@ -219,33 +219,33 @@ class Field[T](override val path: List[String]) extends Path with FieldCondition
     */
   def modify(u: Update): Update = u.copy(ops = u.ops mapValues {wrap(this, _)})
 
-  /**`\$pull` based on a condition
+  /** `\$pull` based on a condition
     */
   def pullWhere(q: Query)(implicit ev: T <:< Traversable[_]): Update = op("$pull", q.get)
 
   //
-  // Lenses
+  // Mutations
   //
 
   /** (an alias for `added`)
     */
-  def apply(x: T)(implicit setter: ValueWriter[T]): DBObjectLens = added(x)
+  def apply(x: T)(implicit setter: ValueWriter[T]): Mutation = added(x)
 
-  /** Writer lens
+  /** Writer mutation
     */
-  def added(x: T)(implicit setter: ValueWriter[T]): DBObjectLens = writer(name, x)
+  def added(x: T)(implicit setter: ValueWriter[T]): Mutation = writer(name, x)
 
   /** (an alias for `drop`)
     */
-  def unary_- : DBObjectLens = removed
+  def unary_- : Mutation = removed
 
-  /** Removing lens
+  /** Removing mutation
    */
-  def removed: DBObjectLens = DBObjectLens.remover(name)
+  def removed: Mutation = Mutation.remover(name)
 
-  /**Lens modifying a value
+  /** Mutation modifying a value
     */
-  def updated[R](f: T => R)(implicit r: ValueReader[T], w: ValueWriter[R]): DBObjectLens = DBObjectLens.modifier(name, f)
+  def updated[R](f: T => R)(implicit r: ValueReader[T], w: ValueWriter[R]): Mutation = Mutation.modifier(name, f)
 
   def unapply(dbo: DBObject)(implicit getter: ValueReader[T]): Option[T] = read[T](name, dbo)
 

@@ -19,8 +19,8 @@ import com.mongodb.DBObject
 
 import query._
 import update._
-import DBObjectLens._
-import QueryLens._
+import Mutation._
+import QueryMutation._
 
 /** Subset wraps facilities for working with subdocuments.
   *
@@ -67,7 +67,7 @@ import QueryLens._
   * `Subset` provides a couple of helper methods for serializing and deserializing
   * a document from `DBObject`.
   * 
-  * `apply` takes an object and creates a [[com.osinka.subset.DBObjectLens]],
+  * `apply` takes an object and creates a [[com.osinka.subset.Mutation]],
   * assuming we have a type class [[com.osinka.subset.ValueWriter]] in scope.
   * For example,
   * {{{

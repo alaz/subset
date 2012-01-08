@@ -36,10 +36,10 @@ class valueSpec extends Spec with MustMatchers with MongoMatchers with Routines 
     }
     it("can be overridden") {
       val dbobj = dbo("i", 10).get
-      DBObjectLens.read[Int]("i", dbobj) must equal(Some(10))
+      Mutation.read[Int]("i", dbobj) must equal(Some(10))
 
       implicit val ir = ValueReader[Int]({ case i: Int => i+1 })
-      DBObjectLens.read[Int]("i", dbobj) must equal(Some(11))
+      Mutation.read[Int]("i", dbobj) must equal(Some(11))
     }
   }
   describe("Base primitives serializer") {

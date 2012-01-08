@@ -16,14 +16,14 @@
 package com.osinka.subset
 
 import com.mongodb.DBObject
-import DBObjectLens._
+import Mutation._
 
 /** A tuple made of two fields
   */
 class Tuple2Subset[T1,T2](val f1: String, val f2: String) { tuple =>
-  /** Serialize a tuple into a [[com.osinka.subset.DBObjectLens]]
+  /** Serialize a tuple into a [[com.osinka.subset.Mutation]]
     */
-  def apply(t2: (T1,T2))(implicit s1: ValueWriter[T1], s2: ValueWriter[T2]): DBObjectLens =
+  def apply(t2: (T1,T2))(implicit s1: ValueWriter[T1], s2: ValueWriter[T2]): Mutation =
     writer(f1, t2._1) andThen writer(f2, t2._2)
 
   /** Deserialize a `DBObject` into a tuple
@@ -40,9 +40,9 @@ class Tuple2Subset[T1,T2](val f1: String, val f2: String) { tuple =>
 /** A tuple made of 3 fields
  */
 class Tuple3Subset[T1,T2,T3](val e2: Tuple2Subset[T1,T2], val f3: String) {
-  /** Serialize a tuple into a [[com.osinka.subset.DBObjectLens]]
+  /** Serialize a tuple into a [[com.osinka.subset.Mutation]]
    */
-  def apply(t3: (T1,T2,T3))(implicit s1: ValueWriter[T1], s2: ValueWriter[T2], s3: ValueWriter[T3]): DBObjectLens =
+  def apply(t3: (T1,T2,T3))(implicit s1: ValueWriter[T1], s2: ValueWriter[T2], s3: ValueWriter[T3]): Mutation =
     e2.apply( (t3._1, t3._2) )(s1,s2) andThen writer(f3, t3._3)
 
   /** Deserialize a `DBObject` into a tuple
@@ -58,9 +58,9 @@ class Tuple3Subset[T1,T2,T3](val e2: Tuple2Subset[T1,T2], val f3: String) {
 /** A tuple made of 4 fields
  */
 class Tuple4Subset[T1,T2,T3,T4](val e3: Tuple3Subset[T1,T2,T3], val f4: String) {
-  /** Serialize a tuple into a [[com.osinka.subset.DBObjectLens]]
+  /** Serialize a tuple into a [[com.osinka.subset.Mutation]]
    */
-  def apply(t4: (T1,T2,T3,T4))(implicit s1: ValueWriter[T1], s2: ValueWriter[T2], s3: ValueWriter[T3], s4: ValueWriter[T4]): DBObjectLens =
+  def apply(t4: (T1,T2,T3,T4))(implicit s1: ValueWriter[T1], s2: ValueWriter[T2], s3: ValueWriter[T3], s4: ValueWriter[T4]): Mutation =
     e3.apply( (t4._1, t4._2, t4._3) )(s1,s2,s3) andThen writer(f4, t4._4)
 
   /** Deserialize a `DBObject` into a tuple
@@ -76,9 +76,9 @@ class Tuple4Subset[T1,T2,T3,T4](val e3: Tuple3Subset[T1,T2,T3], val f4: String) 
 /** A tuple made of 5 fields
  */
 class Tuple5Subset[T1,T2,T3,T4,T5](val e4: Tuple4Subset[T1,T2,T3,T4], val f5: String) {
-  /** Serialize a tuple into a [[com.osinka.subset.DBObjectLens]]
+  /** Serialize a tuple into a [[com.osinka.subset.Mutation]]
    */
-  def apply(t5: (T1,T2,T3,T4,T5))(implicit s1: ValueWriter[T1], s2: ValueWriter[T2], s3: ValueWriter[T3], s4: ValueWriter[T4], s5: ValueWriter[T5]): DBObjectLens =
+  def apply(t5: (T1,T2,T3,T4,T5))(implicit s1: ValueWriter[T1], s2: ValueWriter[T2], s3: ValueWriter[T3], s4: ValueWriter[T4], s5: ValueWriter[T5]): Mutation =
     e4.apply( (t5._1, t5._2, t5._3, t5._4) )(s1,s2,s3,s4) andThen writer(f5, t5._5)
 
   /** Deserialize a `DBObject` into a tuple

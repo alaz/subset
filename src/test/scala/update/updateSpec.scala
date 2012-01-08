@@ -41,7 +41,7 @@ class updateSpec extends Spec with MustMatchers with MongoMatchers with Routines
       val u = i.set(10)
       u.toString must startWith("Update")
 
-      val dbo = DBObjectLens.read[DBObject]("$set", u : DBObject)
+      val dbo = Mutation.read[DBObject]("$set", u : DBObject)
       dbo must be('defined)
       dbo.get must containKeyValue("i" -> 10)
     }
@@ -49,13 +49,13 @@ class updateSpec extends Spec with MustMatchers with MongoMatchers with Routines
       val iaf = "arr".fieldOf[List[Int]]
       val u = iaf.addToSet(1 :: 2 :: Nil)
 
-      val addToSet = DBObjectLens.read[DBObject]("$addToSet", u: DBObject)
+      val addToSet = Mutation.read[DBObject]("$addToSet", u: DBObject)
       addToSet must be('defined)
 
-      val v = DBObjectLens.read[DBObject]("arr", addToSet.get)
+      val v = Mutation.read[DBObject]("arr", addToSet.get)
       v must be ('defined)
 
-      val arr = DBObjectLens.read[Array[Int]]("$each", v.get)
+      val arr = Mutation.read[Array[Int]]("$each", v.get)
       arr must be('defined)
       arr.get must equal(Array(1,2))
     }
@@ -63,7 +63,7 @@ class updateSpec extends Spec with MustMatchers with MongoMatchers with Routines
       val u = i.set(10) ~ j.set(3)
       u.toString must startWith("Update")
 
-      val dbo = DBObjectLens.read[DBObject]("$set", u : DBObject)
+      val dbo = Mutation.read[DBObject]("$set", u : DBObject)
       dbo must be('defined)
       dbo.get must (containKeyValue("i" -> 10) and containKeyValue("j" -> 3))
     }

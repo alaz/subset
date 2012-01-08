@@ -73,10 +73,10 @@ class querySpec extends Spec with MustMatchers with MongoMatchers with Routines 
 
       val dbo = (i in List(1,2)).get
 
-      val in = DBObjectLens.read[DBObject]("i", dbo)
+      val in = Mutation.read[DBObject]("i", dbo)
       in must be('defined)
 
-      val arr = DBObjectLens.read[Array[Int]]("$in", in.get)
+      val arr = Mutation.read[Array[Int]]("$in", in.get)
       arr must be ('defined)
       arr.get must equal(Array(1,2))
     }
@@ -86,10 +86,10 @@ class querySpec extends Spec with MustMatchers with MongoMatchers with Routines 
 
       val dbo = (ai all Array(1,2)).get
 
-      val in = DBObjectLens.read[DBObject]("i", dbo)
+      val in = Mutation.read[DBObject]("i", dbo)
       in must be('defined)
 
-      val arr = DBObjectLens.read[Array[Int]]("$all", in.get)
+      val arr = Mutation.read[Array[Int]]("$all", in.get)
       arr must be ('defined)
       arr.get must equal(Array(1,2))
     }
@@ -99,10 +99,10 @@ class querySpec extends Spec with MustMatchers with MongoMatchers with Routines 
 
       val dbo = (i notIn Iterable(1,2)).get
 
-      val in = DBObjectLens.read[DBObject]("i", dbo)
+      val in = Mutation.read[DBObject]("i", dbo)
       in must be('defined)
 
-      val arr = DBObjectLens.read[Array[Int]]("$nin", in.get)
+      val arr = Mutation.read[Array[Int]]("$nin", in.get)
       arr must be ('defined)
       arr.get must equal(Array(1,2))
     }
@@ -137,14 +137,14 @@ class querySpec extends Spec with MustMatchers with MongoMatchers with Routines 
     it("supports conjunction w/o $and") {
       val dbo: DBObject = i < 10 && k > 4 && m === 3
       dbo must containKeyValue("m" -> 3)
-      DBObjectLens.read[DBObject]("i", dbo) must be('defined)
-      DBObjectLens.read[DBObject]("i", dbo).get must containKeyValue("$lt" -> 10)
-      DBObjectLens.read[DBObject]("k", dbo) must be('defined)
-      DBObjectLens.read[DBObject]("k", dbo).get must containKeyValue("$gt" -> 4)
+      Mutation.read[DBObject]("i", dbo) must be('defined)
+      Mutation.read[DBObject]("i", dbo).get must containKeyValue("$lt" -> 10)
+      Mutation.read[DBObject]("k", dbo) must be('defined)
+      Mutation.read[DBObject]("k", dbo).get must containKeyValue("$gt" -> 4)
     }
     it("supports conjunction w/ $and, in one order") {
       val dbo: DBObject = i === 4 && i > 5 && k === 5
-      val arr = DBObjectLens.read[Array[DBObject]]("$and", dbo)
+      val arr = Mutation.read[Array[DBObject]]("$and", dbo)
       arr must be('defined)
       arr.get.size must equal(3)
       arr.get(0) must containKeyValue("i" -> 4)
@@ -153,7 +153,7 @@ class querySpec extends Spec with MustMatchers with MongoMatchers with Routines 
     }
     it("supports conjunction w/ $and, in another order") {
       val dbo: DBObject = i === 4 && k === 5 && i > 5
-      val arr = DBObjectLens.read[Array[DBObject]]("$and", dbo)
+      val arr = Mutation.read[Array[DBObject]]("$and", dbo)
       arr must be('defined)
       arr.get.size must equal(2)
       arr.get(0) must (containKeyValue("i" -> 4) and containKeyValue("k" -> 5))
@@ -161,7 +161,7 @@ class querySpec extends Spec with MustMatchers with MongoMatchers with Routines 
     }
     it("supports $or") {
       val dbo: DBObject = i === 10 || k === 4 or m === 7
-      val arr = DBObjectLens.read[Array[DBObject]]("$or", dbo)
+      val arr = Mutation.read[Array[DBObject]]("$or", dbo)
       arr must be('defined)
       arr.get.size must equal(3)
       arr.get(0) must containKeyValue("i" -> 10)
@@ -170,7 +170,7 @@ class querySpec extends Spec with MustMatchers with MongoMatchers with Routines 
     }
     it("supports $nor") {
       val dbo: DBObject = i === 10 nor k === 4 nor m === 7
-      val arr = DBObjectLens.read[Array[DBObject]]("$nor", dbo)
+      val arr = Mutation.read[Array[DBObject]]("$nor", dbo)
       arr must be('defined)
       arr.get.size must equal(3)
       arr.get(0) must containKeyValue("i" -> 10)
@@ -236,7 +236,7 @@ class querySpec extends Spec with MustMatchers with MongoMatchers with Routines 
     it("honors top-level queries like $and, $or") {
       val q1 = doc.where{_.sub.where{s => s.f > 3 && s.f < 2}}.get
       q1 must containField("$and")
-      val andArr = DBObjectLens.read[List[DBObject]]("$and", q1)
+      val andArr = Mutation.read[List[DBObject]]("$and", q1)
       andArr must be('defined)
       andArr.get must (
           contain(dbo.push("doc.sub.f").append("$gt", 3).get) and
@@ -245,7 +245,7 @@ class querySpec extends Spec with MustMatchers with MongoMatchers with Routines 
 
       val q2 = doc.where{_.sub.where{s => s.f > 3 || s.f < 2}}.get
       q2 must containField("$or")
-      val orArr = DBObjectLens.read[List[DBObject]]("$or", q2)
+      val orArr = Mutation.read[List[DBObject]]("$or", q2)
       orArr must be('defined)
       orArr.get must (
           contain(dbo.push("doc.sub.f").append("$gt", 3).get) and
