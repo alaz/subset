@@ -16,28 +16,20 @@
 package com.osinka.subset
 package update
 
+import com.mongodb.DBObject
 import query._
-import DBObjectLens._
-import QueryLens._
+import Mutation._
+import QueryMutation._
 
 /** All the update operators MongoDB allows to create.
   *
   * This trait mixes into [[com.osinka.subset.Field]]
   * 
-  * == `\$pull` ==
-  * `pull` allows specifying a [[com.osinka.subset.query.Query]] to select an object
-  * that needs to be removed from an array, e.g.
-  * 
-  * {{{
-  * collection.update(BlogPost.title === "empty",
-  *                   BlogPost.comments.pull(Comment.by === "user2" && Comment.votes === 0))
-  * }}}
-  * 
   * @see [[https://github.com/osinka/subset/blob/master/src/it/scala/blogCommentSpec.scala Blog Comment Example]]
   */
 trait Modifications[T] extends Path {
-  private def op[B](op: String, x: B)(implicit writer: ValueWriter[B]) =
-    Update(op -> positional(this, x))
+  protected def op[B](op: String, x: B)(implicit writer: ValueWriter[B]) =
+    Update(op -> write(this, x))
 
   def set(x: T)(implicit writer: ValueWriter[T]) = op("$set", x)
   def inc(x: T)(implicit writer: ValueWriter[T]) = op("$inc", x)
@@ -49,7 +41,6 @@ trait Modifications[T] extends Path {
   def addToSet[A](seq: Traversable[A])(implicit w: ValueWriter[Traversable[A]], ev: T <:< Traversable[A]) = op("$addToSet", writer("$each", seq))
   def pop(i: Int)(implicit writer: ValueWriter[Int], ev: T <:< Traversable[_]) = op("$pop", i)
   def pull[A](x: A)(implicit writer: ValueWriter[A], ev: T <:< Traversable[A]) = op("$pull", x)
-  def pull(q: Query)(implicit ev: T <:< Traversable[_]) = op("$pull", q.queryLens(this))
   def pull[A](seq: Traversable[A])(implicit writer: ValueWriter[Traversable[A]], ev: T <:< Traversable[A]): Update = pullAll(seq)
   def pullAll[A](seq: Traversable[A])(implicit writer: ValueWriter[Traversable[A]], ev: T <:< Traversable[A]) = op("$pullAll", seq)
   def rename(newName: String)(implicit writer: ValueWriter[String]) = op("$rename", newName)
@@ -59,9 +50,7 @@ trait Modifications[T] extends Path {
 object Update {
   def empty: Update = new Update(Map.empty)
 
-  def apply(t: (String, QueryLens)) = new Update(Map(t))
-
-  implicit def updateWriter(implicit scope: Path = Path.empty) = ValueWriter[Update](_.lens(scope).get)
+  def apply(t: (String, QueryMutation)) = new Update(Map(t))
 }
 
 /** Update builder
@@ -72,19 +61,19 @@ object Update {
   * collection.update(query, updateOp)
   * }}}
   * 
-  * You may get a [[com.osinka.subset.DBObjectLens]] explicitly with `lens` method
+  * You may get a [[com.osinka.subset.Mutation]] explicitly with `mutation` method
   */
-case class Update(ops: Map[String,QueryLens]) {
-  /** Returns a [[com.osinka.subset.DBObjectLens]] with update operations
-    */
-  def lens(implicit scope: Path = Path.empty): DBObjectLens =
-    ops map {t => writer(t._1, t._2(scope))} reduceLeft {_ ~ _}
+case class Update(ops: Map[String,QueryMutation]) extends Mutation {
+  override def apply(dbo: DBObject): DBObject = {
+    val mutation = ops map {t => writer(t._1, t._2(Path.empty))} reduceLeft {_ ~ _}
+    mutation(dbo)
+  }
 
   /** Compose with another `Update` object
     */
   def ~(other: Update) = {
-    def mergeMaps(ms: Map[String,QueryLens]*)(f: (QueryLens, QueryLens) => QueryLens) =
-      (Map[String,QueryLens]() /: ms.flatten) { (m, kv) =>
+    def mergeMaps(ms: Map[String,QueryMutation]*)(f: (QueryMutation, QueryMutation) => QueryMutation) =
+      (Map[String,QueryMutation]() /: ms.flatten) { (m, kv) =>
         m + (if (m contains kv._1) kv._1 -> f(m(kv._1), kv._2)
              else kv)
       }
@@ -100,5 +89,5 @@ case class Update(ops: Map[String,QueryLens]) {
 
   override def hashCode: Int = ops.hashCode
 
-  override def toString = "Update"+lens
+  override def prefixString = "Update"
 }

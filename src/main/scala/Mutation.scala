@@ -20,29 +20,29 @@ import com.mongodb.{DBObject,BasicDBObjectBuilder}
 /** The low level mechanism for modifying DBObjects.
   *
   * === Composition ===
-  * Basically the lens is a function taking one `DBObject` and returning another.
+  * Basically a mutation is a function taking one `DBObject` and returning another.
   *
-  * We can compose two `DBObjectLens` objects into a single `DBObjectLens` just like function composition.
+  * We can compose two `Mutation` objects into a single `Mutation` just like function composition.
   * You may use `andThen` (and you will get `(DBObject => DBObject)` as a result), or you may use method `~`
-  * (and you'll get `DBObjectLens`).
+  * (and you'll get `Mutation`).
   *
   * {{{
   * val dbo: DBObject =
-  * val lens1 = DBObjectLens.writer[Int]("x", 10)
-  * val lens2 = DBObjectLens.writer[String]("s", "str")
+  * val mutation1 = Mutation.writer[Int]("x", 10)
+  * val mutation2 = Mutation.writer[String]("s", "str")
   *
-  * val lens = lens1 ~ lens2
-  * lens(dbo) must (containKeyValue("x" -> 10) and containKeyValue("s" -> "str"))
+  * val mutation = mutation1 ~ mutation2
+  * mutation(dbo) must (containKeyValue("x" -> 10) and containKeyValue("s" -> "str"))
   * }}}
   *
   * === Producing new DBObject ===
-  * It's very typical to apply a `DBObjectLens` to an empty `DBObject`, thus using `DBObjectLens` as a
+  * It's very typical to apply a `Mutation` to an empty `DBObject`, thus using `Mutation` as a
   * `DBObject` generator. Method `get` does this explicitly, however ''subset'' provides an implicit
-  * conversion from `DBObjectLens` to `DBObject` as well.
+  * conversion from `Mutation` to `DBObject` as well.
   *
   * === Modifying an DBObject ===
   *
-  * Since `DBObjectLens` is a function `(DBObject => DBObject)`, you may apply it directly
+  * Since `Mutation` is a function `(DBObject => DBObject)`, you may apply it directly
   * to the DBObject in order to modify it. It also has a method `:~>` that does the same:
   * {{{
   * val resultingDBObject = field1(fValue) ~ anotherField(anotherValue) :~> existingDBObject
@@ -57,64 +57,65 @@ import com.mongodb.{DBObject,BasicDBObjectBuilder}
   * val resultingDBObject = field1(fValue)(existingDBObject)
   * }}}
   *
-  * === Using DBObjectLens in subset ===
-  * Most ''subset'' classes are subtypes of `DBObjectLens`, so that it becomes possible to
+  * === Using Mutation in subset ===
+  * Most ''subset'' classes are subtypes of `Mutation`, so that it becomes possible to
   * compose them and apply to already existing `DBObject` values.
   *
-  * A `DBObjectLens` is a convenient way to stack modifications together and then modify an existing `DBObject`, thus
+  * A `Mutation` is a convenient way to stack modifications together and then modify an existing `DBObject`, thus
   * providing interoperability with existing code.
   *
-  * ''Note'': Subset does not declare if a lens must return the same `DBObject` or another one.
+  * ''Note'': Subset does not declare if a mutation must return the same `DBObject` or another one.
   */
-trait DBObjectLens extends (DBObject => DBObject) {
-  /** Applies this lens to an empty `DBObject`
+trait Mutation extends (DBObject => DBObject) {
+  /** Applies this mutation to an empty `DBObject`
     * @return `DBObject`
     */
   def get: DBObject = apply(BasicDBObjectBuilder.start.get)
 
-  /** Compose two lenses.
-    * @return a composition of lenses
+  /** Compose two mutations.
+    * @return a composition of mutations
     */
-  def ~ (other: DBObjectLens): DBObjectLens = DBObjectLens(this andThen other)
+  def ~ (other: Mutation): Mutation = Mutation(this andThen other)
 
-  /** Apply this lens to the DBObject
+  /** Apply this mutation to the DBObject
     */
   def :~> (dbo: DBObject): DBObject = apply(dbo)
 
-  /** Apply this lens to the DBObject (right-associative version)
+  /** Apply this mutation to the DBObject (right-associative version)
    */
   def <~: (dbo: DBObject): DBObject = apply(dbo)
 
-  def prefixString = "DBObjectLens"
+  def prefixString = "Mutation"
 
   override def toString: String = prefixString+get
 
   override def equals(o: Any): Boolean =
-    PartialFunction.cond(o) { case other: DBObjectLens if prefixString == other.prefixString => get == other.get }
+    PartialFunction.cond(o) { case other: Mutation if prefixString == other.prefixString => get == other.get }
 
   override def hashCode: Int = get.hashCode
 }
 
-/** Provides a factory method to create lenses from `DBObject => DBObject` functions and a couple
+/** Provides a factory method to create mutations from `DBObject => DBObject` functions and a couple
   * convenience methods.
   */
-object DBObjectLens {
-  /** @return A lens that removes all the contents
+object Mutation {
+  /** @return A mutation that removes all the contents
     */
-  def empty: DBObjectLens = const(BasicDBObjectBuilder.start.get)
+  def empty: Mutation = const(BasicDBObjectBuilder.start.get)
 
-  /** @return A lens that replaces the contents with the `DBObject` specified
+  /** @return A mutation that replaces the contents with the `DBObject` specified
     */
-  def const(dbo: DBObject): DBObjectLens = apply {_: DBObject => dbo}
+  def const(dbo: DBObject): Mutation = apply {_: DBObject => dbo}
   
   // Factory object
-  def apply(f: DBObject => DBObject): DBObjectLens =
-    new DBObjectLens {
+  def apply(f: DBObject => DBObject): Mutation =
+    new Mutation {
       def apply(dbo: DBObject): DBObject = f(dbo)
     }
 
-  implicit def fToDBObjectLens(f: DBObject => DBObject): DBObjectLens = apply(f)
-  implicit def lensWriter: ValueWriter[DBObjectLens] = ValueWriter[DBObjectLens](_.get)
+  implicit def fToMutation(f: DBObject => DBObject): Mutation = apply(f)
+  implicit def mutationWriter: ValueWriter[Mutation] = ValueWriter[Mutation](_.get)
+  implicit def mutationToDBO(l: Mutation): DBObject = l.get
 
   /** Reads a value from `DBObject` by key.
     *
@@ -125,16 +126,28 @@ object DBObjectLens {
   def read[T](key: String, dbo: DBObject)(implicit reader: ValueReader[T]): Option[T] =
     Option(dbo.get(key)) flatMap {reader.unpack(_)}
 
-  /** Creates a lens that writes a typed key-value.
+  /** Creates a mutation that writes a typed key-value.
     * 
     * Makes use of [[com.osinka.subset.ValueWriter]] implicit.
     *
-    * @return a lens writing the key-value specified
+    * @return a mutation writing the key-value specified
     * @see [[com.osinka.subset.ValueWriter]]
     */
-  def writer[T](key: String, x: T)(implicit w: ValueWriter[T]): DBObjectLens =
+  def writer[T](key: String, x: T)(implicit w: ValueWriter[T]): Mutation =
     (dbo: DBObject) => {
         w.pack(x) foreach {dbo.put(key, _)}
+        dbo
+      }
+
+  def modifier[T,R](key: String, f: T => R)(implicit r: ValueReader[T], w: ValueWriter[R]): Mutation =
+    (dbo: DBObject) =>
+      read[T](key, dbo) map {t => writer[R](key, f(t)) :~> dbo} getOrElse dbo
+
+  /** A mutation that removes a key
+    */
+  def remover(key: String): Mutation =
+    (dbo: DBObject) => {
+        dbo.removeField(key)
         dbo
       }
 }

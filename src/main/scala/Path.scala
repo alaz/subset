@@ -17,51 +17,26 @@ package com.osinka.subset
 
 /** MongoDB field/subdocument path
   *
-  * == A path ==
-  * MongoDB field/subdocument paths are separated by dot.
-  * 
-  * It is possible to say a path is relative to the enclosing path if they share the same prefix.
-  * `relativeTo` method returns a suffix:
-  * {{{ 
-  * Path("sub" :: "f" :: Nil).relativeTo(Path("sub" :: Nil)) must equal(Path("f" :: Nil))
-  * }}}
-  * 
-  * Paths can include a positional segment (dollar sign). `positionIn` method builds a ''positional'' path:
-  * {{{
-  * Path("sub" :: "f" :: Nil).positionIn(Path("sub" :: Nil)) must equal(Path("sub" :: "$" :: "f" :: Nil))
-  * }}}
-  *
   * @see [[http://www.mongodb.org/display/DOCS/Dot+Notation+%28Reaching+into+Objects%29 MongoDB dot notation]] and
   * [[http://www.mongodb.org/display/DOCS/Dot+Notation+%28Reaching+into+Objects%29 Dot Notation (Reaching into Objects)]]
   */
 trait Path {
   def path: List[String]
 
+  def name: String = path.last
+
   /** Path in dot notation
     * @see [[http://www.mongodb.org/display/DOCS/Dot+Notation+%28Reaching+into+Objects%29 MongoDB dot notation]]
     */
-  def longName = path mkString "."
+  def longName: String = path mkString "."
 
-  /** Return the common suffix
-    * @param scope the sub-document this path resides in
-    */
-  def relativeTo(scope: Path) =
-    if (path startsWith scope.path) Path(path.drop(scope.path.size))
-    else this
+  def +(p: Path): Path = Path(path ::: p.path)
 
-  /** Returns the positional segment
-    * @param scope the subdocument this path resides in
-    * @param delimiter is a name to embed between the scope and the field segments. Defaults to `$`
-    */
-  def positionIn(scope: Path, delimiter: String = "$") =
-    if (scope.path.isEmpty) this
-    else if (path startsWith scope.path) Path(scope.path ::: delimiter :: path.drop(scope.path.size))
-    else this
-
-  override def toString: String = "Path "+longName
+  def prefixString: String = "Path"
+  override def toString: String = prefixString+" "+longName
 
   override def equals(o: Any): Boolean =
-    PartialFunction.cond(o) { case other: Path => path == other.path }
+    PartialFunction.cond(o) { case other: Path if prefixString == other.prefixString => path == other.path }
 
   override def hashCode: Int = path.hashCode
 }

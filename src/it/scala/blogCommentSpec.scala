@@ -62,14 +62,8 @@ class blogCommentSpec extends FeatureSpec with GivenWhenThen with MustMatchers w
 
   object BlogPost {
     val title = "title".fieldOf[String]
-    val comments = "comments".fieldOf[List[Comment]]
+    val comments = "comments".subset(Comment).of[List[Comment]]
 
-    object Comments extends Subset[Comment]("comments") {
-      val by = Comment.by.attach
-      val votes = Comment.votes.attach
-      val text = Comment.votes.attach
-    }
-    
     def read(dbo: DBObject) =
       PartialFunction.condOpt(dbo) {
         case title(t) ~ comments(clist) => new BlogPost(t, clist)
@@ -169,32 +163,14 @@ class blogCommentSpec extends FeatureSpec with GivenWhenThen with MustMatchers w
       collection.count must equal(2)
 
       when("the specific comment vote count has been incremented")
-      successful { collection.update(BlogPost.Comments.by === "joe", BlogPost.Comments.votes.first.in(BlogPost.Comments) inc 1) }
+      successful { collection.update(BlogPost.comments.where{_.by === "joe"}, BlogPost.comments.matched.modify {_.votes inc 1}) }
 
       then("the record contains the new updated comment")
       val record = Option( collection.findOne(BlogPost.title === "title" : DBObject) )
       record must be ('defined)
-      val recordComments = DBObjectLens.read[List[Comment]]("comments", record.get)
+      val recordComments = Mutation.read[List[Comment]]("comments", record.get)
       recordComments must be('defined)
       recordComments.get must contain(Comment("joe", 1, "joe's comment"))
-
-      and("the other record is intact")
-      secondRecordIntact( Option( collection.findOne(BlogPost.title === "empty" : DBObject) ) flatMap { BlogPost.read _ } )
-    }
-
-    scenario("using Subset support") {
-      given("the blog posts are stored and has comments")
-      collection.count must equal(2)
-
-      when("the specific comment vote count has been incremented")
-      successful { collection.update(BlogPost.Comments.by === "joe", BlogPost.Comments.updateMatch {_.votes inc 1}) }
-
-      then("the record contains the new updated comment")
-      val record = Option( collection.findOne(BlogPost.title === "title" : DBObject) )
-      record must be ('defined)
-      val recordComments = DBObjectLens.read[List[Comment]]("comments", record.get)
-      recordComments must be('defined)
-      recordComments.get must contain(Comment("joe", 2, "joe's comment"))
 
       and("the other record is intact")
       secondRecordIntact( Option( collection.findOne(BlogPost.title === "empty" : DBObject) ) flatMap { BlogPost.read _ } )
@@ -209,7 +185,8 @@ class blogCommentSpec extends FeatureSpec with GivenWhenThen with MustMatchers w
       then("we may pull a specific comment")
       successful {
         collection.update(BlogPost.title === "empty",
-          BlogPost.comments.pull(Comment.by === "user2" && Comment.votes === 0))
+          BlogPost.comments.pullWhere {comment =>
+            comment.by === "user2" && comment.votes === 0})
       }
 
       and("the object contains only one comment")
@@ -225,8 +202,7 @@ class blogCommentSpec extends FeatureSpec with GivenWhenThen with MustMatchers w
 
       then("we may pull a specific comment")
       successful {
-        collection.update(BlogPost.title === "empty",
-          BlogPost.comments.pull(Comment("user1", 0, "u1 comment")))
+        collection.update(BlogPost.title === "empty", BlogPost.comments.pull(Comment("user1", 0, "u1 comment")))
       }
 
       and("the object contains no comments")
@@ -242,12 +218,12 @@ class blogCommentSpec extends FeatureSpec with GivenWhenThen with MustMatchers w
       collection.count must equal(2)
 
       then("it's possible to find a blog post by a specific comment's fields")
-      val query = BlogPost.Comments.elemMatch {comment => comment.by === "joe" && comment.votes === 2}
+      val query = BlogPost.comments.elemMatch {comment => comment.by === "joe" && comment.votes === 1}
       val record = Option( collection.findOne(query  : DBObject) ) flatMap { BlogPost.read _ }
       record must be('defined)
 
       and("it has correct comment")
-      record.get.comments must contain(Comment("joe",2,"joe's comment"))
+      record.get.comments must contain(Comment("joe",1,"joe's comment"))
     }
   }
 

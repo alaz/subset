@@ -27,29 +27,43 @@ import BasicDBObjectBuilder.start
 class fieldSpec extends Spec with MustMatchers with MongoMatchers with Routines {
   import SmartValues._
 
+  describe("Field mutations") {
+    it("write explicitly") {
+      val f = Field[Int]("i")
+      (f(10) : DBObject) must containKeyValue("i" -> 10)
+    }
+    it("write implicitly") {
+      val f = Field[Int]("i")
+      val dbo: DBObject = f -> 10
+      dbo must containKeyValue("i" -> 10)
+    }
+    it("chains writers 1") {
+      val f1 = "i".fieldOf[Int]
+      val f2 = "s".fieldOf[String]
+      ( (f1 -> 12) ~ (f2 -> "string") : DBObject) must (containKeyValue("i" -> 12) and containKeyValue("s" -> "string"))
+    }
+    it("chains writers 2") {
+      val obj = ("i".fieldOf[Int] -> 12) ~ ("s".fieldOf[String] -> "string")
+      (obj : DBObject) must (containKeyValue("i" -> 12) and containKeyValue("s" -> "string"))
+    }
+    it("remove") {
+      val f = "i".fieldOf[Int]
+      ( -f :~> start("i", 10).get) must equal(start.get)
+      ( f.removed :~> start("i", 10).get) must equal(start.get)
+      ( -f :~> start("i", 10).append("s", "str").get) must equal(start("s", "str").get)
+    }
+    it("update") {
+      val f = "i".fieldOf[Int]
+      (f.updated{i => (i+1).toString} :~> start("i", 5).get) must equal(start("i", "6").get)
+      (f.updated{i => (i+1).toString} :~> start("i", "str").get) must equal(start("i", "str").get)
+      (f.updated{i => (i+1).toString} :~> start("s", "str").get) must equal(start("s", "str").get)
+    }
+  }
   describe("Field") {
     it("has proper basic Java methods") {
       Field[Int]("i") must equal(Field[String]("i"))
       Field[Int]("i").hashCode must equal(Field[String]("i").hashCode)
       Field[Int]("i").toString must startWith("Field")
-    }
-    it("serializes explicitly") {
-      val f = Field[Int]("i")
-      (f(10) : DBObject) must containKeyValue("i" -> 10)
-    }
-    it("serializes implicitly") {
-      val f = Field[Int]("i")
-      val dbo: DBObject = f -> 10
-      dbo must containKeyValue("i" -> 10)
-    }
-    it("chains serializers 1") {
-      val f1 = "i".fieldOf[Int]
-      val f2 = "s".fieldOf[String]
-      ( (f1 -> 12) ~ (f2 -> "string") : DBObject) must (containKeyValue("i" -> 12) and containKeyValue("s" -> "string"))
-    }
-    it("chains serializers 2") {
-      val obj = ("i".fieldOf[Int] -> 12) ~ ("s".fieldOf[String] -> "string")
-      (obj : DBObject) must (containKeyValue("i" -> 12) and containKeyValue("s" -> "string"))
     }
     it("has extractor") {
       val F1 = "i".fieldOf[Int]
@@ -79,30 +93,18 @@ class fieldSpec extends Spec with MustMatchers with MongoMatchers with Routines 
           fail("must extract field value")
       }
     }
-    it("may be attached to Subset") {
-      val f_ext = "f".fieldOf[Int]
-      object Doc extends Subset[DBObject]("doc") {
-        val f = "f".fieldOf[Int]
-        val f1 = f_ext.attach
-      }
-      "f".fieldOf[Int].attach(Doc) must equal(Doc.f)
-      Doc.f1 must equal(Doc.f)
+    it("has positional operator") {
+      val f = "f".fieldOf[Int]
+      f.matched.longName must equal("f.$")
     }
-    it("may be detached from a Subset") {
-      object Doc extends Subset[DBObject]("doc") {
-        val f = "f".fieldOf[Int]
-      }
-      Doc.f.detach must equal("f".fieldOf[Int])
+    it("has index operator") {
+      val f = "f".fieldOf[Int]
+      f.at(1).longName must equal("f.1")
     }
-    it("provides a positional operator") {
-      object Doc extends Subset[DBObject]("doc") {
-        val f = "f".fieldOf[Int]
-      }
-      Doc.f.first.longName must equal("doc.f.$")
-      Doc.f.first.in(Doc).longName must equal("doc.$.f")
-
-      Doc.f.at(1) must equal( Field[Int]("1")(Path("doc" :: "f" :: Nil)) )
-      Doc.f.at(1).in(Doc).longName must equal("doc.1.f")
+    it("provides alias") {
+      val f = "f".fieldOf[Int]
+      val subset = "subset".subset(None).of[List[Int]]
+      f.in(subset).longName must equal("subset.f")
     }
   }
 }

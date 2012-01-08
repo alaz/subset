@@ -16,16 +16,15 @@
 package com.osinka.subset
 
 /** == Update Operations ==
-  * Basically, it is possible to create update operators and compose them. See
+  * Update operators and their composition. See
   * [[com.osinka.subset.update.Update]] and [[com.osinka.subset.update.Modifications]]
   * 
   * == Subset ==
-  * [[com.osinka.subset.Subset]]'s `updateMatch` method allows to create an "positional" update
-  * operation relative to some enclosing sub-document. The example demonstrates
-  * this:
+  * [[com.osinka.subset.Subset]]'s `updateMatch` method lets create a "positional" update
+  * modifier relative to the enclosing sub-document.
   * 
   * {{{
-  * collection.update(BlogPost.Comments.by === "joe", BlogPost.Comments.updateMatch {_.votes inc 1})
+  * collection.update(BlogPost.comments.where{_.by === "joe"}, BlogPost.comments.updateMatch {_.votes inc 1})
   * }}}
   * 
   * This is equivalent to MongoDB shell

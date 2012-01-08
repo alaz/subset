@@ -18,22 +18,49 @@ package com.osinka.subset
 import com.mongodb.DBObject
 import query._
 import update._
-import DBObjectLens._
+import Mutation._
+import QueryMutation._
 
 /** A typed field
-  * 
-  * == Serialization ==
-  * The first of all, a field provides serialization/deserialization capabilities.
   *
-  * It's always possible to apply a field to its type and get a [[com.osinka.subset.DBObjectLens]]
-  * as a result
+  * == Mutations ==
+  * `Field` is a source for a number of mutations (see [[com.osinka.subset.Mutation]])
+  *
+  * It's always possible to apply a field to its type and get a
+  * [[com.osinka.subset.Mutation]] as a result
   * {{{
-  * val f = Field[Int]("a")
-  * val lens = f(10)
+  * val f = "f".fieldOf[Int]
+  * val mutation = f(10)
+  *
+  * val newDbo: DBObject = mutation.get
+  * val modifiedDbo: DBObject = mutation :~> dbo
   * }}}
   *
-  * Any field is an extractor as well. It accepts `DBObject` and returns `Option[T]`, so that it's possible
-  * to write
+  * here, in the example, `newDbo` will be `{f: 10}` (because `get` applies a mutation to an empty
+  * `DBObject`), but `modifiedDbo` may have a lot of fields, though `mutation` makes sure the only
+  * one, `f`, gets set to `10`. By the way, `f(10)` is an alias for `f.added(10)`
+  *
+  * There is a mutation that removes a key
+  * {{{
+  * val mutation = -f
+  * val newDbo = mutation :~> exisingDbo
+  * }}}
+  * if ever `existingDbo` had a key `f`, `newDbo` will not have it. `-f` is an alias for `f.removed`
+  *
+  * "Modifier" mutation mutates an existing key value. The result may be of another type,
+  * so this operation depends both on [[com.osinka.subset.ValueReader]] and
+  * [[com.osinka.subset.ValueWriter]] type classes:
+  * {{{
+  * val mutation = f.updated {i => (i+1).toString}
+  * val newDbo = mutation :~> existingDbo
+  * }}}
+  *
+  * Thus, if `existingDbo` contains a key `f` which can be read as an `Int`, it get
+  * transformed and written back under the same key.
+  *
+  * == Extractor ==
+  * Any field is an extractor as well. It accepts `DBObject` and returns
+  * `Option[T]`, so that one may write
   * {{{
   * dbo match {
   *   case Field(value) => ...
@@ -41,13 +68,14 @@ import DBObjectLens._
   * }}}
   *
   * == Tuples ==
-  * It is possible to build Tuple serializers from several fields.
+  * '''Subset''' provides a kind of Tuple serializers for reading and
+  * writing `TupleN` to/from `DBObject`
   *
-  * As soon as you join two fields with a `~` method, you build a [[com.osinka.subset.Tuple2Subset]] ,
-  * suitable for serializing tuples:
+  * As soon as you join two fields with a `~` method, you build a
+  * [[com.osinka.subset.Tuple2Subset]], suitable for serializing tuples:
   * {{{
   * val T2 = "int".fieldOf[Int] ~ "str".fieldOf[String]
-  * val lens = t( 10 -> "str" )
+  * val mutation = t( 10 -> "str" )
   *
   * dbo match {
   *   case T2(i, s) => ...
@@ -57,6 +85,7 @@ import DBObjectLens._
   * You may create tuples of higher arity:
   * {{{
   * val T3 = T2 ~ "bool".fieldOf[Boolean]
+  * val dbo: DBObject = T3( (10, "str", false) )
   * }}}
   * 
   * == Querying ==
@@ -73,67 +102,66 @@ import DBObjectLens._
   * === Modifying Types ===
   * There is a number of typical field types that can be of help.
   *
-  * `Int` field (created by `int` method) is usually used in MongoDB to declare sorting and indexes.
+  * `Int` field (created by `int` method) is usually used in MongoDB to declare
+  * sorting and indexes:
   * {{{
   * val userName = "uname".fieldOf[String]
   * collection.ensureIndex(userName.int === 1, userName.int === -1)
   * }}}
   *
-  * `Any` field (created by `any` method) may be helpful to write or read a field "as is". If you absolutely certain in what
-  * you are doing,
+  * `Any` field (created by `any` method) may be helpful to write or read a
+  * field "as is". If you absolutely certain in what you are doing,
   * {{{
   * val userName = "uname".fieldOf[String]
-  * collection.update(userName === "john", userName.any.set(10566))
+  * collection.modify(userName === "john", userName.any.set(10566))
   * }}}
   *
   * === Modifying name & scope ===
   * It is possible to create a "positional" field, that may be used
-  * to update the first matched element in an array (in [[com.osinka.subset.update.Update]] operations),
-  * see [[http://www.mongodb.org/display/DOCS/Updating#Updating-The%24positionaloperator The $ positional operator]] for
-  * details.
-  * {{{
-  * collection.update( Comments.By === "joe", Comments.Votes.first.in(Comments).inc(1) )
-  * }}}
+  * to update the first matched element in an array (in [[com.osinka.subset.update.Update]]
+  * operations), see
+  * [[http://www.mongodb.org/display/DOCS/Updating#Updating-The%24positionaloperator The $ positional operator]]
+  * for details.
   *
-  * Analogously, in the case a query or update modifier need to be created for an element of array,
+  * E.g. assuming `seq` is a field of `Seq[Int]`
   * {{{
-  * collection.find( Comments.Votes.at(0).in(Comments) === "joe" )
+  * collection.modify(seq > 3, seq.first inc -1)
   * }}}
+  * creates update modifier `{\$inc: {"seq.\$": -1}}`.
+  *
+  * A field representing an array element at index `i` is created with `field.at(i)`
+  * {{{
+  * collection.modify(Query.empty, seq.at(2) set 5)
+  * }}}
+  * creates update modifier `{\$set: {"seq.2": 5}}`.
   *
   * === Subset ===
-  * When you create a field, it gets attached to the enclosing scope (determined via an implicit). Though you certainly
-  * may explicitly create a field in the scope you'd like, there are a couple of helper methods to clone the fields
-  * you like to the outer (collection) scope or any subdocument:
+  * Sometimes a subset's field can be used so frequently, that it makes sense to
+  * create a field alias. The idea is to avoid repetiting code like
   * {{{
-  * val userName = "uname".fieldOf[String]
-  *
-  * object PostCreateEventOwner extends Subset[DBObject]("postAuthor") {
-  *   val author = userName.attach
-  * }
-  *
-  * val author = PostCreateEventOwner.author.detach
+  * val query = subset.where{_.field === 10}
   * }}}
-  * 
-  * See the longer example in [[com.osinka.subset.Subset]].
   *
-  * @see [[com.osinka.subset.DBObjectLens]], [[com.osinka.subset.ValueReader]], [[com.osinka.subset.ValueWriter]], [[com.osinka.subset.Subset]]
+  * and instead write
+  * {{{
+  * val alias = field.in(subset)
+  * val query = alias === 10
+  * }}}
+  *
+  * @tparam T is a type of the field.
+  * @see [[com.osinka.subset.Mutation]], [[com.osinka.subset.ValueReader]],
+  *      [[com.osinka.subset.ValueWriter]], [[com.osinka.subset.Subset]]
   */
-class Field[T](val name: String)(implicit outer: Path = Path.empty) extends Path with FieldConditions[T] with Modifications[T] {
+class Field[T](override val path: List[String]) extends Path with FieldConditions[T] with Modifications[T] {
   field =>
 
-  override val path: List[String] = outer.path :+ name
-
-  /** Create a new field attached to the scope
-   */
-  def attach(implicit scope: Path): Field[T] = new Field[T](name)(scope)
-
-  /** Create a new field detached from the scope
-   */
-  def detach: Field[T] = new Field[T](name)(Path.empty)
-
+  //
+  // Cloning Fields
+  //
+  
   /** Create a new field, that has the same name and scope, but with another type.
    */
-  def as[A]: Field[A] = new Field[A](name)(outer)
+  def as[A]: Field[A] = new Field[A](path)
 
   /** Create a new field, that has the same name and scope, but `Int` type
    * 
@@ -147,27 +175,13 @@ class Field[T](val name: String)(implicit outer: Path = Path.empty) extends Path
    */
   def any: Field[Any] = as[Any]
 
-  class PositionalField private[Field] (override val name: String) extends Field[T](name)(this) {
-    /** Move the position to another scope.
-     *
-     * Creates a positional field relative to the scope specified
-     *
-     * @see [[http://www.mongodb.org/display/DOCS/Updating#Updating-The%24positionaloperator The $ positional operator]],
-     *      [[http://www.mongodb.org/display/DOCS/Dot+Notation+(Reaching+into+Objects)#DotNotation%28ReachingintoObjects%29-ArrayElementbyPosition Array element by position]]
-     */
-    def in(scope: Path): Field[T] = {
-      val p = field.positionIn(scope, name)
-      new Field[T](p.path.last)(Path(p.path dropRight 1))
-    }
-  }
-
   /** Create a field representing array element
     *
     * @param index an index of array element
     *
     * @see [[http://www.mongodb.org/display/DOCS/Dot+Notation+(Reaching+into+Objects)#DotNotation%28ReachingintoObjects%29-ArrayElementbyPosition Array element by position]]
     */
-  def at(index: Int) = new PositionalField(index.toString)
+  def at(index: Int) = new Field[T](path :+ index.toString)
 
   /** Create a new positional field with the same type. The last element is "$"
    *
@@ -175,22 +189,74 @@ class Field[T](val name: String)(implicit outer: Path = Path.empty) extends Path
    * 
    * @see [[http://www.mongodb.org/display/DOCS/Updating#Updating-The%24positionaloperator The $ positional operator]]
    */
-  def first = new PositionalField("$")
+  def matched = new Field[T](path :+ "$")
 
+  /** Create an alias
+    */
+  def in(subset: Field[_]): Field[T] = new Field[T]( (subset + this).path )
+
+  /**Create a tuple subset
+   */
   def ~[T2](f2: Field[T2]) = new Tuple2Subset[T,T2](this.name, f2.name)
 
-  def apply(x: T)(implicit setter: ValueWriter[T]): DBObjectLens = writer(name, x)
+  //
+  // Queries / Update modifiers
+  //
+  
+  /** Create a query relative to this field
+    */
+  def where(q: Query): Query = Query( wrap(this, q.queryMutation) )
+
+  /** Creates a query as an \$elemMatch relative to this document
+    *
+    * @see [[http://www.mongodb.org/display/DOCS/Advanced+Queries#AdvancedQueries-%24elemMatch Advanced Queries - elemMatch]]
+    */
+  def elemMatch(q: Query): Query = Query( write(this, writer("$elemMatch", q.get)) )
+
+  /** Creates an update operator positioned relative to this document
+    *
+    * @see [[http://www.mongodb.org/display/DOCS/Updating#Updating-The%24positionaloperator Updating - The positional operator]]
+    */
+  def modify(u: Update): Update = u.copy(ops = u.ops mapValues {wrap(this, _)})
+
+  /** `\$pull` based on a condition
+    */
+  def pullWhere(q: Query)(implicit ev: T <:< Traversable[_]): Update = op("$pull", q.get)
+
+  //
+  // Mutations
+  //
+
+  /** (an alias for `added`)
+    */
+  def apply(x: T)(implicit setter: ValueWriter[T]): Mutation = added(x)
+
+  /** Writer mutation
+    */
+  def added(x: T)(implicit setter: ValueWriter[T]): Mutation = writer(name, x)
+
+  /** (an alias for `drop`)
+    */
+  def unary_- : Mutation = removed
+
+  /** Removing mutation
+   */
+  def removed: Mutation = Mutation.remover(name)
+
+  /** Mutation modifying a value
+    */
+  def updated[R](f: T => R)(implicit r: ValueReader[T], w: ValueWriter[R]): Mutation = Mutation.modifier(name, f)
 
   def unapply(dbo: DBObject)(implicit getter: ValueReader[T]): Option[T] = read[T](name, dbo)
 
   override def equals(o: Any): Boolean =
     PartialFunction.cond(o) { case other: Field[_] => super.equals(other) }
 
-  override def toString: String = "Field "+longName
+  override def prefixString: String = "Field"
 }
 
 object Field {
   /** Field factory method
     */
-  def apply[T](name: String)(implicit outer: Path = Path.empty): Field[T] = new Field[T](name)
+  def apply[T](name: String): Field[T] = new Field[T](name :: Nil)
 }

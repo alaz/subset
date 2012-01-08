@@ -15,7 +15,7 @@ name := "subset"
 
 startYear := Some(2011)
 
-version := "0.4.0-SNAPSHOT"
+version := "0.6.0-SNAPSHOT"
 
 scalaVersion := "2.9.1"
 

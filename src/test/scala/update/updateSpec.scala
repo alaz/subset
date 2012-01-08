@@ -31,7 +31,7 @@ class updateSpec extends Spec with MustMatchers with MongoMatchers with Routines
   describe("Field") {
     it("provides a positional field for update") {
       val i = "i".fieldOf[Int]
-      (i.first.set(3) : DBObject) must equal(dbo.push("$set").append("i.$", 3).get)
+      (i.matched.set(3) : DBObject) must equal(dbo.push("$set").append("i.$", 3).get)
     }
   }
   describe("Modification operators") {
@@ -41,7 +41,7 @@ class updateSpec extends Spec with MustMatchers with MongoMatchers with Routines
       val u = i.set(10)
       u.toString must startWith("Update")
 
-      val dbo = DBObjectLens.read[DBObject]("$set", u : DBObject)
+      val dbo = Mutation.read[DBObject]("$set", u : DBObject)
       dbo must be('defined)
       dbo.get must containKeyValue("i" -> 10)
     }
@@ -49,13 +49,13 @@ class updateSpec extends Spec with MustMatchers with MongoMatchers with Routines
       val iaf = "arr".fieldOf[List[Int]]
       val u = iaf.addToSet(1 :: 2 :: Nil)
 
-      val addToSet = DBObjectLens.read[DBObject]("$addToSet", u: DBObject)
+      val addToSet = Mutation.read[DBObject]("$addToSet", u: DBObject)
       addToSet must be('defined)
 
-      val v = DBObjectLens.read[DBObject]("arr", addToSet.get)
+      val v = Mutation.read[DBObject]("arr", addToSet.get)
       v must be ('defined)
 
-      val arr = DBObjectLens.read[Array[Int]]("$each", v.get)
+      val arr = Mutation.read[Array[Int]]("$each", v.get)
       arr must be('defined)
       arr.get must equal(Array(1,2))
     }
@@ -63,30 +63,52 @@ class updateSpec extends Spec with MustMatchers with MongoMatchers with Routines
       val u = i.set(10) ~ j.set(3)
       u.toString must startWith("Update")
 
-      val dbo = DBObjectLens.read[DBObject]("$set", u : DBObject)
+      val dbo = Mutation.read[DBObject]("$set", u : DBObject)
       dbo must be('defined)
       dbo.get must (containKeyValue("i" -> 10) and containKeyValue("j" -> 3))
     }
   }
   describe("Subset modification") {
-    val doc = "doc".fieldOf[List[Any]]
+    val f = Field[Int]("f")
+    val sub = "sub".fieldOf[List[Int]]
+    val doc = "doc".fieldOf[List[Int]]
 
-    object Doc extends Subset[Any]("doc") {
-      val f = "f".fieldOf[Int]
-      val sub = "sub".fieldOf[List[Any]]
-
-      object Sub extends Subset[Any]("sub") {
-        val f = Field[Int]("f")
-      }
+    it("builds update modifiers") {
+      doc.modify{f.set(3)}.get must equal(
+        dbo.push("$set").append("doc.f", 3).get
+      )
+      doc.modify{sub.modify{f.set(3)}}.get must equal(
+        dbo.push("$set").append("doc.sub.f", 3).get
+      )
     }
-
-    it("supports positional $ operator") {
-      Doc.updateMatch(doc => doc.f.set(3)).get must equal(dbo.push("$set").append("doc.$.f", 3).get)
-      Doc.Sub.updateMatch(doc => doc.f.set(3)).get must equal(dbo.push("$set").append("doc.sub.$.f", 3).get)
+    it("stacks modifications under its operator") {
+      doc.modify{sub.modify{f.inc(2)} ~ f.inc(1)}.get must equal(
+        dbo.push("$inc").append("doc.sub.f", 2).append("doc.f", 1).get
+      )
     }
-    it("knows that $pull supports relative path in query") {
-      val updOp: DBObject = doc.pull(Doc.f > 1)
-      updOp must equal(dbo.push("$pull").push("doc").push("f").append("$gt", 1).get)
+    it("may create positional update") {
+      doc.matched.modify{f set 3}.get must equal(
+        dbo.push("$set").append("doc.$.f", 3).get
+      )
+      doc.modify{sub.matched.modify{f set 3}}.get must equal(
+        dbo.push("$set").append("doc.sub.$.f", 3).get
+      )
+    }
+    it("updates the first element") {
+      doc.modify{f.matched set 3}.get must equal(
+        dbo.push("$set").append("doc.f.$", 3).get
+      )
+    }
+    it("supports query in $pull") {
+      doc.pullWhere{f > 1}.get must equal(
+        dbo.push("$pull").push("doc").push("f").append("$gt", 1).get
+      )
+      doc.modify{sub.pullWhere{f > 1}}.get must equal(
+        dbo.push("$pull").push("doc.sub").push("f").append("$gt", 1).get
+      )
+      doc.pullWhere{sub.where{f > 1}}.get must equal(
+        dbo.push("$pull").push("doc").push("sub.f").append("$gt", 1).get
+      )
     }
   }
 }

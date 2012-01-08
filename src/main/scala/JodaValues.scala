@@ -14,13 +14,23 @@
  * limitations under the License.
  */
 package com.osinka.subset
-package values
 
+import java.util.Date
+import org.joda.time.DateTime
 
-/** StrictValues is a library of implicit ValueReaders and ValueWriters
-  * for common Java / Scala types.
+/** [[com.osinka.subset.ValueReader]] and [[com.osinka.subset.ValueWriter]] for Joda Time 
   *
-  * Usually you don't need to work with ValueReader / ValueWriter from
-  * your code, they get called under the hood.
+  * '''Note''': Do not forget to include Joda Time jar into your project, since
+  * '''Subset''' declares an ''optional'' dependency on joda-time.
   */
-object StrictValues extends BaseSerialization with ScalaTypesSerialization
+object JodaValues {
+  implicit val jodaDateTimeReader = ValueReader[DateTime]({
+      case d: Date => new DateTime(d)
+      case l: Long => new DateTime(l)
+      case i: Int => new DateTime(i*1000L)
+    })
+
+  implicit val jodaDateTimeWriter = ValueWriter[DateTime](_.toDate)
+
+  // TODO: Duration and/or Period reader and writer
+}

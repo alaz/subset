@@ -24,8 +24,8 @@ import org.scalatest.junit.JUnitRunner
 import com.mongodb.BasicDBObjectBuilder.start
 
 @RunWith(classOf[JUnitRunner])
-class queryLensSpec extends Spec with MustMatchers with MongoMatchers with Routines {
-  describe("QueryLens") {
+class queryMutationSpec extends Spec with MustMatchers with MongoMatchers with Routines {
+  describe("QueryMutation") {
     it("has conjunction") { pending }
     it("writes relative keys") { pending }
   }
