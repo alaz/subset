@@ -24,14 +24,14 @@ import QueryMutation._
 /** All the update operators MongoDB allows to create.
   *
   * This trait mixes into [[com.osinka.subset.Field]]
-  * 
+  *
   * @see [[https://github.com/osinka/subset/blob/master/src/it/scala/blogCommentSpec.scala Blog Comment Example]]
   */
 trait Modifications[T] extends Path {
   protected def op[B](op: String, x: B)(implicit writer: ValueWriter[B]) =
     Update(op -> write(this, x))
 
-  def set(x: T)(implicit writer: ValueWriter[T]) = op("$set", x)
+  def set[A <% T : ValueWriter](x: A) = op("$set", x)
   def inc(x: T)(implicit writer: ValueWriter[T]) = op("$inc", x)
   def unset(x: T)(implicit writer: ValueWriter[Int]) = op("$unset", 1)
   def push[A](x: A)(implicit writer: ValueWriter[A], ev: T <:< Traversable[A]) = op("$push", x)
@@ -60,7 +60,7 @@ object Update {
   * val updateOp = f.set("value") ~ count.inc(1)
   * collection.update(query, updateOp)
   * }}}
-  * 
+  *
   * You may get a [[com.osinka.subset.Mutation]] explicitly with `mutation` method
   */
 case class Update(ops: Map[String,QueryMutation]) extends Mutation {
@@ -77,7 +77,7 @@ case class Update(ops: Map[String,QueryMutation]) extends Mutation {
         m + (if (m contains kv._1) kv._1 -> f(m(kv._1), kv._2)
              else kv)
       }
-    
+
     copy(ops = mergeMaps(ops, other.ops) { _ ~ _ })
   }
 

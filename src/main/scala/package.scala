@@ -23,7 +23,7 @@ import com.mongodb.DBObject
   * {{{
   * import com.osinka.subset._
   * }}}
-  * 
+  *
   * == Value conversions ==
   * '''Subset''' provides
   * a couple of type classes, `ValueReader[T]` and `ValueWriter[T]` to define
@@ -50,14 +50,14 @@ import com.mongodb.DBObject
   *
   * == Field ==
   * It is possible to pimp a string into a [[com.osinka.subset.Field]] with `"fieldName".fieldOf[T]`.
-  * 
+  *
   * Tuples made of `Field[T]` and an object of the same `T` can be implicitly converted into
   * `DBObject` or [[com.osinka.subset.Mutation]] if `T` has a [[com.osinka.subset.ValueWriter]].
   * {{{
   * val dbo: DBObject = "i".fieldOf[Int] -> 10
   * val mutation: Mutation = ("i".fieldOf[Int] -> 10) ~ ("s".fieldOf[String] -> "str")
   * }}}
-  * 
+  *
   * It's possible to use a string instead of field as well (but only to create a
   * `Mutation`):
   * {{{
@@ -71,7 +71,7 @@ import com.mongodb.DBObject
   * }}}
   *
   * where `Obj` is a container of fields and `T` is a subset's type
-  * 
+  *
   * == What's next? ==
   *  - Start from [[com.osinka.subset.Field]].
   *  - [[com.osinka.subset.Subset]] will give you a hint on how to work with subdocuments.
@@ -87,14 +87,7 @@ package object subset {
   import query._
 
   // String to Field
-  implicit def stringToField(name: String) =
-    new {
-      def fieldOf[T]: Field[T] = Field[T](name)
-      def subset[Self](self: Self) =
-        new {
-          def of[T] = Subset[T,Self](name, self)
-        }
-    }
+  implicit def stringToField(name: String) = new FieldBlank(name)
 
   // String Tuple
   implicit def stringTupleSerializer[T : ValueWriter](t: (String, T)): Mutation = Mutation.writer(t._1, t._2)
@@ -120,12 +113,12 @@ package object subset {
     * {{{
     * val FieldI = "i".fieldOf[Int]
     * val FieldS = "s".fieldOf[String]
-    * 
+    *
     * dbo match {
-    *   case FieldI(i) ~ FieldS(s) => 
+    *   case FieldI(i) ~ FieldS(s) =>
     * }
     * }}}
-    * 
+    *
     * Based on the idea from [[http://stackoverflow.com/questions/2261358/pattern-matching-with-conjunctions-patterna-and-patternb Pattern Matching with Conjunctions (PatternA AND PatternB)]]
     */
   object ~ {

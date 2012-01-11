@@ -87,7 +87,7 @@ import QueryMutation._
   * val T3 = T2 ~ "bool".fieldOf[Boolean]
   * val dbo: DBObject = T3( (10, "str", false) )
   * }}}
-  * 
+  *
   * == Querying ==
   * A field is where query terms get created.
   *
@@ -96,9 +96,9 @@ import QueryMutation._
   *
   * == Update operators ==
   * A field provides methods to create update operations. See [[com.osinka.subset.update.Update]]
-  * 
+  *
   * == Cloning fields ==
-  * 
+  *
   * === Modifying Types ===
   * There is a number of typical field types that can be of help.
   *
@@ -158,19 +158,19 @@ class Field[T](override val path: List[String]) extends Path with FieldCondition
   //
   // Cloning Fields
   //
-  
+
   /** Create a new field, that has the same name and scope, but with another type.
    */
   def as[A]: Field[A] = new Field[A](path)
 
   /** Create a new field, that has the same name and scope, but `Int` type
-   * 
+   *
    * `Field[Int]` is of much help to produce `[Int]` queries (in `\$special`, `\$maxKey`, `\$minKey`, sort, index, etc.)
    */
   def int: Field[Int] = as[Int]
 
   /** Create a new field, that has the same name and scope, but `Any` type.
-   * 
+   *
    * `Field[Any]` is of much help to insert custom objects or e.g. `org.bson.types.{MaxKey, MinKey}`
    */
   def any: Field[Any] = as[Any]
@@ -186,7 +186,7 @@ class Field[T](override val path: List[String]) extends Path with FieldCondition
   /** Create a new positional field with the same type. The last element is "$"
    *
    * Creates a positional field to update the first matched element in an array.
-   * 
+   *
    * @see [[http://www.mongodb.org/display/DOCS/Updating#Updating-The%24positionaloperator The $ positional operator]]
    */
   def matched = new Field[T](path :+ "$")
@@ -202,7 +202,7 @@ class Field[T](override val path: List[String]) extends Path with FieldCondition
   //
   // Queries / Update modifiers
   //
-  
+
   /** Create a query relative to this field
     */
   def where(q: Query): Query = Query( wrap(this, q.queryMutation) )
@@ -229,11 +229,11 @@ class Field[T](override val path: List[String]) extends Path with FieldCondition
 
   /** (an alias for `added`)
     */
-  def apply(x: T)(implicit setter: ValueWriter[T]): Mutation = added(x)
+  def apply[A <% T : ValueWriter](x: A): Mutation = added(x)
 
   /** Writer mutation
     */
-  def added(x: T)(implicit setter: ValueWriter[T]): Mutation = writer(name, x)
+  def added[A <% T : ValueWriter](x: A): Mutation = writer(name, x)
 
   /** (an alias for `drop`)
     */

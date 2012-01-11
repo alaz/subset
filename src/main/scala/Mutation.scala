@@ -114,8 +114,8 @@ object Mutation {
     }
 
   implicit def fToMutation(f: DBObject => DBObject): Mutation = apply(f)
-  implicit def mutationWriter: ValueWriter[Mutation] = ValueWriter[Mutation](_.get)
   implicit def mutationToDBO(l: Mutation): DBObject = l.get
+  implicit def mutationWriter: ValueWriter[Mutation] = ValueWriter[Mutation](mutationToDBO _)
 
   /** Reads a value from `DBObject` by key.
     *

@@ -91,7 +91,7 @@
         <configuration>
           <scalaVersion>${scala.version}</scalaVersion>
           <jvmArgs>
-            <jvmArg>-Xmx64m</jvmArg>
+            <jvmArg>-Xmx256m</jvmArg>
           </jvmArgs>
           <args>
             <arg>-unchecked</arg>

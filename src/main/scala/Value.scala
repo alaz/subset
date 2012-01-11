@@ -116,7 +116,7 @@ trait LowPriorityReaders {
 }
 
 /** ValueWriter factory based on ordinary "sanitization" function.
-  * 
+  *
   * It contains default writer implicits as well.
   */
 object ValueWriter extends LowPriorityWriters {
@@ -145,10 +145,16 @@ object ValueWriter extends LowPriorityWriters {
       override def pack(x: Tuple2[String,T]): Option[Any] =
         w.pack(x._2) map {v => writer(x._1, v)(defaultWriter[Any]).get}
     }
+  implicit def fieldTupleSetter[T](implicit w: ValueWriter[T]) =
+    new ValueWriter[(Field[T], T)] {
+      override def pack(x: (Field[T], T)): Option[Any] =
+        w.pack(x._2) map {v => writer(x._1.name, v)(defaultWriter[Any]).get}
+    }
   // TODO: ValueWriter[Map[String,T]]
 }
 
 trait LowPriorityWriters {
+  // NOTE: inserts arrays "as is", not deep conversion
   implicit def defaultWriter[T]: ValueWriter[T] =
     new ValueWriter[T] {
       override def pack(x: T): Option[Any] = Some(x)

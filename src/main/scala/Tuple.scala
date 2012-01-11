@@ -23,6 +23,7 @@ import Mutation._
 class Tuple2Subset[T1,T2](val f1: String, val f2: String) { tuple =>
   /** Serialize a tuple into a [[com.osinka.subset.Mutation]]
     */
+  // TODO: A <% T : ValueWriter
   def apply(t2: (T1,T2))(implicit s1: ValueWriter[T1], s2: ValueWriter[T2]): Mutation =
     writer(f1, t2._1) andThen writer(f2, t2._2)
 
@@ -85,7 +86,7 @@ class Tuple5Subset[T1,T2,T3,T4,T5](val e4: Tuple4Subset[T1,T2,T3,T4], val f5: St
    */
   def unapply(dbo: DBObject)(implicit g1: ValueReader[T1], g2: ValueReader[T2], g3: ValueReader[T3], g4: ValueReader[T4], g5: ValueReader[T5]): Option[(T1,T2,T3,T4,T5)] =
     for {t4 <- e4.unapply(dbo); x5 <- read[T5](f5, dbo)} yield (t4._1, t4._2, t4._3, t4._4, x5)
-  
+
 //  def ~[T5](f5: Subset[T5]) = new TupleSubset5[T1,T2,T3,T4,T5](this, f5.name)
 }
 
