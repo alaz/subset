@@ -19,7 +19,7 @@ import annotation.implicitNotFound
 import java.util.Date
 import java.util.regex.Pattern
 import util.matching.Regex
-import org.bson.types.{ObjectId, Symbol => BsonSymbol}
+import org.bson.types.{ObjectId, Binary, Symbol => BsonSymbol}
 import com.mongodb.DBObject
 
 import Mutation._
@@ -61,7 +61,7 @@ case class ValueReaderPf[+T](pf: PartialFunction[Any, T]) extends ValueReader[T]
   *
   * It contains default reader implicits as well.
   */
-object ValueReader extends LowPriorityReaders {
+object ValueReader {
   def apply[T](pf: PartialFunction[Any,T]): ValueReaderPf[T] = new ValueReaderPf[T](pf)
 
   //
@@ -70,11 +70,18 @@ object ValueReader extends LowPriorityReaders {
 
   implicit val booleanGetter = ValueReader[Boolean]({ case b: Boolean => b })
   implicit val intGetter = ValueReader[Int]({ case i: Int => i })
+  implicit val shortGetter = ValueReader[Short]({ case i: Short => i })
   implicit val longGetter = ValueReader[Long]({ case l: Long => l })
+  implicit val floatGetter = ValueReader[Float]({
+      case d: Double => d.floatValue
+      case f: Float => f
+    })
   implicit val doubleGetter = ValueReader[Double]({ case d: Double => d })
   implicit val dateGetter = ValueReader[Date]({ case d: Date => d })
 
+  implicit val objIdGetter = ValueReader[ObjectId]({ case objId: ObjectId => objId })
   implicit val dboGetter = ValueReader[DBObject]({ case dbo: DBObject => dbo })
+  implicit val patternGetter = ValueReader[Pattern]({ case p: Pattern => p })
   implicit val stringGetter = ValueReader[String]({
     case s: String => s
     case s: BsonSymbol => s.getSymbol
@@ -88,6 +95,14 @@ object ValueReader extends LowPriorityReaders {
     case p: Pattern => new Regex(p.pattern)
     case r: Regex => r
   })
+
+  implicit def byteArrayGetter = ValueReader[Array[Byte]]({
+      case b: Binary => b.getData
+      case a: Array[Byte] => a
+    })
+  implicit def arrayGetter[T] = ValueReader[Array[T]]({
+      case a: Array[_] => a.asInstanceOf[Array[T]]
+    })
 
   implicit def optionGetter[T](implicit r: ValueReader[T]) =
     new ValueReader[Option[T]] {
@@ -105,21 +120,11 @@ object ValueReader extends LowPriorityReaders {
   // TODO: ValueReader[Map[String,T]]
 }
 
-trait LowPriorityReaders {
-  implicit def defaultReader[T <: AnyRef](implicit m: Manifest[T]): ValueReader[T] =
-    new ValueReader[T] {
-      def unpack(o: Any): Option[T] =
-        PartialFunction.condOpt(o) {
-          case any: AnyRef if m.erasure isAssignableFrom any.getClass => any.asInstanceOf[T]
-        }
-    }
-}
-
 /** ValueWriter factory based on ordinary "sanitization" function.
   *
   * It contains default writer implicits as well.
   */
-object ValueWriter extends LowPriorityWriters {
+object ValueWriter {
   def apply[T](sane: (T => Any)): ValueWriter[T] =
     new ValueWriter[T] {
       override def pack(x: T): Option[Any] = Some(sane(x))
@@ -128,9 +133,24 @@ object ValueWriter extends LowPriorityWriters {
   //
   // Default writers
   //
+  val anyWriter = ValueWriter[Any](identity _)
+  implicit val booleanSetter = ValueWriter[Boolean](identity _)
+  implicit val intSetter = ValueWriter[Int](identity _)
+  implicit val shortSetter = ValueWriter[Short](identity _)
+  implicit val longSetter = ValueWriter[Long](identity _)
+  implicit val floatSetter = ValueWriter[Float](identity _)
+  implicit val doubleSetter = ValueWriter[Double](identity _)
+  implicit val dateSetter = ValueWriter[Date](identity _)
+  implicit val objIdSetter = ValueWriter[ObjectId](identity _)
+  implicit val dboSetter = ValueWriter[DBObject](identity _)
+  implicit val patternSetter = ValueWriter[Pattern](identity _)
+  implicit val stringSetter = ValueWriter[String](identity _)
 
   implicit val symbolSetter = ValueWriter[Symbol](s => new BsonSymbol(s.name))
   implicit val regexSetter = ValueWriter[Regex](r => r.pattern)
+
+  implicit val byteArraySetter = ValueWriter[Array[Byte]](new Binary(_))
+  implicit val arraySetter = ValueWriter[Array[_]](identity _)
 
   implicit def optionSetter[T](implicit w: ValueWriter[T]) =
     new ValueWriter[Option[T]] {
@@ -143,20 +163,13 @@ object ValueWriter extends LowPriorityWriters {
   implicit def tupleSetter[T](implicit w: ValueWriter[T]) =
     new ValueWriter[Tuple2[String,T]] {
       override def pack(x: Tuple2[String,T]): Option[Any] =
-        w.pack(x._2) map {v => writer(x._1, v)(defaultWriter[Any]).get}
+        w.pack(x._2) map {v => writer(x._1, v)(anyWriter).get}
     }
   implicit def fieldTupleSetter[T](implicit w: ValueWriter[T]) =
     new ValueWriter[(Field[T], T)] {
       override def pack(x: (Field[T], T)): Option[Any] =
-        w.pack(x._2) map {v => writer(x._1.name, v)(defaultWriter[Any]).get}
+        w.pack(x._2) map {v => writer(x._1.name, v)(anyWriter).get}
     }
   // TODO: ValueWriter[Map[String,T]]
 }
 
-trait LowPriorityWriters {
-  // NOTE: inserts arrays "as is", not deep conversion
-  implicit def defaultWriter[T]: ValueWriter[T] =
-    new ValueWriter[T] {
-      override def pack(x: T): Option[Any] = Some(x)
-    }
-}

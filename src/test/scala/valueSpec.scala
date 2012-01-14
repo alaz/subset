@@ -28,25 +28,11 @@ import BasicDBObjectBuilder.{start => dbo}
  */
 @RunWith(classOf[JUnitRunner])
 class valueSpec extends Spec with MustMatchers with MongoMatchers with Routines {
-  describe("Default reader") {
-    it("reads AnyRef types") {
-      unpackValue[String]("str")(ValueReader.defaultReader[String]) must equal(Some("str"))
-      unpackValue[AnyRef]("str")(ValueReader.defaultReader[AnyRef]) must equal(Some("str"))
-      unpackValue[String](10)(ValueReader.defaultReader[String]) must equal(None)
-    }
-    it("can be overridden") {
-      val dbobj = dbo("i", 10).get
-      Mutation.read[Int]("i", dbobj) must equal(Some(10))
-
-      implicit val ir = ValueReader[Int]({ case i: Int => i+1 })
-      Mutation.read[Int]("i", dbobj) must equal(Some(11))
-    }
-  }
   describe("Base primitives serializer") {
     import org.bson.types.{Symbol => BsonSymbol}
 
     it("must set explicitly") {
-      packValue("val")(ValueWriter.defaultWriter[String]) must equal(Some("val"))
+      packValue("val")(ValueWriter.stringSetter) must equal(Some("val"))
       val sym = packValue('Sym)(ValueWriter.symbolSetter)
       sym must be('defined)
       sym.get.asInstanceOf[AnyRef].getClass must equal(classOf[BsonSymbol])

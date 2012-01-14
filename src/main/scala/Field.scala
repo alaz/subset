@@ -153,8 +153,6 @@ import QueryMutation._
   *      [[com.osinka.subset.ValueWriter]], [[com.osinka.subset.Subset]]
   */
 class Field[T](override val path: List[String]) extends Path with FieldConditions[T] with Modifications[T] {
-  field =>
-
   //
   // Cloning Fields
   //

@@ -101,16 +101,18 @@ class polymorphicSpec extends FeatureSpec with GivenWhenThen with MustMatchers {
   }
 
   feature("It is possible to compare a field to subtypes") {
-    scenario("Comparing Abstract field") { pendingUntilFixed {
+    scenario("Comparing Abstract field") {
+      pending
+
       given("there is a field of type Abstract")
       val f = "a".fieldOf[Abstract]
 
       then("it's possible to query equivalence to ImplB instance")
-      (f === ImplB("str")).get must equal(start.push("a").append("s", "str").get)
+      //(f === ImplB("str")).get must equal(start.push("a").append("s", "str").get)
 
       and("it's possible to query equivalence to ImplC instance")
-      (f === ImplC(5)).get must equal(start.push("a").append("i", 5).get)
-    } }
+      //(f === ImplC(5)).get must equal(start.push("a").append("i", 5).get)
+    }
   }
 
   feature("It is possible to update a field with its subtype") {
