@@ -19,7 +19,7 @@ package query
 import Mutation._
 
 /** The low level mechanism for constructing mutations dependant on Path.
-  * 
+  *
   * Thus QueryMutation is a function from Path to Mutation. They compose well too.
   */
 trait QueryMutation extends (Path => Mutation) {
@@ -34,6 +34,9 @@ object QueryMutation {
     }
 
   implicit def fToQMutation(f: Path => Mutation): QueryMutation = apply(f)
+
+  def noop: QueryMutation =
+    (_: Path) => Mutation.noop
 
   def wrap(p: Path,  ql: QueryMutation): QueryMutation =
     (scope: Path) => ql(scope + p)

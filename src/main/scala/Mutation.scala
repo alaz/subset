@@ -106,7 +106,11 @@ object Mutation {
   /** @return A mutation that replaces the contents with the `DBObject` specified
     */
   def const(dbo: DBObject): Mutation = apply {_: DBObject => dbo}
-  
+
+  /** @return A mutation that does nothing, simply returns the same `DBObject` back
+    */
+  def noop: Mutation = apply(identity _)
+
   // Factory object
   def apply(f: DBObject => DBObject): Mutation =
     new Mutation {
@@ -120,14 +124,14 @@ object Mutation {
   /** Reads a value from `DBObject` by key.
     *
     * This method makes use of [[com.osinka.subset.ValueReader]] implicit to unpack the object correctly.
-    * 
+    *
     * @see [[com.osinka.subset.ValueReader]]
     */
   def read[T](key: String, dbo: DBObject)(implicit reader: ValueReader[T]): Option[T] =
     Option(dbo.get(key)) flatMap {reader.unpack(_)}
 
   /** Creates a mutation that writes a typed key-value.
-    * 
+    *
     * Makes use of [[com.osinka.subset.ValueWriter]] implicit.
     *
     * @return a mutation writing the key-value specified

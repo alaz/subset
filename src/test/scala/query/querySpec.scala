@@ -142,22 +142,16 @@ class querySpec extends Spec with MustMatchers with MongoMatchers with Routines 
       Mutation.read[DBObject]("k", dbo) must be('defined)
       Mutation.read[DBObject]("k", dbo).get must containKeyValue("$gt" -> 4)
     }
-    it("supports conjunction w/ $and, in one order") {
-      val dbo: DBObject = i === 4 && i > 5 && k === 5
+    it("drops duplicate keys") {
+      val dbo: DBObject = i === 4 && i > 5 && k === 5 && k < 3
+      dbo.keySet.size must equal(2)
+      dbo must (containField("i") and containField("k"))
+    }
+    it("supports conjunction w/ $and") {
+      val dbo: DBObject = i === 4 and k === 5 and i > 5
       val arr = Mutation.read[Array[DBObject]]("$and", dbo)
       arr must be('defined)
       arr.get.size must equal(3)
-      arr.get(0) must containKeyValue("i" -> 4)
-      arr.get(1) must containField("i")
-      arr.get(2) must containKeyValue("k" -> 5)
-    }
-    it("supports conjunction w/ $and, in another order") {
-      val dbo: DBObject = i === 4 && k === 5 && i > 5
-      val arr = Mutation.read[Array[DBObject]]("$and", dbo)
-      arr must be('defined)
-      arr.get.size must equal(2)
-      arr.get(0) must (containKeyValue("i" -> 4) and containKeyValue("k" -> 5))
-      arr.get(1) must containField("i")
     }
     it("supports $or") {
       val dbo: DBObject = i === 10 || k === 4 or m === 7
@@ -196,7 +190,7 @@ class querySpec extends Spec with MustMatchers with MongoMatchers with Routines 
       (doc.where{_.sub.where {_.f > 10}}).get must equal(
         dbo.push("doc.sub.f").append("$gt", 10).get
       )
-      
+
       (alias > 10).get must equal(
         dbo.push("doc.sub.f").append("$gt", 10).get
       )
@@ -234,7 +228,7 @@ class querySpec extends Spec with MustMatchers with MongoMatchers with Routines 
       )
     }
     it("honors top-level queries like $and, $or") {
-      val q1 = doc.where{_.sub.where{s => s.f > 3 && s.f < 2}}.get
+      val q1 = doc.where{_.sub.where{s => s.f > 3 and s.f < 2}}.get
       q1 must containField("$and")
       val andArr = Mutation.read[List[DBObject]]("$and", q1)
       andArr must be('defined)

@@ -98,25 +98,33 @@ trait FieldConditions[T] extends Conditions[T] {
   *
   * == Composition ==
   * Queries allow composition using methods
-  *  - `&&` (the same as `and`), this will result in `\$and`
+  *  - `and` results in `\$and` query
+  *  - `&&` writes all the conditional operators into the resulting query
+  *    document
   *  - `||` (the same as `or`), this will result in `\$or`
   *  - `nor`, this will result in `\$nor`
   *
-  * Whenever you join queries with `&&`, '''Subset''' tries to determine if
-  * both queries use the same keys. If they does, it creates an `\$and` query.
-  * If not, it simply joins two maps.
+  * Whenever you join queries with `&&`, they are written as document keys, e.g.
   *
   * {{{
-  * val q1 = (f > 0 && f < 10).get
+  * val q1 = (f > 0 && k === 3).get
   * }}}
-  * This results in `{\$and: [{f: {\$gt:0}}, {f: {\$lt:10}}]}`.
+  * This results in `{f: {\$gt: 0}, k: 3}`
+  *
+  * ''Note'' in the case several condition operators are set on the same field,
+  * only the last one will be written:
   *
   * {{{
-  * val q2 = (f > 0 && g < 10).get
+  * val q1 = (f > 0 && f < 5 && k === 3).get
   * }}}
-  * This results in `{f: {\$gt:0}, g: {\$lt:10}}`
+  * This results in `{f: {\$lt: 5}, k: 3}`
   *
-  * The same rules apply to the larger number of query terms.
+  * In this case, `and` method must be used, e.g.
+  *
+  * {{{
+  * val q1 = ((f > 0 and f < 5) && k === 3).get
+  * }}}
+  * This results in `{\$and: [{f: {\$gt:0}}, {f: {\$lt:10}}], k: 3}`.
   *
   * @see [[https://github.com/osinka/subset/blob/master/src/it/scala/blogCommentSpec.scala Blog Comment Example]]
   */
@@ -125,13 +133,9 @@ trait Query extends Mutation {
 
   override def apply(dbo: DBObject): DBObject = queryMutation(Path.empty)(dbo)
 
-  def &&(other: Query): Query = and(other)
-  def and(other: Query): Query = {
-    import collection.JavaConversions._
+  def &&(other: Query): Query = Query(queryMutation ~ other.queryMutation)
 
-    if ( (get.keySet & other.get.keySet).isEmpty ) Query(queryMutation ~ other.queryMutation)
-    else Query.And(other :: this :: Nil)
-  }
+  def and(other: Query): Query = Query.And(other :: this :: Nil)
 
   def ||(other: Query) = or(other)
   def or(other: Query): Query = Query.Or(other :: this :: Nil)

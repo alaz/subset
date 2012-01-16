@@ -15,11 +15,11 @@ name := "subset"
 
 startYear := Some(2011)
 
-version := "0.6.1-SNAPSHOT"
+version := "0.6.2-SNAPSHOT"
 
 scalaVersion := "2.9.1"
 
-crossScalaVersions := Seq("2.8.2", "2.9.1")
+crossScalaVersions := Seq("2.8.1", "2.8.2", "2.9.1")
 
 organizationName := "Osinka"
 
