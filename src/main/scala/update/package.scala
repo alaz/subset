@@ -18,20 +18,20 @@ package com.osinka.subset
 /** == Update Operations ==
   * Update operators and their composition. See
   * [[com.osinka.subset.update.Update]] and [[com.osinka.subset.update.Modifications]]
-  * 
+  *
   * == Subset ==
-  * [[com.osinka.subset.Subset]]'s `updateMatch` method lets create a "positional" update
+  * [[com.osinka.subset.Subset]]'s `matched` method lets create a "positional" update
   * modifier relative to the enclosing sub-document.
-  * 
+  *
   * {{{
-  * collection.update(BlogPost.comments.where{_.by === "joe"}, BlogPost.comments.updateMatch {_.votes inc 1})
+  * collection.update(BlogPost.comments.where{_.by === "joe"}, BlogPost.comments.matched.modify {_.votes inc 1})
   * }}}
-  * 
+  *
   * This is equivalent to MongoDB shell
   * {{{
   * db.collection.update({"comments.by": "joe"}, {\$inc: {"comments.$.votes": 1}})
   * }}}
-  * 
+  *
   * @see [[http://www.mongodb.org/display/DOCS/Updating#Updating-The%24positionaloperator The $ positional operator]],
   *      [[https://github.com/osinka/subset/blob/master/src/it/scala/blogCommentSpec.scala Blog Comment Example]]
   */

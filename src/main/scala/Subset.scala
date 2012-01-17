@@ -43,13 +43,13 @@ import QueryMutation._
   *   val votes = "votes".fieldOf[Int]
   *   val text = "text".fieldOf[String]
   * }
-  * 
+  *
   * object BlogPost {
   *   val title = "title".fieldOf[String]
   *   val comments = "comments".subset(Comment).of[List[Comment]]
   * }
   * }}}
-  * 
+  *
   * `BlogPost.comments` represents an array of `Comment` sub-documents. From now on, you can
   * create queries and update modifiers using the fields defined in `Comment`:
   * {{{
@@ -62,11 +62,11 @@ import QueryMutation._
   * BlogPost.comments.modify {_.vote inc 1}`
   * }}}
   * will result in `{\$inc: {"comments.vote": 1}}`
-  * 
+  *
   * === Serialization ===
   * `Subset` provides a couple of helper methods for serializing and deserializing
   * a document from `DBObject`.
-  * 
+  *
   * `apply` takes an object and creates a [[com.osinka.subset.Mutation]],
   * assuming we have a type class [[com.osinka.subset.ValueWriter]] in scope.
   * For example,
@@ -75,7 +75,7 @@ import QueryMutation._
   * }}}
   * will result in
   * `{"by": "Joe", "votes": 2, "text": "text"}`
-  * 
+  *
   * `unapply` makes use of [[com.osinka.subset.ValueReader]] to extract
   * an object. E.g. assuming we have implicit in scope,
   * {{{
@@ -85,18 +85,18 @@ import QueryMutation._
   * }}}
   *
   * === Cloning ===
-  * You can create a "positional" subset, e.g.
+  * You can create a conditional operator for a specific array element, e.g.
   * {{{
   * BlogPost.comments(1).modify {_.by set "john"}
   * }}}
   * creates an update modifier `{\$set: {"comments.1.by": "john"}}`
   *
-  * Method `matched` creates a positional subset, e.g.
+  * Method `matched` creates a positional query, e.g.
   * {{{
   * BlogPost.comments.matched.modify {_.by set "john"}
   * }}}
   * creates an update modifier `{\$set: {"comments.$.by": "john"}}`
-  * 
+  *
   * === Querying and Updating ===
   * Along with the ordinary queries every field supports, `Subset` lets you define
   * much more advanced
@@ -104,7 +104,7 @@ import QueryMutation._
   * queries and
   * [[http://www.mongodb.org/display/DOCS/Updating#Updating-The%24positionaloperator positional]]
   * update.
-  * 
+  *
   * Again, turning back to our example, how would you increment "votes" of a Joe's comment?
   *
   * {{{
@@ -112,10 +112,10 @@ import QueryMutation._
   * coll.update(BlogPost.comments.where {_.by === "joe"},
   *             BlogPost.comments.matched.modify {_.votes inc 1})
   * }}}
-  * 
+  *
   * It is also possible to find a BlogPost which has a comment made by "Joe" ''and'' having "votes"
   * equal to 2:
-  * 
+  *
   * {{{
   * // Find a blog post commented by Joe and the comment's vote is 2
   * coll.find(BlogPost.comments.elemMatch {comment => comment.by === "joe" && comment.votes === 2}).iterator
@@ -124,12 +124,12 @@ import QueryMutation._
   * == `pullWhere` ==
   * `pullWhere` lets specify a [[com.osinka.subset.query.Query]] to select an object
   * that needs to be removed from an array, e.g.
-  * 
+  *
   * {{{
   * collection.update(BlogPost.title === "test",
   *                   BlogPost.comments.pullWhere{comment => comment.by === "user2" && comment.votes === 0})
   * }}}
-  * 
+  *
   * @param self is a fields container. Usually this is an object where a subdocument's fields reside.
   * @tparam Self a type of fields container
   * @see [[https://github.com/osinka/subset/blob/master/src/it/scala/blogCommentSpec.scala Blog Comment Example]]

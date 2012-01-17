@@ -21,7 +21,7 @@ import query._
 import Mutation._
 import QueryMutation._
 
-/** All the update operators MongoDB allows to create.
+/** All the update modifiers MongoDB allows to create.
   *
   * This trait mixes into [[com.osinka.subset.Field]]
   *
