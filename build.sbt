@@ -15,8 +15,6 @@ name := "subset"
 
 startYear := Some(2011)
 
-version := "0.6.2-SNAPSHOT"
-
 scalaVersion := "2.9.1"
 
 crossScalaVersions := Seq("2.8.1", "2.8.2", "2.9.1")
@@ -41,6 +39,8 @@ libraryDependencies <+= scalaVersion({
   case v =>
     error("Unsupported Scala version "+v)
 })
+
+credentials += Credentials(Path.userHome / ".ivy2" / "credentials")
 
 parallelExecution in IntegrationTest := false
 
