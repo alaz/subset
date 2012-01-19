@@ -87,7 +87,71 @@ class Tuple5Subset[T1,T2,T3,T4,T5](val e4: Tuple4Subset[T1,T2,T3,T4], val f5: St
   def unapply(dbo: DBObject)(implicit g1: ValueReader[T1], g2: ValueReader[T2], g3: ValueReader[T3], g4: ValueReader[T4], g5: ValueReader[T5]): Option[(T1,T2,T3,T4,T5)] =
     for {t4 <- e4.unapply(dbo); x5 <- read[T5](f5, dbo)} yield (t4._1, t4._2, t4._3, t4._4, x5)
 
-//  def ~[T5](f5: Subset[T5]) = new TupleSubset5[T1,T2,T3,T4,T5](this, f5.name)
+  def ~[T6](f6: Field[T6]) = new Tuple6Subset[T1,T2,T3,T4,T5,T6](this, f6.name)
 }
 
-// TODO: Tuple6..22
+/** A tuple made of 6 fields
+ */
+class Tuple6Subset[T1,T2,T3,T4,T5,T6](val e5: Tuple5Subset[T1,T2,T3,T4,T5], val f6: String) {
+  /** Serialize a tuple into a [[com.osinka.subset.Mutation]]
+   */
+  def apply(t6: (T1,T2,T3,T4,T5,T6))(implicit s1: ValueWriter[T1], s2: ValueWriter[T2], s3: ValueWriter[T3], s4: ValueWriter[T4], s5: ValueWriter[T5], s6: ValueWriter[T6]): Mutation =
+    e5.apply( (t6._1, t6._2, t6._3, t6._4, t6._5) )(s1,s2,s3,s4,s5) andThen writer(f6, t6._6)
+
+  /** Deserialize a `DBObject` into a tuple
+   */
+  def unapply(dbo: DBObject)(implicit g1: ValueReader[T1], g2: ValueReader[T2], g3: ValueReader[T3], g4: ValueReader[T4], g5: ValueReader[T5], g6: ValueReader[T6]): Option[(T1,T2,T3,T4,T5,T6)] =
+    for {t5 <- e5.unapply(dbo); x6 <- read[T6](f6, dbo)} yield (t5._1, t5._2, t5._3, t5._4, t5._5, x6)
+
+  def ~[T7](f7: Field[T7]) = new Tuple7Subset[T1,T2,T3,T4,T5,T6,T7](this, f7.name)
+}
+
+/** A tuple made of 7 fields
+ */
+class Tuple7Subset[T1,T2,T3,T4,T5,T6,T7](val e6: Tuple6Subset[T1,T2,T3,T4,T5,T6], val f7: String) {
+  /** Serialize a tuple into a [[com.osinka.subset.Mutation]]
+   */
+  def apply(t7: (T1,T2,T3,T4,T5,T6,T7))(implicit s1: ValueWriter[T1], s2: ValueWriter[T2], s3: ValueWriter[T3], s4: ValueWriter[T4], s5: ValueWriter[T5], s6: ValueWriter[T6], s7: ValueWriter[T7]): Mutation =
+    e6.apply( (t7._1, t7._2, t7._3, t7._4, t7._5, t7._6) )(s1,s2,s3,s4,s5,s6) andThen writer(f7, t7._7)
+
+  /** Deserialize a `DBObject` into a tuple
+   */
+  def unapply(dbo: DBObject)(implicit g1: ValueReader[T1], g2: ValueReader[T2], g3: ValueReader[T3], g4: ValueReader[T4], g5: ValueReader[T5], g6: ValueReader[T6], g7: ValueReader[T7]): Option[(T1,T2,T3,T4,T5,T6,T7)] =
+    for {t6 <- e6.unapply(dbo); x7 <- read[T7](f7, dbo)} yield (t6._1, t6._2, t6._3, t6._4, t6._5, t6._6, x7)
+
+  def ~[T8](f8: Field[T8]) = new Tuple8Subset[T1,T2,T3,T4,T5,T6,T7,T8](this, f8.name)
+}
+
+/** A tuple made of 8 fields
+ */
+class Tuple8Subset[T1,T2,T3,T4,T5,T6,T7,T8](val e7: Tuple7Subset[T1,T2,T3,T4,T5,T6,T7], val f8: String) {
+  /** Serialize a tuple into a [[com.osinka.subset.Mutation]]
+   */
+  def apply(t8: (T1,T2,T3,T4,T5,T6,T7,T8))(implicit s1: ValueWriter[T1], s2: ValueWriter[T2], s3: ValueWriter[T3], s4: ValueWriter[T4], s5: ValueWriter[T5], s6: ValueWriter[T6], s7: ValueWriter[T7], s8: ValueWriter[T8]): Mutation =
+    e7.apply( (t8._1, t8._2, t8._3, t8._4, t8._5, t8._6, t8._7) )(s1,s2,s3,s4,s5,s6,s7) andThen writer(f8, t8._8)
+
+  /** Deserialize a `DBObject` into a tuple
+   */
+  def unapply(dbo: DBObject)(implicit g1: ValueReader[T1], g2: ValueReader[T2], g3: ValueReader[T3], g4: ValueReader[T4], g5: ValueReader[T5], g6: ValueReader[T6], g7: ValueReader[T7], g8: ValueReader[T8]): Option[(T1,T2,T3,T4,T5,T6,T7,T8)] =
+    for {t7 <- e7.unapply(dbo); x8 <- read[T8](f8, dbo)} yield (t7._1, t7._2, t7._3, t7._4, t7._5, t7._6, t7._7, x8)
+
+  def ~[T9](f9: Field[T9]) = new Tuple9Subset[T1,T2,T3,T4,T5,T6,T7,T8,T9](this, f9.name)
+}
+
+/** A tuple made of 9 fields
+ */
+class Tuple9Subset[T1,T2,T3,T4,T5,T6,T7,T8,T9](val e8: Tuple8Subset[T1,T2,T3,T4,T5,T6,T7,T8], val f9: String) {
+  /** Serialize a tuple into a [[com.osinka.subset.Mutation]]
+   */
+  def apply(t9: (T1,T2,T3,T4,T5,T6,T7,T8,T9))(implicit s1: ValueWriter[T1], s2: ValueWriter[T2], s3: ValueWriter[T3], s4: ValueWriter[T4], s5: ValueWriter[T5], s6: ValueWriter[T6], s7: ValueWriter[T7], s8: ValueWriter[T8], s9: ValueWriter[T9]): Mutation =
+    e8.apply( (t9._1, t9._2, t9._3, t9._4, t9._5, t9._6, t9._7, t9._8) )(s1,s2,s3,s4,s5,s6,s7,s8) andThen writer(f9, t9._9)
+
+  /** Deserialize a `DBObject` into a tuple
+   */
+  def unapply(dbo: DBObject)(implicit g1: ValueReader[T1], g2: ValueReader[T2], g3: ValueReader[T3], g4: ValueReader[T4], g5: ValueReader[T5], g6: ValueReader[T6], g7: ValueReader[T7], g8: ValueReader[T8], g9: ValueReader[T9]): Option[(T1,T2,T3,T4,T5,T6,T7,T8,T9)] =
+    for {t8 <- e8.unapply(dbo); x9 <- read[T9](f9, dbo)} yield (t8._1, t8._2, t8._3, t8._4, t8._5, t8._6, t8._7, t8._8, x9)
+
+//  def ~[T10](f10: Field[T10]) = new Tuple10Subset[T1,T2,T3,T4,T5,T6,T7,T8,T9,T10](this, f10.name)
+}
+
+// TODO: Tuple10..22
