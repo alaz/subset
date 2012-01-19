@@ -89,9 +89,6 @@ package object subset {
   // String to Field
   implicit def stringToField(name: String) = new FieldBlank(name)
 
-  // String Tuple
-  implicit def stringTupleSerializer[T : ValueWriter](t: (String, T)): Mutation = Mutation.writer(t._1, t._2)
-
   // Field conversions
   implicit def fieldTupleSerializer[T : ValueWriter](t: (Field[T], T)): Mutation = Mutation.writer(t._1.name, t._2)
   implicit def fieldTupleDBO[T : ValueWriter](t: (Field[T], T)): DBObject = fieldTupleSerializer[T](t).get
