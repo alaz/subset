@@ -25,6 +25,8 @@ description := """Subset is a tiny and simple library for
   - typed field serializers/deserializers to/from DBObject
   - typed query/update builders"""
 
+scalacOptions += "-unchecked"
+
 libraryDependencies ++= Seq(
   "org.mongodb" % "mongo-java-driver" % "2.7.2",
   "joda-time" % "joda-time" % "1.6.2" % "optional",

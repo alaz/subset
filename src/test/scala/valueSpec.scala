@@ -62,7 +62,7 @@ class valueSpec extends Spec with MustMatchers with MongoMatchers with Routines 
       o.get must equal(Array(1,2))
     }
     it("sets Tuple2") {
-      packValue("s" -> 10) must equal(Some(dbo("s", 10).get))
+      packValue("s" -> 10).map{_.asInstanceOf[Array[_]].toList} must equal(Some(Array("s", 10).toList))
     }
     it("gets List[T] from BSON DBList") {
       val da = new BasicDBList
@@ -73,6 +73,9 @@ class valueSpec extends Spec with MustMatchers with MongoMatchers with Routines 
     }
     it("gets List[T] from Array") {
       unpackValue[List[Int]](Array(1,2,3)) must equal(Some(List(1,2,3)))
+    }
+    it("gets Tuple2") {
+      unpackValue[Tuple2[String,Int]](Array("s", 10)) must equal(Some("s" -> 10))
     }
   }
   describe("Recovering primitives serializer") {

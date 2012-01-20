@@ -117,6 +117,15 @@ object ValueReader {
       case list: BasicBSONList => list flatMap {r.unpack _} toList
     })
   }
+  implicit def tuple2Getter[T1,T2](implicit r1: ValueReader[T1], r2: ValueReader[T2]) =
+    new ValueReader[Tuple2[T1,T2]] {
+      override def unpack(o: Any): Option[Tuple2[T1,T2]] =
+        o match {
+          case a: Array[_] if a.size == 2 =>
+            for {v1 <- r1.unpack(a(0)); v2 <- r2.unpack(a(1))}
+            yield (v1, v2)
+        }
+    }
   // TODO: ValueReader[Map[String,T]]
 }
 
@@ -160,15 +169,16 @@ object ValueWriter {
     new ValueWriter[Traversable[T]] {
       override def pack(x: Traversable[T]): Option[Any] = Some( x flatMap {w.pack _} toArray )
     }
-  implicit def tupleSetter[T](implicit w: ValueWriter[T]) =
-    new ValueWriter[Tuple2[String,T]] {
-      override def pack(x: Tuple2[String,T]): Option[Any] =
-        w.pack(x._2) map {v => writer(x._1, v)(anyWriter).get}
-    }
   implicit def fieldTupleSetter[T](implicit w: ValueWriter[T]) =
     new ValueWriter[(Field[T], T)] {
       override def pack(x: (Field[T], T)): Option[Any] =
         w.pack(x._2) map {v => writer(x._1.name, v)(anyWriter).get}
+    }
+  implicit def tuple2Setter[T1,T2](implicit w1: ValueWriter[T1], w2: ValueWriter[T2]) =
+    new ValueWriter[Tuple2[T1,T2]] {
+      override def pack(t: Tuple2[T1,T2]) =
+        for {x1 <- w1.pack(t._1); x2 <- w2.pack(t._2)}
+        yield Array(x1,x2)
     }
   // TODO: ValueWriter[Map[String,T]]
 }

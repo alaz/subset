@@ -28,7 +28,6 @@
   <properties>
     <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
     <scala.version>2.8.2</scala.version>
-    <lift.version>2.3</lift.version>
   </properties>
 
   <developers>
