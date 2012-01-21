@@ -2,7 +2,7 @@
 {
  "organization":"com.osinka.subset",
  "name":"subset",
- "version":"0.6.3-SNAPSHOT",
+ "version":"0.6.3",
  "description":"Subset is a tiny and simple library for
   - typed field serializers/deserializers to/from DBObject
   - typed query/update builders",
