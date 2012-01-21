@@ -1,0 +1,36 @@
+
+{
+ "organization":"com.osinka.subset",
+ "name":"subset",
+ "version":"0.6.3-SNAPSHOT",
+ "description":"Subset is a tiny and simple library for
+  - typed field serializers/deserializers to/from DBObject
+  - typed query/update builders",
+ "site":"",
+ "tags":["mongo","mongodb"],
+ "docs":"http://osinka.github.com/subset/Subset.html",
+ "licenses": [{
+   "name": "Apache License, Version 2.0",
+   "url": "http://www.apache.org/licenses/LICENSE-2.0"
+  }],
+ "resolvers": ["http://scala-tools.org/repo-releases"],
+ "dependencies": [{
+   "organization":"org.mongodb",
+   "name": "mongo-java-driver",
+   "version": "2.7.2"
+  },{
+   "organization":"joda-time",
+   "name": "joda-time",
+   "version": "1.6.2"
+  },{
+   "organization":"junit",
+   "name": "junit",
+   "version": "4.10"
+  },{
+   "organization":"org.scalatest",
+   "name": "scalatest",
+   "version": "1.6.1"
+  }],
+ "scalas": ["2.8.1","2.8.2","2.9.1"],
+ "sbt": false
+}

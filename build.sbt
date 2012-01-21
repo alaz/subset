@@ -8,6 +8,7 @@
 
 import com.jsuereth.sbtsite.SiteKeys
 import sbtrelease.Release._
+import ls.Plugin._
 
 organization := "com.osinka.subset"
 
@@ -16,6 +17,8 @@ name := "subset"
 startYear := Some(2011)
 
 scalaVersion := "2.9.1"
+
+licenses += "Apache License, Version 2.0" -> url("http://www.apache.org/licenses/LICENSE-2.0")
 
 crossScalaVersions := Seq("2.8.1", "2.8.2", "2.9.1")
 
@@ -42,6 +45,21 @@ libraryDependencies <+= scalaVersion({
     error("Unsupported Scala version "+v)
 })
 
+seq(site.settings:_*)
+
+site.addMappingsToSiteDir(mappings in packageDoc in Compile, "api")
+
+SiteKeys.siteMappings <<=
+  (SiteKeys.siteMappings, PamfletKeys.write, PamfletKeys.output) map { (mappings, _, dir) =>
+    mappings ++ (dir ** "*.*" x relativeTo(dir))
+  }
+
+seq(ghpages.settings:_*)
+
+git.remoteRepo := "git@github.com:osinka/subset.git"
+
+seq(releaseSettings: _*)
+
 credentials += Credentials(Path.userHome / ".ivy2" / "credentials")
 
 parallelExecution in IntegrationTest := false
@@ -53,20 +71,11 @@ publishTo <<= (version) { version: String =>
     Some("Scala Tools Nexus" at "http://nexus.scala-tools.org/content/repositories/releases/")
 }
 
-seq(releaseSettings: _*)
+seq(lsSettings: _*)
 
-seq(site.settings:_*)
+(LsKeys.tags in LsKeys.lsync) := Seq("mongo", "mongodb")
 
-seq(ghpages.settings:_*)
-
-git.remoteRepo := "git@github.com:osinka/subset.git"
-
-site.addMappingsToSiteDir(mappings in packageDoc in Compile, "api")
-
-SiteKeys.siteMappings <<=
-  (SiteKeys.siteMappings, PamfletKeys.write, PamfletKeys.output) map { (mappings, _, dir) =>
-    mappings ++ (dir ** "*.*" x relativeTo(dir))
-  }
+(LsKeys.docsUrl in LsKeys.lsync) := Some(url("http://osinka.github.com/subset/Subset.html"))
 
 pomExtra := <xml:group>
     <licenses>
