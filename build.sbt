@@ -78,12 +78,6 @@ seq(lsSettings: _*)
 (LsKeys.docsUrl in LsKeys.lsync) := Some(url("http://osinka.github.com/subset/Subset.html"))
 
 pomExtra := <xml:group>
-    <licenses>
-      <license>
-        <name>Apache License, Version 2.0</name>
-        <url>http://www.apache.org/licenses/LICENSE-2.0</url>
-      </license>
-    </licenses>
     <developers>
       <developer>
         <id>alaz</id>

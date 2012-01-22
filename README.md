@@ -32,7 +32,7 @@ import com.osinka.subset._
 import SmartValues._
 ```
 
-> More on the choices in [the documentation](http://osinka.github.com/subset/Getting+Started.html)
+> More on the choices in the [documentation](http://osinka.github.com/subset/Getting+Started.html)
 
 ### SBT Configuration
 
