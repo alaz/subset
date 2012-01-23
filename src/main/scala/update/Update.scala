@@ -33,7 +33,7 @@ trait Modifications[T] extends Path {
 
   def set[A <% T : ValueWriter](x: A) = op("$set", x)
   def inc(x: T)(implicit writer: ValueWriter[T]) = op("$inc", x)
-  def unset(x: T)(implicit writer: ValueWriter[Int]) = op("$unset", 1)
+  def unset(x: T) = op("$unset", 1)
   def push[A](x: A)(implicit writer: ValueWriter[A], ev: T <:< Traversable[A]) = op("$push", x)
   def push[A](seq: Traversable[A])(implicit writer: ValueWriter[Traversable[A]], ev: T <:< Traversable[A]): Update = pushAll(seq)
   def pushAll[A](seq: Traversable[A])(implicit writer: ValueWriter[Traversable[A]], ev: T <:< Traversable[A]) = op("$pushAll", seq)
@@ -43,7 +43,8 @@ trait Modifications[T] extends Path {
   def pull[A](x: A)(implicit writer: ValueWriter[A], ev: T <:< Traversable[A]) = op("$pull", x)
   def pull[A](seq: Traversable[A])(implicit writer: ValueWriter[Traversable[A]], ev: T <:< Traversable[A]): Update = pullAll(seq)
   def pullAll[A](seq: Traversable[A])(implicit writer: ValueWriter[Traversable[A]], ev: T <:< Traversable[A]) = op("$pullAll", seq)
-  def rename(newName: String)(implicit writer: ValueWriter[String]) = op("$rename", newName)
+  def rename(newName: String) = op("$rename", newName)
+  def rename(newField: Field[_]) = op("$rename", newField.name)
   // TODO: $bit
 }
 
