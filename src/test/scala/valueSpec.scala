@@ -39,13 +39,21 @@ class valueSpec extends Spec with MustMatchers with MongoMatchers with Routines 
       sym.get.asInstanceOf[BsonSymbol].getSymbol must equal("Sym")
     }
   }
-  describe("Scala types serializer") {
+  describe("Option writer") {
     it("sets Some") {
-      packValue(Some(1)) must equal(Some(1))
+      packValue[Option[Int]](Some(1)) must equal(Some(1))
     }
     it("sets None") {
-      packValue(None: Option[Int]) must be('empty)
+      packValue[Option[Int]](None: Option[Int]) must be('empty)
     }
+  }
+  describe("Option reader") {
+    it("never returns None") {
+      unpackValue[Option[Int]](1) must equal(Some(Some(1)))
+      unpackValue[Option[Int]]("str") must equal(Some(None))
+    }
+  }
+  describe("List writer") {
     it("sets empty List[T]") {
       val o = packValue(Nil: List[Int])
       o must be('defined)
@@ -61,9 +69,8 @@ class valueSpec extends Spec with MustMatchers with MongoMatchers with Routines 
       o must be('defined)
       o.get must equal(Array(1,2))
     }
-    it("sets Tuple2") {
-      packValue("s" -> 10).map{_.asInstanceOf[Array[_]].toList} must equal(Some(Array("s", 10).toList))
-    }
+  }
+  describe("List reader") {
     it("gets List[T] from BSON DBList") {
       val da = new BasicDBList
       da.put(0, 1)
@@ -73,6 +80,11 @@ class valueSpec extends Spec with MustMatchers with MongoMatchers with Routines 
     }
     it("gets List[T] from Array") {
       unpackValue[List[Int]](Array(1,2,3)) must equal(Some(List(1,2,3)))
+    }
+  }
+  describe("Tuple writer") {
+    it("sets Tuple2") {
+      packValue("s" -> 10).map{_.asInstanceOf[Array[_]].toList} must equal(Some(Array("s", 10).toList))
     }
     it("gets Tuple2") {
       unpackValue[Tuple2[String,Int]](Array("s", 10)) must equal(Some("s" -> 10))
