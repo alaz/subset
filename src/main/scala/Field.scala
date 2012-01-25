@@ -67,6 +67,18 @@ import QueryMutation._
   * }
   * }}}
   *
+  * While `ValueReader` controls how to convert the value stored in `DBObject` under
+  * the field's name, only `Field` knows how to process the fact there is no
+  * such key at all. Method `withDefault` creates a `Field[T]` that extracts a
+  * default value if there is no such key or `ValueReader` failed to decode the
+  * value:
+  * {{{
+  * val email = "email".fieldOf[Option[String]].withDefault(None)
+  * dbo match {
+  *   case email(e) => // always succeeds. None is no such key/not a string
+  * }
+  * }}}
+  *
   * == Tuples ==
   * '''Subset''' provides a kind of Tuple serializers for reading and
   * writing `TupleN` to/from `DBObject`
