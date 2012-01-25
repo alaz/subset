@@ -153,6 +153,20 @@ import QueryMutation._
   *      [[com.osinka.subset.ValueWriter]], [[com.osinka.subset.Subset]]
   */
 class Field[T](override val path: List[String]) extends Path with FieldConditions[T] with Modifications[T] {
+  self =>
+
+  //
+  // Default value
+  //
+
+  /** Use the default value when extracting and no key found.
+    * ''Note'': extractor will always succeed
+    */
+  def withDefault(x: => T): Field[T] =
+    new Field[T](path) {
+      override def unapply(dbo: DBObject)(implicit getter: ValueReader[T]): Option[T] = self.unapply(dbo) orElse Some(x)
+    }
+
   //
   // Cloning Fields
   //

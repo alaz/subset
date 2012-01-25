@@ -72,6 +72,13 @@ class fieldSpec extends Spec with MustMatchers with MongoMatchers with Routines 
         case _ => fail("must extract field value")
       }
     }
+    it("may have a default value") {
+      val F2 = "i".fieldOf[Int].withDefault(123)
+      start("i", "str").get match {
+        case F2(i) => i must equal(123)
+        case _ => fail("must extract field value")
+      }
+    }
     it("has conjunction extractor") {
       val I = "i".fieldOf[Int]
       val S = "s".fieldOf[String]
