@@ -221,7 +221,7 @@ class Field[T](override val path: List[String]) extends Path with FieldCondition
 
   /**Create a tuple subset
    */
-  def ~[T2](f2: Field[T2]) = new Tuple2Subset[T,T2](this.name, f2.name)
+  def ~[T2](f2: Field[T2]) = new Tuple2Subset[T,T2](this, f2)
 
   //
   // Queries / Update modifiers
