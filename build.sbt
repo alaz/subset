@@ -24,9 +24,7 @@ crossScalaVersions := Seq("2.8.1", "2.8.2", "2.9.1")
 
 organizationName := "Osinka"
 
-description := """Subset is a tiny and simple library for
-  - typed field serializers/deserializers to/from DBObject
-  - typed query/update builders"""
+description := """Subset: typed MongoDB fields and query/update builders"""
 
 scalacOptions += "-unchecked"
 

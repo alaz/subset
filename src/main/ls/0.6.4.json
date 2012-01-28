@@ -2,10 +2,8 @@
 {
  "organization":"com.osinka.subset",
  "name":"subset",
- "version":"0.6.3",
- "description":"Subset is a tiny and simple library for
-  - typed field serializers/deserializers to/from DBObject
-  - typed query/update builders",
+ "version":"0.6.4",
+ "description":"Subset: typed MongoDB fields and query/update builders",
  "site":"",
  "tags":["mongo","mongodb"],
  "docs":"http://osinka.github.com/subset/Subset.html",
