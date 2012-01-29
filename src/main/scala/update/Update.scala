@@ -33,7 +33,7 @@ trait Modifications[T] extends Path {
 
   def set[A <% T : ValueWriter](x: A) = op("$set", x)
   def inc(x: T)(implicit writer: ValueWriter[T]) = op("$inc", x)
-  def unset(x: T) = op("$unset", 1)
+  def unset = op("$unset", 1)
   def push[A](x: A)(implicit writer: ValueWriter[A], ev: T <:< Traversable[A]) = op("$push", x)
   def push[A](seq: Traversable[A])(implicit writer: ValueWriter[Traversable[A]], ev: T <:< Traversable[A]): Update = pushAll(seq)
   def pushAll[A](seq: Traversable[A])(implicit writer: ValueWriter[Traversable[A]], ev: T <:< Traversable[A]) = op("$pushAll", seq)
