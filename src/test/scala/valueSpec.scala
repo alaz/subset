@@ -91,7 +91,7 @@ class valueSpec extends Spec with MustMatchers with MongoMatchers with Routines 
     }
   }
   describe("Recovering primitives serializer") {
-    import org.bson.types.{Symbol => BsonSymbol}
+    import org.bson.types.{ObjectId, Symbol => BsonSymbol}
     val explicit = SmartValues
 
     it("must set") {
@@ -108,6 +108,12 @@ class valueSpec extends Spec with MustMatchers with MongoMatchers with Routines 
       unpackValue[Symbol](new BsonSymbol("Sym")) must equal(Some('Sym))
       unpackValue[Symbol]("sym") must equal(None)
       unpackValue[String]('Sym) must equal(None)
+    }
+    it("recovers ObjectId") {
+      unpackValue[ObjectId](11)(explicit.objIdRecoveringGetter) must equal(None)
+      unpackValue[ObjectId]("11")(explicit.objIdRecoveringGetter) must equal(None)
+      unpackValue[ObjectId](new ObjectId)(explicit.objIdRecoveringGetter) must be('defined)
+      unpackValue[ObjectId]( (new ObjectId).toString )(explicit.objIdRecoveringGetter) must be('defined)
     }
     it("recovers Int") {
       unpackValue[Int](11)(explicit.intRecoveringGetter) must equal(Some(11))
