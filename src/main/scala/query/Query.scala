@@ -99,32 +99,23 @@ trait FieldConditions[T] extends Conditions[T] {
   * == Composition ==
   * Queries allow composition using methods
   *  - `and` results in `\$and` query
-  *  - `&&` writes all the conditional operators into the resulting query
-  *    document
+  *  - `&&` results in either "one document query" or `\$and` query (depending on the strategy used)
   *  - `||` (the same as `or`), this will result in `\$or`
   *  - `nor`, this will result in `\$nor`
   *
-  * Whenever you join queries with `&&`, they are written as document keys, e.g.
+  * Whenever you join queries with `&&`, they are written as document keys if possible, e.g.
   *
   * {{{
   * val q1 = (f > 0 && k === 3).get
   * }}}
   * This results in `{f: {\$gt: 0}, k: 3}`
   *
-  * ''Note'' in the case several condition operators are set on the same field,
-  * only the last one will be written:
+  * If the quries refer to the same field, `\$and` query will be generated:
   *
   * {{{
-  * val q1 = (f > 0 && f < 5 && k === 3).get
+  * val q1 = (f > 0 && f < 5).get
   * }}}
-  * This results in `{f: {\$lt: 5}, k: 3}`
-  *
-  * In this case, `and` method must be used, e.g.
-  *
-  * {{{
-  * val q1 = ((f > 0 and f < 5) && k === 3).get
-  * }}}
-  * This results in `{\$and: [{f: {\$gt:0}}, {f: {\$lt:10}}], k: 3}`.
+  * This results in `{\$and: [{f: {\$gt: 0}}, {f: {\$lt: 5}}]}`
   *
   * @see [[https://github.com/osinka/subset/blob/master/src/it/scala/blogCommentSpec.scala Blog Comment Example]]
   */
@@ -133,9 +124,11 @@ trait Query extends Mutation {
 
   override def apply(dbo: DBObject): DBObject = queryMutation(Path.empty)(dbo)
 
-  def &&(other: Query): Query = Query(queryMutation ~ other.queryMutation)
+  def &&(other: Query)(implicit strategy: ConjunctionStrategy = ConjunctionStrategy.Auto): Query =
+    strategy.conj(this, other)
 
-  def and(other: Query): Query = Query.And(other :: this :: Nil)
+  def and(other: Query)(implicit strategy: ConjunctionStrategy = ConjunctionStrategy.AndQuery): Query =
+    strategy.conj(this, other)
 
   def ||(other: Query) = or(other)
   def or(other: Query): Query = Query.Or(other :: this :: Nil)
@@ -161,17 +154,16 @@ object Query {
 
   private case class DefaultImpl(override val queryMutation: QueryMutation) extends Query
 
-  private[subset] case class And(queries: List[Query]) extends Query {
-    override def and(other: Query): Query = copy(queries = other :: queries)
+  private[query] case class And(queries: List[Query]) extends Query {
     override def queryMutation: QueryMutation = embed("$and", queries map {_.queryMutation} reverse)
   }
 
-  private[subset] case class Or(queries: List[Query]) extends Query {
+  private[query] case class Or(queries: List[Query]) extends Query {
     override def or(other: Query): Query = copy(queries = other :: queries)
     override def queryMutation: QueryMutation = embed("$or", queries map {_.queryMutation} reverse)
   }
 
-  private[subset] case class Nor(queries: List[Query]) extends Query {
+  private[query] case class Nor(queries: List[Query]) extends Query {
     override def nor(other: Query): Query = copy(queries = other :: queries)
     override def queryMutation: QueryMutation = embed("$nor", queries map {_.queryMutation} reverse)
   }
