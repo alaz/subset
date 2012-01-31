@@ -29,7 +29,7 @@ description := """Subset: typed MongoDB fields and query/update builders"""
 scalacOptions += "-unchecked"
 
 libraryDependencies ++= Seq(
-  "org.mongodb" % "mongo-java-driver" % "2.7.2",
+  "org.mongodb" % "mongo-java-driver" % "2.7.3",
   "joda-time" % "joda-time" % "1.6.2" % "optional",
   "junit" % "junit" % "4.10" % "it,test"
 )
