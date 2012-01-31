@@ -85,7 +85,7 @@ object ValueReader {
   implicit val stringGetter = ValueReader[String]({
     case s: String => s
     case s: BsonSymbol => s.getSymbol
-    case oid: ObjectId => oid.toString
+    case oid: ObjectId => oid.toStringMongod
   })
   implicit val symbolGetter = ValueReader[Symbol]({
     case s: Symbol => s

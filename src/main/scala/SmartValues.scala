@@ -16,13 +16,15 @@
 package com.osinka.subset
 
 import java.util.Date
+import org.bson.types.ObjectId
 
 /** Provides a smart deserialization of BSON values
   */
 object SmartValues extends SmartValues
 
 /** unpack primitives and try to convert from other type:
-  * 
+  *
+  * - tries to get `ObjectId` from String
   * - tries to get Int, Long, Double, Byte from String
   * - tries to get DateTime (java.util.Date) from Int (as a number of seconds from the epoch)
   *   or Long (as a number of milliseconds from the epoch)
@@ -31,6 +33,15 @@ trait SmartValues {
   import Extractors._
   import ValueReader._
 
+  implicit val objIdRecoveringGetter = ValueReader[ObjectId]({
+      case objId: ObjectId => objId
+    }) orElse stringGetter.andThen({ case AsObjectId(oid) => oid })
+  implicit val stringRecoveringGetter =
+    stringGetter orElse ValueReader[String]({
+      case i: Int => i.toString
+      case l: Long => l.toString
+      case b: Boolean => b.toString
+    })
   implicit val booleanRecoveringGetter = ValueReader[Boolean]({
       case b: Boolean => b
       case i: Int => i != 0
@@ -45,12 +56,12 @@ trait SmartValues {
       case i: Int => i
       case l: Long => l.intValue
     }) orElse stringGetter.andThen({ case AsInt(i) => i })
-  
+
   implicit val longRecoveringGetter = ValueReader[Long]({
       case i: Int => i.longValue
       case l: Long => l
     }) orElse stringGetter.andThen({ case AsLong(l) => l })
-  
+
   implicit val byteRecoveringGetter = ValueReader[Byte]({
       case i: Int => i.byteValue
       case l: Long => l.byteValue
