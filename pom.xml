@@ -3,7 +3,7 @@
   <modelVersion>4.0.0</modelVersion>
   <groupId>com.osinka.subset</groupId>
   <artifactId>subset_2.8.2</artifactId>
-  <version>0.7.0</version>
+  <version>0.7.1-SNAPSHOT</version>
   <packaging>bundle</packaging>
   <name>Subset - MongoDB Document serialization and query builder library</name>
   <inceptionYear>2011</inceptionYear>
