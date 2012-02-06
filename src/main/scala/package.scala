@@ -98,9 +98,11 @@ package object subset {
   implicit def fToQMutation(f: Path => Mutation): QueryMutation = QueryMutation.fToQMutation(f)
 
   // Query
+  type Query = query.Query
   val Query = query.Query
 
   // Update
+  type Update = update.Update
   val Update = update.Update
 
   /** Convenience extractor
