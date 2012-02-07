@@ -144,7 +144,7 @@ trait Query extends Mutation {
 object Query {
   /** @return an empty query
     */
-  def empty: Query = const(Mutation.empty)
+  def empty: Query = const(Mutation.noop)
 
   def const(dbo: DBObject): Query = const(Mutation const dbo)
   def const(mutation: Mutation): Query = apply(QueryMutation {_: Path => mutation})
