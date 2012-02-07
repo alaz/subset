@@ -162,6 +162,14 @@ class querySpec extends Spec with MustMatchers with MongoMatchers with Routines 
       arr.get(2) must containKeyValue("m" -> 7)
     }
   }
+  describe("Conjunction strategy via And") {
+    implicit val strategy = ConjunctionStrategy.AndQuery
+
+    it("drops empty queries") {
+      (Query.empty and Query.empty).get.keySet must be('empty)
+      (Query.const(start.get) and Query.const(start.get)).get.keySet must be('empty)
+    }
+  }
   describe("Conjunction strategy via Auto") {
     val i = "i".fieldOf[Int]
     val k = "k".fieldOf[Int]
