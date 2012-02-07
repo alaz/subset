@@ -36,8 +36,8 @@ object Document {
     * This wrapper method is supposed to be used around `insert` in order to return
     * the new object's ID.
     */
-  def newDoc[T](obj: T)(op: DBObject => WriteResult)(implicit reader: ValueReader[ObjectId], t2dbo: T => DBObject): Either[WriteResult, ObjectId] = {
-    val dbo: DBObject = t2dbo(obj)
+  def newDoc[T <% DBObject](obj: T)(op: DBObject => WriteResult): Either[WriteResult, ObjectId] = {
+    val dbo: DBObject = obj
     val wr = op(dbo)
 
     if (wr.getError == null)
