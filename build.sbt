@@ -7,12 +7,15 @@
 // You may change the defaults in src/it/scala/ExampleFixture.scala
 
 import com.jsuereth.sbtsite.SiteKeys
+import com.jsuereth.pgp.GpgPlugin
 import sbtrelease.Release._
 import ls.Plugin._
 
 organization := "com.osinka.subset"
 
 name := "subset"
+
+homepage := Some(url("https://github.com/osinka/subset"))
 
 startYear := Some(2011)
 
@@ -58,7 +61,7 @@ git.remoteRepo := "git@github.com:osinka/subset.git"
 
 seq(releaseSettings: _*)
 
-credentials += Credentials(Path.userHome / ".ivy2" / "credentials")
+credentials += Credentials(Path.userHome / ".ivy2" / "credentials_sonatype")
 
 parallelExecution in IntegrationTest := false
 
@@ -66,7 +69,7 @@ publishTo <<= (version) { version: String =>
   if (version.trim endsWith "SNAPSHOT")
     Some(Resolver.file("file", file(Path.userHome.absolutePath+"/.m2/repository")))
   else
-    Some("Scala Tools Nexus" at "http://nexus.scala-tools.org/content/repositories/releases/")
+    Some("Sonatype OSS Staging" at "https://oss.sonatype.org/service/local/staging/deploy/maven2/")
 }
 
 seq(lsSettings: _*)
@@ -84,6 +87,11 @@ pomExtra := <xml:group>
         <timezone>+4</timezone>
       </developer>
     </developers>
+    <scm>
+      <connection>scm:git:git://github.com/osinka/subset.git</connection>
+      <developerConnection>scm:git:git@github.com:osinka/subset.git</developerConnection>
+      <url>http://github.com/osinka/subset</url>
+    </scm>
     <issueManagement>
       <system>github</system>
       <url>http://github.com/osinka/subset/issues</url>
