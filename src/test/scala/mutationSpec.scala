@@ -15,7 +15,7 @@
  */
 package com.osinka.subset
 
-import org.scalatest.Spec
+import org.scalatest.FunSpec
 import org.scalatest.matchers.MustMatchers
 import org.junit.runner.RunWith
 import org.scalatest.junit.JUnitRunner
@@ -24,7 +24,7 @@ import com.mongodb.{DBObject,BasicDBObjectBuilder}
 import BasicDBObjectBuilder.start
 
 @RunWith(classOf[JUnitRunner])
-class mutationSpec extends Spec with MustMatchers with MongoMatchers with Routines {
+class mutationSpec extends FunSpec with MustMatchers with MongoMatchers with Routines {
   describe("Mutation") {
     // FIXME: cannot compare arrays https://jira.mongodb.org/browse/JAVA-482
     def dbo = start("i", 10).push("inner").add("s", "string")/*.add("a", Array(1,2))*/.get

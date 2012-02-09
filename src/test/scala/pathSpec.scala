@@ -15,7 +15,7 @@
  */
 package com.osinka.subset
 
-import org.scalatest.Spec
+import org.scalatest.FunSpec
 import org.scalatest.matchers.MustMatchers
 import org.junit.runner.RunWith
 import org.scalatest.junit.JUnitRunner
@@ -23,7 +23,7 @@ import org.scalatest.junit.JUnitRunner
 import com.mongodb.BasicDBObjectBuilder.start
 
 @RunWith(classOf[JUnitRunner])
-class pathSpec extends Spec with MustMatchers with MongoMatchers with Routines {
+class pathSpec extends FunSpec with MustMatchers with MongoMatchers with Routines {
   describe("Path") {
     it("must have an empty value") {
       Path.empty.path must be('empty)

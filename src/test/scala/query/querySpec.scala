@@ -16,7 +16,7 @@
 package com.osinka.subset
 package query
 
-import org.scalatest.Spec
+import org.scalatest.FunSpec
 import org.scalatest.matchers.MustMatchers
 import org.junit.runner.RunWith
 import org.scalatest.junit.JUnitRunner
@@ -28,7 +28,7 @@ import QueryBuilder.{start => query}
 import BasicDBObjectBuilder.start
 
 @RunWith(classOf[JUnitRunner])
-class querySpec extends Spec with MustMatchers with MongoMatchers with Routines {
+class querySpec extends FunSpec with MustMatchers with MongoMatchers with Routines {
   import SmartValues._
 
   describe("Field query") {

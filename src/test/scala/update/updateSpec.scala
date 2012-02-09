@@ -16,7 +16,7 @@
 package com.osinka.subset
 package update
 
-import org.scalatest.Spec
+import org.scalatest.FunSpec
 import org.scalatest.matchers.MustMatchers
 import org.junit.runner.RunWith
 import org.scalatest.junit.JUnitRunner
@@ -25,7 +25,7 @@ import com.mongodb.{DBObject,BasicDBObjectBuilder}
 import BasicDBObjectBuilder.{start => dbo}
 
 @RunWith(classOf[JUnitRunner])
-class updateSpec extends Spec with MustMatchers with MongoMatchers with Routines {
+class updateSpec extends FunSpec with MustMatchers with MongoMatchers with Routines {
   import SmartValues._
 
   describe("Field") {

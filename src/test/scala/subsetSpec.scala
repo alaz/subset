@@ -15,7 +15,7 @@
  */
 package com.osinka.subset
 
-import org.scalatest.Spec
+import org.scalatest.FunSpec
 import org.scalatest.matchers.MustMatchers
 import org.junit.runner.RunWith
 import org.scalatest.junit.JUnitRunner
@@ -24,7 +24,7 @@ import com.mongodb.{DBObject,BasicDBObjectBuilder}
 import BasicDBObjectBuilder.start
 
 @RunWith(classOf[JUnitRunner])
-class subsetSpec extends Spec with MustMatchers with MongoMatchers with Routines {
+class subsetSpec extends FunSpec with MustMatchers with MongoMatchers with Routines {
   describe("Untyped Subset") {
     object Sub {
       val f = Field[Int]("f")

@@ -16,7 +16,7 @@
 package com.osinka.subset
 package query
 
-import org.scalatest.Spec
+import org.scalatest.FunSpec
 import org.scalatest.matchers.MustMatchers
 import org.junit.runner.RunWith
 import org.scalatest.junit.JUnitRunner
@@ -24,7 +24,7 @@ import org.scalatest.junit.JUnitRunner
 import com.mongodb.BasicDBObjectBuilder.start
 
 @RunWith(classOf[JUnitRunner])
-class queryMutationSpec extends Spec with MustMatchers with MongoMatchers with Routines {
+class queryMutationSpec extends FunSpec with MustMatchers with MongoMatchers with Routines {
   describe("QueryMutation") {
     it("has conjunction") { pending }
     it("writes relative keys") { pending }

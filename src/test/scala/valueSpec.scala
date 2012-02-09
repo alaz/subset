@@ -15,7 +15,7 @@
  */
 package com.osinka.subset
 
-import org.scalatest.Spec
+import org.scalatest.FunSpec
 import org.scalatest.matchers.MustMatchers
 import org.junit.runner.RunWith
 import org.scalatest.junit.JUnitRunner
@@ -27,7 +27,7 @@ import BasicDBObjectBuilder.{start => dbo}
  * FIXME: We cannot simply compare BSON symbols : https://jira.mongodb.org/browse/JAVA-479
  */
 @RunWith(classOf[JUnitRunner])
-class valueSpec extends Spec with MustMatchers with MongoMatchers with Routines {
+class valueSpec extends FunSpec with MustMatchers with MongoMatchers with Routines {
   describe("Base primitives serializer") {
     import org.bson.types.{Symbol => BsonSymbol}
 
