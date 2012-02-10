@@ -31,6 +31,8 @@ description := """Subset: typed MongoDB fields and query/update builders"""
 
 scalacOptions += "-unchecked"
 
+parallelExecution in IntegrationTest := false
+
 libraryDependencies ++= Seq(
   "org.mongodb" % "mongo-java-driver" % "2.7.3",
   "joda-time" % "joda-time" % "1.6.2" % "optional",
@@ -55,7 +57,7 @@ seq(releaseSettings: _*)
 
 credentials += Credentials(Path.userHome / ".ivy2" / "credentials_sonatype")
 
-parallelExecution in IntegrationTest := false
+pomIncludeRepository := { x => false }
 
 publishTo <<= (version) { version: String =>
   if (version.trim endsWith "SNAPSHOT")
