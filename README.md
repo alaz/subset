@@ -62,14 +62,4 @@ Dependency:
 </dependency>
 ```
 
-Do not forget repository:
-
-```xml
-<repositories>
-  <repository>
-     <id>scala-tools.org</id>
-     <name>Scala-Tools Maven2 Repository</name>
-     <url>http://scala-tools.org/repo-releases</url>
-  </repository>
-</repositories>
-```
+No need in repository declaration, **Subset** is in Maven Central.
