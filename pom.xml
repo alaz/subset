@@ -158,6 +158,7 @@
             <exclude>**/*.sbt</exclude>
             <exclude>**/*.textile</exclude>
             <exclude>**/*.md</exclude>
+            <exclude>**/*.json</exclude>
             <exclude>**/*.properties</exclude>
           </excludes>
           <useDefaultExcludes>true</useDefaultExcludes>
