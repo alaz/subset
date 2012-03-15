@@ -57,7 +57,7 @@ Dependency:
 ```xml
 <dependency>
   <groupId>com.osinka.subset</groupId>
-  <artifactId>subset_2.8.2</artifactId>
+  <artifactId>subset_2.9.1</artifactId>
   <version>0.7.2</version>
 </dependency>
 ```
