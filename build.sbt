@@ -7,7 +7,6 @@
 // You may change the defaults in src/it/scala/ExampleFixture.scala
 
 import com.jsuereth.sbtsite.SiteKeys
-import com.jsuereth.pgp.GpgPlugin
 import sbtrelease.Release._
 import ls.Plugin._
 
