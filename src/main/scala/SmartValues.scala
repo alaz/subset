@@ -46,7 +46,10 @@ trait SmartValues {
       case b: Boolean => b
       case i: Int => i != 0
       case l: Long => l != 0
-    })
+      case f: Float => f != 0.0
+      case d: Double => d != 0.0
+      case s: String => !s.isEmpty
+  })
   implicit val shortRecoveringGetter = ValueReader[Short]({
       case i: Int => i.shortValue
       case l: Long => l.shortValue

@@ -140,6 +140,14 @@ class valueSpec extends FunSpec with MustMatchers with MongoMatchers with Routin
       unpackValue[Float](109L)(explicit.floatRecoveringGetter) must equal(Some(109.0F))
       unpackValue[Float]("x13")(explicit.floatRecoveringGetter) must equal(None)
     }
+    it("recovers Boolean") {
+      unpackValue[Boolean](67)(explicit.booleanRecoveringGetter) must equal(Some(true))
+      unpackValue[Boolean]("")(explicit.booleanRecoveringGetter) must equal(Some(false))
+      unpackValue[Boolean]("0")(explicit.booleanRecoveringGetter) must equal(Some(true))
+      unpackValue[Boolean](0.0)(explicit.booleanRecoveringGetter) must equal(Some(false))
+      unpackValue[Boolean](0.3)(explicit.booleanRecoveringGetter) must equal(Some(true))
+      unpackValue[Boolean](0L)(explicit.booleanRecoveringGetter) must equal(Some(false))
+    }
     it("recovers Date") {
       import java.util.Date
       // round to seconds
