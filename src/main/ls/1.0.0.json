@@ -1,0 +1,34 @@
+
+{
+ "organization":"com.osinka.subset",
+ "name":"subset",
+ "version":"1.0.0",
+ "description":"Subset: typed MongoDB fields and query/update builders",
+ "site":"https://github.com/osinka/subset",
+ "tags":["mongo","mongodb"],
+ "docs":"http://osinka.github.com/subset/Subset.html",
+ "licenses": [{
+   "name": "Apache License, Version 2.0",
+   "url": "http://www.apache.org/licenses/LICENSE-2.0"
+  }],
+ "resolvers": ["http://scala-tools.org/repo-releases"],
+ "dependencies": [{
+   "organization":"org.mongodb",
+   "name": "mongo-java-driver",
+   "version": "2.8.0"
+  },{
+   "organization":"joda-time",
+   "name": "joda-time",
+   "version": "1.6.2"
+  },{
+   "organization":"org.scalatest",
+   "name": "scalatest",
+   "version": "1.8"
+  },{
+   "organization":"junit",
+   "name": "junit",
+   "version": "4.10"
+  }],
+ "scalas": ["2.8.1","2.8.2","2.9.1"],
+ "sbt": false
+}
