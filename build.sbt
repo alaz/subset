@@ -18,11 +18,11 @@ homepage := Some(url("https://github.com/osinka/subset"))
 
 startYear := Some(2011)
 
-scalaVersion := "2.9.1"
+scalaVersion := "2.9.2"
 
 licenses += "Apache License, Version 2.0" -> url("http://www.apache.org/licenses/LICENSE-2.0")
 
-crossScalaVersions := Seq("2.8.1", "2.8.2", "2.9.1")
+crossScalaVersions := Seq("2.8.1", "2.8.2", "2.9.1", "2.9.2")
 
 organizationName := "Osinka"
 
