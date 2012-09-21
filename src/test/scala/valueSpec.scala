@@ -23,9 +23,6 @@ import org.scalatest.junit.JUnitRunner
 import com.mongodb.{BasicDBList,BasicDBObjectBuilder}
 import BasicDBObjectBuilder.{start => dbo}
 
-/*
- * FIXME: We cannot simply compare BSON symbols : https://jira.mongodb.org/browse/JAVA-479
- */
 @RunWith(classOf[JUnitRunner])
 class valueSpec extends FunSpec with MustMatchers with MongoMatchers with Routines {
   describe("Base primitives serializer") {
@@ -34,9 +31,7 @@ class valueSpec extends FunSpec with MustMatchers with MongoMatchers with Routin
     it("must set explicitly") {
       packValue("val")(ValueWriter.stringSetter) must equal(Some("val"))
       val sym = packValue('Sym)(ValueWriter.symbolSetter)
-      sym must be('defined)
-      sym.get.asInstanceOf[AnyRef].getClass must equal(classOf[BsonSymbol])
-      sym.get.asInstanceOf[BsonSymbol].getSymbol must equal("Sym")
+      sym must equal(Some(new BsonSymbol("Sym")))
     }
   }
   describe("Option writer") {
@@ -98,9 +93,7 @@ class valueSpec extends FunSpec with MustMatchers with MongoMatchers with Routin
       import explicit._
       packValue(10) must equal(Some(new java.lang.Integer(10)))
       val sym = packValue('Sym)
-      sym must be('defined)
-      sym.get.asInstanceOf[AnyRef].getClass must equal(classOf[BsonSymbol])
-      sym.get.asInstanceOf[BsonSymbol].getSymbol must equal("Sym")
+      sym must equal(Some(new BsonSymbol("Sym")))
     }
     it("must get") {
       import explicit._
