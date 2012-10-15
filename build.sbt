@@ -7,7 +7,6 @@
 // You may change the defaults in src/it/scala/ExampleFixture.scala
 
 import com.jsuereth.sbtsite.SiteKeys
-import sbtrelease.Release._
 import ls.Plugin._
 
 organization := "com.osinka.subset"
@@ -51,8 +50,6 @@ SiteKeys.siteMappings <<=
 seq(ghpages.settings:_*)
 
 git.remoteRepo := "git@github.com:osinka/subset.git"
-
-seq(releaseSettings: _*)
 
 credentials += Credentials(Path.userHome / ".ivy2" / "credentials_sonatype")
 
