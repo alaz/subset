@@ -101,7 +101,7 @@ trait Mutation extends (DBObject => DBObject) {
 object Mutation {
   /** @return A mutation that removes all the contents
     */
-  def empty: Mutation = const(BasicDBObjectBuilder.start.get)
+  def clear: Mutation = const(BasicDBObjectBuilder.start.get)
 
   /** @return A mutation that replaces the contents with the `DBObject` specified
     */
@@ -110,6 +110,10 @@ object Mutation {
   /** @return A mutation that does nothing, simply returns the same `DBObject` back
     */
   def noop: Mutation = apply(identity _)
+
+  /** This is the synonym for `noop`
+    */
+  def empty: Mutation = noop
 
   // Factory object
   def apply(f: DBObject => DBObject): Mutation =
