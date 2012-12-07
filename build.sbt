@@ -32,7 +32,7 @@ scalacOptions += "-unchecked"
 parallelExecution in IntegrationTest := false
 
 libraryDependencies ++= Seq(
-  "org.mongodb" % "mongo-java-driver" % "2.10.0",
+  "org.mongodb" % "mongo-java-driver" % "2.10.1",
   "joda-time" % "joda-time" % "1.6.2" % "optional",
   "org.scalatest" %% "scalatest" % "1.8" % "it,test",
   "junit" % "junit" % "4.11" % "it,test"
