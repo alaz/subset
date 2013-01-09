@@ -39,7 +39,7 @@ import SmartValues._
 Depending on *simple* or *scala* configration:
 
 ```scala
-libraryDependencies += "com.osinka.subset" %% "subset" % "1.0.1"
+libraryDependencies += "com.osinka.subset" %% "subset" % "1.0.2"
 ```
 
 or
@@ -47,7 +47,7 @@ or
 ```scala
 lazy val root = Project(....) dependsOn(subset)
 
-lazy val subset = "com.osinka.subset" %% "subset" % "1.0.1"
+lazy val subset = "com.osinka.subset" %% "subset" % "1.0.2"
 ```
 
 ### Maven Configuration
@@ -57,8 +57,8 @@ Dependency:
 ```xml
 <dependency>
   <groupId>com.osinka.subset</groupId>
-  <artifactId>subset_2.9.1</artifactId>
-  <version>1.0.1</version>
+  <artifactId>subset_2.10.0</artifactId>
+  <version>1.0.2</version>
 </dependency>
 ```
 
