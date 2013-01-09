@@ -21,7 +21,7 @@ scalaVersion := "2.9.2"
 
 licenses += "Apache License, Version 2.0" -> url("http://www.apache.org/licenses/LICENSE-2.0")
 
-crossScalaVersions := Seq("2.8.1", "2.8.2", "2.9.1", "2.9.2")
+crossScalaVersions := Seq("2.8.1", "2.8.2", "2.9.1", "2.9.2", "2.10")
 
 organizationName := "Osinka"
 
@@ -34,7 +34,7 @@ parallelExecution in IntegrationTest := false
 libraryDependencies ++= Seq(
   "org.mongodb" % "mongo-java-driver" % "2.10.1",
   "joda-time" % "joda-time" % "1.6.2" % "optional",
-  "org.scalatest" %% "scalatest" % "1.8" % "it,test",
+  "org.scalatest" % "scalatest" % "1.8" % "it,test" cross CrossVersion.full,
   "junit" % "junit" % "4.11" % "it,test"
 )
 
