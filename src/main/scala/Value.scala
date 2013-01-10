@@ -62,6 +62,9 @@ case class ValueReaderPf[+T](pf: PartialFunction[Any, T]) extends ValueReader[T]
   * It contains default reader implicits as well.
   */
 object ValueReader {
+  import collection.JavaConverters._
+  import org.bson.types.BasicBSONList
+
   def apply[T](pf: PartialFunction[Any,T]): ValueReaderPf[T] = new ValueReaderPf[T](pf)
 
   //
@@ -100,23 +103,21 @@ object ValueReader {
       case b: Binary => b.getData
       case a: Array[Byte] => a
     })
-  implicit def arrayGetter[T] = ValueReader[Array[T]]({
+  implicit def arrayGetter[T](implicit r: ValueReader[T], m: Manifest[T]) =
+    ValueReader[Array[T]]({
       case a: Array[_] => a.asInstanceOf[Array[T]]
+      case list: BasicBSONList => list.asScala flatMap {r.unpack _} toArray
     })
 
   implicit def optionGetter[T](implicit r: ValueReader[T]) =
     new ValueReader[Option[T]] {
       override def unpack(o: Any): Option[Option[T]] = Some(r.unpack(o))
     }
-  implicit def listGetter[T](implicit r: ValueReader[T]) = {
-    import collection.JavaConversions._
-    import org.bson.types.BasicBSONList
-
+  implicit def listGetter[T](implicit r: ValueReader[T]) =
     ValueReader[List[T]]({
       case ar: Array[_] => ar flatMap {r.unpack _} toList
-      case list: BasicBSONList => list flatMap {r.unpack _} toList
+      case list: BasicBSONList => list.asScala flatMap {r.unpack _} toList
     })
-  }
   implicit def tuple2Getter[T1,T2](implicit r1: ValueReader[T1], r2: ValueReader[T2]) =
     new ValueReader[Tuple2[T1,T2]] {
       override def unpack(o: Any): Option[Tuple2[T1,T2]] =

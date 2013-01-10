@@ -77,6 +77,22 @@ class valueSpec extends FunSpec with MustMatchers with MongoMatchers with Routin
       unpackValue[List[Int]](Array(1,2,3)) must equal(Some(List(1,2,3)))
     }
   }
+  describe("Array reader") {
+    it("gets Array[T] from BSON DBList") {
+      val da = new BasicDBList
+      da.put(0, 1)
+      da.put(1, 2)
+      da.put(2, 3)
+      val opt = unpackValue[Array[Int]](da)
+      opt must be('defined)
+      opt.get must equal(Array(1,2,3))
+    }
+    it("gets Array[T] from Array") {
+      val opt = unpackValue[Array[Int]](Array(1,2,3))
+      opt must be('defined)
+      opt.get must equal(Array(1,2,3))
+    }
+  }
   describe("Tuple writer") {
     it("sets Tuple2") {
       packValue("s" -> 10).map{_.asInstanceOf[Array[_]].toList} must equal(Some(Array("s", 10).toList))
