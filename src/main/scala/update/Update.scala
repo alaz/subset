@@ -61,8 +61,6 @@ object Update {
   * val updateOp = f.set("value") ~ count.inc(1)
   * collection.update(query, updateOp)
   * }}}
-  *
-  * You may get a [[com.osinka.subset.Mutation]] explicitly with `mutation` method
   */
 case class Update(ops: Map[String,QueryMutation]) extends Mutation {
   override def apply(dbo: DBObject): DBObject = {

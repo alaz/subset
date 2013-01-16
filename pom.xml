@@ -3,7 +3,7 @@
   <modelVersion>4.0.0</modelVersion>
   <groupId>com.osinka.subset</groupId>
   <artifactId>subset_2.9.1</artifactId>
-  <version>1.0.2-SNAPSHOT</version>
+  <version>1.0.3-SNAPSHOT</version>
   <packaging>bundle</packaging>
   <name>Subset - MongoDB Document serialization and query builder library</name>
   <inceptionYear>2011</inceptionYear>
@@ -51,7 +51,7 @@
     <dependency>
       <groupId>org.mongodb</groupId>
       <artifactId>mongo-java-driver</artifactId>
-      <version>2.10.0</version>
+      <version>2.10.1</version>
     </dependency>
     <dependency>
       <groupId>joda-time</groupId>
