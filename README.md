@@ -1,6 +1,6 @@
 # Subset
 
-**Subset** is a library to ease extracting fields from MongoDB documents,
+**Subset** 1.x is a library to ease extracting fields from MongoDB documents,
 serializing them back and constructing queries.
 
 **Subset** may help you to
@@ -17,6 +17,7 @@ serializing them back and constructing queries.
 
 ## More Information
 
+* [Subset 2.x](https://github.com/osinka/subset2)
 * [API Reference (scaladoc)](http://osinka.github.com/subset/api/index.html#com.osinka.subset.package)
 * [Documentation](http://osinka.github.com/subset/Subset.html)
 
