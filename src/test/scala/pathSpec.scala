@@ -23,7 +23,7 @@ import org.scalatest.junit.JUnitRunner
 import com.mongodb.BasicDBObjectBuilder.start
 
 @RunWith(classOf[JUnitRunner])
-class pathSpec extends FunSpec with MustMatchers with MongoMatchers with Routines {
+class pathSpec extends FunSpec with MustMatchers with MongoMatchers {
   describe("Path") {
     it("must have an empty value") {
       Path.empty.path must be('empty)

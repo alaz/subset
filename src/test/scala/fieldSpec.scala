@@ -24,7 +24,7 @@ import com.mongodb.{DBObject,BasicDBObjectBuilder}
 import BasicDBObjectBuilder.start
 
 @RunWith(classOf[JUnitRunner])
-class fieldSpec extends FunSpec with MustMatchers with MongoMatchers with Routines {
+class fieldSpec extends FunSpec with MustMatchers with MongoMatchers {
   import SmartValues._
 
   describe("Field mutations") {
