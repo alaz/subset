@@ -49,6 +49,13 @@ trait Modifications[T] extends Path {
 }
 
 object Update {
+  /**
+   * Helper for `update` queries:
+   *
+   * `collection.update(query && query && Update.Isolated, updates)`
+   */
+  def Isolated = "$isolated".fieldOf[Int] === 1
+
   def empty: Update = new Update(Map.empty)
 
   def apply(t: (String, QueryMutation)) = new Update(Map(t))
