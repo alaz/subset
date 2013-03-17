@@ -35,6 +35,22 @@ class pipelinesSpec extends FunSpec with ShouldMatchers with MongoMatchers {
       Project("a".fieldOf[String] -> 1) should equal(dbo.push("$project").add("a", 1).get)
       Project("a".fieldOf[String] -> 0, "b".fieldOf[String] -> 1) should equal(dbo.push("$project").add("a", 0).add("b", 1).get)
     }
+    it("lets project to a doc") {
+      object Doc {
+        val pv = "pv".fieldOf[Int]
+        val p2 = "p2".fieldOf[Int]
+      }
+      val doc = "stats".subset(Doc).of[Unit]
+      val f1 = "f1".fieldOf[Int]
+      val f2 = "f2".fieldOf[Int]
+
+      Project(doc project {d => d.pv === f1 && d.p2 === f2}) should equal(
+        dbo.push("$project")
+          .push("stats")
+          .add("pv", "$f1").add("p2", "$f2")
+          .get
+      )
+    }
   }
   describe("Match") {
     it("accepts query") { pending }
@@ -51,19 +67,19 @@ class pipelinesSpec extends FunSpec with ShouldMatchers with MongoMatchers {
     }
     it("accepts dotted field") {
       val doc = "doc".subset(()).of[Unit]
-      val field = "f".fieldOf[List[Int]].in(doc)
-      Unwind(field) should equal(dbo("$unwind", "$doc.f").get)
+      val field = "f".fieldOf[List[Int]]
+      Unwind(field in doc) should equal(dbo("$unwind", "$doc.f").get)
     }
   }
   describe("Group") {
     it("last") {
       val id = "_id".subset(()).of[Unit]
-      val state = "state".fieldOf[String].in(id)
-      val city = "city".fieldOf[String].in(id)
+      val state = "state".fieldOf[String]
+      val city = "city".fieldOf[String]
 
       Group(id,
-        "biggestCity".fieldOf[String] -> Group.Last(city),
-        "smallestCity".fieldOf[String] -> Group.First(city)) should equal(
+        "biggestCity".fieldOf[String] -> Group.Last(city in id),
+        "smallestCity".fieldOf[String] -> Group.First(city in id)) should equal(
         dbo.push("$group")
           .add("_id", "$_id")
           .push("biggestCity").add("$last", "$_id.city").pop

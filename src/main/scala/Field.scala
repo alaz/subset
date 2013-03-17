@@ -215,6 +215,11 @@ class Field[T](override val path: List[String]) extends Path with FieldCondition
    */
   def matched = new Field[T](path :+ "$")
 
+  /**
+   * @return projection of field name (for use in Aggregation Framework)
+   */
+  def projection = "$"+longName
+
   /** Create an alias
     */
   def in(subset: Field[_]): Field[T] = new Field[T]( (subset + this).path )
@@ -230,6 +235,10 @@ class Field[T](override val path: List[String]) extends Path with FieldCondition
   /** Create a query relative to this field
     */
   def where(q: Query): Query = Query( wrap(this, q.queryMutation) )
+
+  /** Create a projection relative to this field (in Aggregation framework)
+    */
+  def project(q: Query): Query = Query( embed(this, q.queryMutation) )
 
   /** Creates a query as an \$elemMatch relative to this document
     *

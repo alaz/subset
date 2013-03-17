@@ -30,8 +30,6 @@ import com.mongodb.DBObject
 
 class PipelineOperator(val method: String) {
   protected def gen[A : ValueWriter](contents: A): DBObject = Mutation.writer(method, contents)
-
-  implicit val aggregateFieldWriter = ValueWriter[Field[_]](f => "$"+f.longName)
 }
 
 object Project extends PipelineOperator("$project") {
@@ -43,8 +41,9 @@ object Project extends PipelineOperator("$project") {
   def apply(fields: (Field[_], Int)*): DBObject =
     gen((Query.empty /: fields) { (q, t) => q && (t._1.int === t._2)})
 
-  // TODO: populate {stats: {pv: "$f1", p2: "$f2"}}
-  //def apply(fields: (Field[_]))
+  // remap {stats: {pv: "$f1", p2: "$f2"}}
+  def apply(query: Query): DBObject =
+    gen(query)
 }
 
 object Match extends PipelineOperator("$match") {
@@ -59,9 +58,8 @@ object Skip extends PipelineOperator("$skip") {
   def apply(n: Int): DBObject = gen(n)
 }
 
-// TODO: edge case: is it possible to have dotted field in $unwind?
 object Unwind extends PipelineOperator("$unwind") {
-  def apply[A <: Traversable[_]](f: Field[A]): DBObject = gen(f)
+  def apply[A <: Traversable[_]](f: Field[A]): DBObject = gen(f.projection)
 }
 
 object Group extends PipelineOperator("$group") {
@@ -70,16 +68,16 @@ object Group extends PipelineOperator("$group") {
     def apply[T : ValueWriter](f: String, v: T): Op = new Op(Mutation.writer(f, v) : DBObject)
   }
 
-  def Eq[A : ValueWriter](v: A) = Op( ValueWriter.pack(v).get )
-  def AddToSet[A](f: Field[A]) = Op("$addToSet", f)
-  def First[A](f: Field[A]) = Op("$first", f)
-  def Last[A](f: Field[A]) = Op("$last", f)
-  def Max[A](f: Field[A]) = Op("$max", f)
-  def Min[A](f: Field[A]) = Op("$min", f)
-  def Avg[A](f: Field[A]) = Op("$avg", f)
-  def Push[A](f: Field[A]) = Op("$push", f)
+  def Eq(f: Field[_]) = Op( ValueWriter.pack(f.projection).get )
+  def AddToSet[A](f: Field[A]) = Op("$addToSet", f.projection)
+  def First[A](f: Field[A]) = Op("$first", f.projection)
+  def Last[A](f: Field[A]) = Op("$last", f.projection)
+  def Max[A](f: Field[A]) = Op("$max", f.projection)
+  def Min[A](f: Field[A]) = Op("$min", f.projection)
+  def Avg[A](f: Field[A]) = Op("$avg", f.projection)
+  def Push[A](f: Field[A]) = Op("$push", f.projection)
   def Sum(i: Int) = Op("$sum", i)
-  def Sum[A](f: Field[A]) = Op("$sum", f)
+  def Sum[A](f: Field[A]) = Op("$sum", f.projection)
 
   // TODO: id = dotted field path
   // TODO: see http://docs.mongodb.org/manual/tutorial/aggregation-examples/

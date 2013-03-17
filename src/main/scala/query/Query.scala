@@ -71,6 +71,11 @@ trait FieldConditions[T] extends Conditions[T] {
   def ===(x: Option[T])(implicit writer: ValueWriter[T]): Query = x map {this ===} getOrElse exists(false)
   def ===(x: Regex)(implicit writer: ValueWriter[Regex]): Query = Query(this, x) // TODO: for String only
   def ===(x: Pattern): Query = Query(this, x) // TODO: for String only
+
+  /**
+   * For Aggregation framework
+   */
+  def ===(f: Field[T]) = Query(this, f.projection)
 }
 
 /** A Query
