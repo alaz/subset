@@ -79,10 +79,8 @@ object Group extends PipelineOperator("$group") {
   def Sum(i: Int) = Op("$sum", i)
   def Sum[A](f: Field[A]) = Op("$sum", f.projection)
 
-  // TODO: id = dotted field path
-  // TODO: see http://docs.mongodb.org/manual/tutorial/aggregation-examples/
-
-  // id = constant
+  // id = field
+  // id = field in subset
   def apply(id: Field[_], pairs: (Field[_], Op)*) = {
     def writer(p: (Field[_], Op)) = Mutation.writer(p._1.longName, p._2.v)(ValueWriter.anyWriter)
     val l = (Document.DocumentId -> Eq(id)) +: pairs
@@ -90,6 +88,7 @@ object Group extends PipelineOperator("$group") {
   }
 
   // TODO: id = document
+  //def apply(q: Query, pairs: (Field[_], Op)*)
 }
 
 object Sort extends PipelineOperator("$sort") {

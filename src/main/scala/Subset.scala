@@ -145,7 +145,7 @@ class Subset[T,Self](override val path: List[String], val self: Self) extends Fi
 
   /** Create a projection relative to this field (in Aggregation framework)
     */
-  def project(f: Self => Query): Query = project( f(self) )
+  def build(f: Self => Query): Query = project( f(self) )
 
   /** Creates a query as an \$elemMatch relative to this document
     *

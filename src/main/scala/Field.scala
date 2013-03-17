@@ -238,7 +238,7 @@ class Field[T](override val path: List[String]) extends Path with FieldCondition
 
   /** Create a projection relative to this field (in Aggregation framework)
     */
-  def project(q: Query): Query = Query( embed(this, q.queryMutation) )
+  def build(q: Query): Query = Query( embed(this, q.queryMutation) )
 
   /** Creates a query as an \$elemMatch relative to this document
     *

@@ -44,7 +44,7 @@ class pipelinesSpec extends FunSpec with ShouldMatchers with MongoMatchers {
       val f1 = "f1".fieldOf[Int]
       val f2 = "f2".fieldOf[Int]
 
-      Project(doc project {d => d.pv === f1 && d.p2 === f2}) should equal(
+      Project(doc build {d => d.pv === f1 && d.p2 === f2}) should equal(
         dbo.push("$project")
           .push("stats")
           .add("pv", "$f1").add("p2", "$f2")
