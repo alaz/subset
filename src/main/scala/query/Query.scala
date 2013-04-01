@@ -76,6 +76,7 @@ trait FieldConditions[T] extends Conditions[T] {
    * For Aggregation framework
    */
   def ===(f: Field[T]) = Query(this, f.projection)
+  def ===(op: aggregation.Operator[T]) = Query(this, op.m)
 }
 
 /** A Query
