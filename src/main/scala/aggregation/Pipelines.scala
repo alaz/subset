@@ -17,6 +17,7 @@ package com.osinka.subset
 package aggregation
 
 import com.mongodb.DBObject
+import query.QueryMutation
 
 /**
  * http://docs.mongodb.org/ecosystem/tutorial/use-aggregation-framework-with-java-driver/
@@ -44,6 +45,8 @@ object Project extends PipelineOperator("$project") {
   // remap {stats: {pv: "$f1", p2: "$f2"}}
   def apply(query: Query): DBObject =
     gen(query)
+
+  // TODO: $toUpper
 }
 
 object Match extends PipelineOperator("$match") {
@@ -82,13 +85,16 @@ object Group extends PipelineOperator("$group") {
   // id = field
   // id = field in subset
   def apply(id: Field[_], pairs: (Field[_], Op)*) = {
-    def writer(p: (Field[_], Op)) = Mutation.writer(p._1.longName, p._2.v)(ValueWriter.anyWriter)
     val l = (Document.DocumentId -> Eq(id)) +: pairs
-    gen( (Mutation.empty /: l) { (m, t) => m ~ writer(t) } )
+    gen( (Query.empty /: l) { (q, t) => q && fieldAsQuery.tupled(t) } )
   }
 
-  // TODO: id = document
-  //def apply(q: Query, pairs: (Field[_], Op)*)
+  // id = document
+  def apply(q: Query, pairs: (Field[_], Op)*) =
+    gen( (q /: pairs) { (q,t) => q && fieldAsQuery.tupled(t) } )
+
+  private val fieldAsQuery =
+    (f: Field[_], op: Op) => Query(QueryMutation.write(f, op.v)(ValueWriter.anyWriter))
 }
 
 object Sort extends PipelineOperator("$sort") {

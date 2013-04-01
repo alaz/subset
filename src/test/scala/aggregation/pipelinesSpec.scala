@@ -87,5 +87,24 @@ class pipelinesSpec extends FunSpec with ShouldMatchers with MongoMatchers {
           .get
       )
     }
+    it("document as id") {
+      // http://docs.mongodb.org/manual/tutorial/aggregation-examples/#average-city-population-by-state
+      val state = "state".fieldOf[String]
+      val city = "city".fieldOf[String]
+      val pop = "pop".fieldOf[Long]
+      val id = "_id".subset(()).of[Unit]
+
+      Group(id.build{_ => state === state && city === city},
+        pop -> Group.Sum(pop)) should equal(
+        dbo.push("$group")
+          .push("_id")
+            .add("state", "$state")
+            .add("city", "$city")
+            .pop
+          .push("pop")
+            .add("$sum", "$pop")
+          .get
+      )
+    }
   }
 }
