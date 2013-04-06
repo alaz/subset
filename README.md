@@ -18,8 +18,8 @@ serializing them back and constructing queries.
 ## More Information
 
 * [Subset 2.x](https://github.com/osinka/subset2)
-* [API Reference (scaladoc)](http://osinka.github.com/subset/api/index.html#com.osinka.subset.package)
-* [Documentation](http://osinka.github.com/subset/Subset.html)
+* [API Reference (scaladoc)](http://osinka.github.io/subset/api/index.html#com.osinka.subset.package)
+* [Documentation](http://osinka.github.io/subset/Subset.html)
 
 ## Using
 
@@ -33,7 +33,7 @@ import com.osinka.subset._
 import SmartValues._
 ```
 
-> More on the choices in the [documentation](http://osinka.github.com/subset/Getting+Started.html)
+> More on the choices in the [documentation](http://osinka.github.io/subset/Getting+Started.html)
 
 ### SBT Configuration
 
