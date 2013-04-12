@@ -45,8 +45,6 @@ object Project extends PipelineOperator("$project") {
   // remap {stats: {pv: "$f1", p2: "$f2"}}
   def apply(query: Query): DBObject =
     gen(query)
-
-  // TODO: $toUpper
 }
 
 object Match extends PipelineOperator("$match") {
@@ -71,6 +69,7 @@ object Group extends PipelineOperator("$group") {
     def apply[T : ValueWriter](f: String, v: T): Op = new Op(Mutation.writer(f, v) : DBObject)
   }
 
+  // Group operators: http://docs.mongodb.org/manual/reference/aggregation/#group-operators
   def Eq(f: Field[_]) = Op( ValueWriter.pack(f.projection).get )
   def AddToSet[A](f: Field[A]) = Op("$addToSet", f.projection)
   def First[A](f: Field[A]) = Op("$first", f.projection)
