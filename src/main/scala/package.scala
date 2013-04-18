@@ -77,6 +77,7 @@ import com.mongodb.DBObject
   *  - [[com.osinka.subset.Subset]] will give you a hint on how to work with subdocuments.
   *  - [[com.osinka.subset.query]] provides information on building queries.
   *  - [[com.osinka.subset.update]] is about "update modifiers".
+  *  - [[com.osinka.subset.aggregation]] supports `aggregate`-"pipeline operators".
   *  - If you need details, [[com.osinka.subset.Mutation]],
   *    [[com.osinka.subset.ValueReader]] and [[com.osinka.subset.ValueWriter]] are the
   *    way to go.
