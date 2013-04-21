@@ -109,9 +109,8 @@ class pipelinesSpec extends FunSpec with ShouldMatchers with MongoMatchers {
       val state = "state".fieldOf[String]
       val city = "city".fieldOf[String]
       val pop = "pop".fieldOf[Long]
-      val id = "_id".subset(()).of[Unit]
 
-      Group(id.build{_ => state === state && city === city},
+      Group(state === state && city === city,
         pop -> Group.Sum(pop)) should equal(
         dbo.push("$group")
           .push("_id")

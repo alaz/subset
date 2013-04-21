@@ -20,26 +20,6 @@ package com.osinka.subset
   * pipeline operators that are passed to MongoDB's `aggregate` function as described at
   * [[http://docs.mongodb.org/manual/reference/aggregation/]].
   *
-  * For instance, you may construct the `Group` operator
-  *
-  * {{{
-  * { $group : { _id : { state : "$state", city : "$city" },
-  *              pop : { $sum : "$pop" } } }
-  * }}}
-  *
-  * by
-  *
-  * {{{
-  * val state = "state".fieldOf[String]
-  * val city = "city".fieldOf[String]
-  * val pop = "pop".fieldOf[Long]
-  * val id = "_id".subset(()).of[Unit]
-  *
-  * Group(
-  *   id.build{_ => state === state && city === city},
-  *   pop -> Group.Sum(pop))
-  * }}}
-  *
   * @see [[http://docs.mongodb.org/manual/reference/aggregation/ MongoDB aggregation framework reference]]
   */
 package object aggregation {

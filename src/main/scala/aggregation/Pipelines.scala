@@ -36,6 +36,36 @@ class PipelineOperator(val method: String) {
     (f: Field[_], op: Operator) => Query(QueryMutation.write(f, op.v)(ValueWriter.anyWriter))
 }
 
+/** `\$project`
+
+  * == Selecting the fields ==
+  * Select all the given fields:
+  *
+  * {{{
+  * Project.all(field1, field2, field3)
+  * }}}
+  *
+  * or select which fields to include/exclude:
+  *
+  * {{{
+  * Project(field1 === Project.Include && field2 === Project.Exclude)
+  * }}}
+  *
+  * == Compute values ==
+  * {{{
+  * Project(field1 === Project.Add(field2, 2))
+  * }}}
+  *
+  * == Remap onto new document ==
+  * {{{
+  * Project(docField build {doc =>
+  *   doc.field === sourceField &&
+  *   doc.another === Project.DayOfYear(timestampField)
+  * })
+  * }}}
+  *
+  * @see [[http://docs.mongodb.org/manual/reference/aggregation/project/#stage._S_project \$project reference]]
+  */
 object Project extends PipelineOperator("$project") {
   val Include = Operator[Int](1)
   val Exclude = Operator[Int](0)
@@ -89,22 +119,77 @@ object Project extends PipelineOperator("$project") {
     gen(query)
 }
 
+/** `\$match`
+  */
 object Match extends PipelineOperator("$match") {
   def apply(q: Query): DBObject = gen(q)
 }
 
+/** `\$limit`
+  */
 object Limit extends PipelineOperator("$limit") {
   def apply(n: Int): DBObject = gen(n)
 }
 
+/** `\$skip`
+  */
 object Skip extends PipelineOperator("$skip") {
   def apply(n: Int): DBObject = gen(n)
 }
 
+/** `\$unwind`
+  */
 object Unwind extends PipelineOperator("$unwind") {
   def apply[A <: Traversable[_]](f: Field[A]): DBObject = gen(f.projection)
 }
 
+/** `\$group`
+  *
+  * The first `Group` argument is the specification of identifier, it may be
+  * a single field or a subdocument (declared as a `Query`). Other
+  * arguments define grouping methods
+  *
+  * == Field identifier ==
+  * {{{
+  * Group(author, docsPerAuthor -> Group.Add(1))
+  * }}}
+  *
+  * will create
+  *
+  * {{{
+  * { \$group: {
+  *   _id: "\$author",
+  *   docsPerAuthor: {"\$add": 1} }
+  * }}}
+  *
+  * When an identifier is based on a document field,
+  *
+  * {{{
+  * Group(state in DocumentId, avgCityPop -> Group.Avg(population))
+  * }}}
+  *
+  * will result in
+  *
+  * {{{
+  * { \$group: {
+  *   _id: "$_id.state",
+  *   avgCityPop: {"\$avg": "\$pop"} }
+  * }}}
+  *
+  * == Document identifier ==
+  * {{{
+  * Group(state === state && city === city, pop -> Group.Sum(pop))
+  * }}}
+  *
+  * will result in
+  *
+  * {{{
+  * { \$group: {_id: {state: "\$state", city: "\$city"},
+  *              pop: {"\$sum": "\$pop"} } }
+  * }}}
+  *
+  * @see [[http://docs.mongodb.org/manual/reference/aggregation/group/#stage._S_group \$group reference]]
+  */
 object Group extends PipelineOperator("$group") {
   // Group operators: http://docs.mongodb.org/manual/reference/aggregation/#group-operators
   def Eq(f: Field[_]) = Operator[String](f.projection)
@@ -125,10 +210,14 @@ object Group extends PipelineOperator("$group") {
   }
 
   // id = document
-  def apply(q: Query, pairs: (Field[_], Operator)*) =
-    gen( (q /: pairs) { (q,t) => q && fieldAsQuery.tupled(t) } )
+  def apply(q: Query, pairs: (Field[_], Operator)*) = {
+    val doc = Document.DocumentId.build(q)
+    gen( (doc /: pairs) { (q,t) => q && fieldAsQuery.tupled(t) } )
+  }
 }
 
+/** `\$sort`
+  */
 object Sort extends PipelineOperator("$sort") {
   def all(fields: Field[_]*): DBObject =
     apply(fields map {_ -> 1} :_*)

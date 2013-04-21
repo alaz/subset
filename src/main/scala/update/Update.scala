@@ -59,7 +59,7 @@ object Update {
   case class Bit(m: Mutation)
 
   /**
-   * Bits for `$bit` update modifier.
+   * Bits for `\$bit` update modifier.
    *
    * ```
    * import Update.Bit._
