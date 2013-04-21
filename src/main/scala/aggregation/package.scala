@@ -40,9 +40,12 @@ package com.osinka.subset
   *   pop -> Group.Sum(pop))
   * }}}
   *
-  * @see [[com.osinka.subset.query.Query]], [[com.osinka.subset.query.FieldQuery]]
+  * @see [[http://docs.mongodb.org/manual/reference/aggregation/ MongoDB aggregation framework reference]]
   */
 package object aggregation {
+  implicit def opValFromField(f: Field[_]): Operator.Val =
+    Operator.Val(ValueWriter.pack(f.projection).get)
+
   implicit def opValFrom[T : ValueWriter](obj: T): Operator.Val =
     Operator.Val(ValueWriter.pack(obj).get)
 }

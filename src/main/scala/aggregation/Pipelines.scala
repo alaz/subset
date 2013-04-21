@@ -18,7 +18,6 @@ package aggregation
 
 import com.mongodb.DBObject
 import query.QueryMutation
-import Operator._
 
 /**
  * http://docs.mongodb.org/ecosystem/tutorial/use-aggregation-framework-with-java-driver/
@@ -40,8 +39,46 @@ class PipelineOperator(val method: String) {
 object Project extends PipelineOperator("$project") {
   val Include = Operator[Int](1)
   val Exclude = Operator[Int](0)
-  def toLower[T](f: Field[T]) = Operator("$toLower", f)
-  def toUpper[T](f: Field[T]) = Operator("$toUpper", f)
+
+  // Project operators: http://docs.mongodb.org/manual/reference/aggregation/#aggregation-operators
+
+  def And(args: Operator.Val*) = Operator("$and", args:_*)
+  def Or(args: Operator.Val*) = Operator("$or", args:_*)
+  def Not(arg: Operator.Val) = Operator("$not", arg)
+
+  def Cmp(arg1: Operator.Val, arg2: Operator.Val) = Operator("$cmp", arg1, arg2)
+  def Eq(arg1: Operator.Val, arg2: Operator.Val) = Operator("$eq", arg1, arg2)
+  def Gt(arg1: Operator.Val, arg2: Operator.Val) = Operator("$gt", arg1, arg2)
+  def Gte(arg1: Operator.Val, arg2: Operator.Val) = Operator("$gte", arg1, arg2)
+  def Lt(arg1: Operator.Val, arg2: Operator.Val) = Operator("$lt", arg1, arg2)
+  def Lte(arg1: Operator.Val, arg2: Operator.Val) = Operator("$lte", arg1, arg2)
+  def Ne(arg1: Operator.Val, arg2: Operator.Val) = Operator("$ne", arg1, arg2)
+
+  def Add(args: Operator.Val*) = Operator("$add", args:_*)
+  def Divide(arg1: Operator.Val, arg2: Operator.Val) = Operator("$divide", arg1, arg2)
+  def Mod(arg1: Operator.Val, arg2: Operator.Val) = Operator("$mod", arg1, arg2)
+  def Multiply(args: Operator.Val*) = Operator("$multiply", args:_*)
+  def Subtract(arg1: Operator.Val, arg2: Operator.Val) = Operator("$subtract", arg1, arg2)
+
+  def Concat(args: Operator.Val*) = Operator("$concat", args:_*)
+  def Strcasecmp(arg1: Operator.Val, arg2: Operator.Val) = Operator("$strcasecmp", arg1, arg2)
+  def Substr(arg1: Operator.Val, arg2: Operator.Val, arg3: Operator.Val) = Operator("$substr", arg1, arg2, arg3)
+  def ToLower(f: Field[_]) = Operator("$toLower", f)
+  def ToUpper(f: Field[_]) = Operator("$toUpper", f)
+
+  def DayOfYear(arg: Operator.Val) = Operator("$dayOfYear", arg)
+  def DayOfMonth(arg: Operator.Val) = Operator("$dayOfMonth", arg)
+  def DayOfWeek(arg: Operator.Val) = Operator("$dayOfWeek", arg)
+  def Year(arg: Operator.Val) = Operator("$year", arg)
+  def Month(arg: Operator.Val) = Operator("$month", arg)
+  def Week(arg: Operator.Val) = Operator("$week", arg)
+  def Hour(arg: Operator.Val) = Operator("$hour", arg)
+  def Minute(arg: Operator.Val) = Operator("$minute", arg)
+  def Second(arg: Operator.Val) = Operator("$second", arg)
+  def Millisecond(arg: Operator.Val) = Operator("$millisecond", arg)
+
+  def Cond(arg1: Operator.Val, arg2: Operator.Val, arg3: Operator.Val) = Operator("$cond", arg1, arg2, arg3)
+  def IfNull(arg1: Operator.Val, arg2: Operator.Val) = Operator("$ifNull", arg1, arg2)
 
   // default
   def all(fields: Field[_]*): DBObject =
@@ -70,7 +107,7 @@ object Unwind extends PipelineOperator("$unwind") {
 
 object Group extends PipelineOperator("$group") {
   // Group operators: http://docs.mongodb.org/manual/reference/aggregation/#group-operators
-  def Eq(f: Field[_]) = Operator(f)
+  def Eq(f: Field[_]) = Operator[String](f.projection)
   def AddToSet[A](f: Field[A]) = Operator("$addToSet", f)
   def First[A](f: Field[A]) = Operator("$first", f)
   def Last[A](f: Field[A]) = Operator("$last", f)
@@ -78,8 +115,7 @@ object Group extends PipelineOperator("$group") {
   def Min[A](f: Field[A]) = Operator("$min", f)
   def Avg[A](f: Field[A]) = Operator("$avg", f)
   def Push[A](f: Field[A]) = Operator("$push", f)
-  def Sum(i: Int) = Operator("$sum", i)
-  def Sum[A](f: Field[A]) = Operator("$sum", f)
+  def Sum(arg: Operator.Val) = Operator("$sum", arg)
 
   // id = field
   // id = field in subset

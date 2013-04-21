@@ -55,6 +55,20 @@ class pipelinesSpec extends FunSpec with ShouldMatchers with MongoMatchers {
       )
     }
   }
+  describe("Project operators") {
+    they("support mix of fields and values") {
+      pending // until https://jira.mongodb.org/browse/JAVA-482
+
+      val result = "r".fieldOf[Int]
+      val f = "f".fieldOf[Int]
+      Project(result === Project.Add(f, 12, "str")) should equal(
+        dbo.push("$project")
+          .push("r")
+          .add("$add", Array("$f", 12, "str"))
+          .get
+      )
+    }
+  }
   describe("Match") {
     it("accepts query") { pending }
   }

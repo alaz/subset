@@ -5,11 +5,6 @@ import com.mongodb.DBObject
 
 class Operator(val v: Any)
 
-/**
- * Aggregation framework operators for "project"
- *
- * http://docs.mongodb.org/manual/reference/aggregation/#aggregation-operators
- */
 object Operator {
   case class Val(v: Any)
 
