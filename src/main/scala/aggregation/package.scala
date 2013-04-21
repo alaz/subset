@@ -42,4 +42,7 @@ package com.osinka.subset
   *
   * @see [[com.osinka.subset.query.Query]], [[com.osinka.subset.query.FieldQuery]]
   */
-package object aggregation
+package object aggregation {
+  implicit def opValFrom[T : ValueWriter](obj: T): Operator.Val =
+    Operator.Val(ValueWriter.pack(obj).get)
+}

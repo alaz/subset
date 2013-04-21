@@ -11,8 +11,20 @@ class Operator(val v: Any)
  * http://docs.mongodb.org/manual/reference/aggregation/#aggregation-operators
  */
 object Operator {
+  case class Val(v: Any)
+
+  object Val {
+    implicit val writer = ValueWriter[Val](_.v)
+  }
+
   def apply[T : ValueWriter](v: T) = new Operator(ValueWriter.pack(v).get)
-  def apply[T : ValueWriter](s: String, v: T): Operator = apply(Mutation.writer(s, v) : DBObject)
+  def apply(s: String, args: Val*): Operator =
+    args.toList match {
+      case v :: Nil =>
+        apply(Mutation.writer(s, v) : DBObject)
+      case list =>
+        apply(Mutation.writer(s, list) : DBObject)
+    }
 
   implicit val fieldWriter = ValueWriter[Field[_]](_.projection)
 }
