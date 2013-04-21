@@ -17,10 +17,18 @@ package com.osinka.subset
 
 /** == Aggregation Pipeline Operators ==
   * This package provides support for the type-safe construction of so called
-  * pipeline operators that are passed to MongoDB's `aggregate` function as described at
-  * [[http://docs.mongodb.org/manual/reference/aggregation/]].
+  * pipeline operators that are passed to MongoDB's `aggregate` function
   *
-  * @see [[http://docs.mongodb.org/manual/reference/aggregation/ MongoDB aggregation framework reference]]
+  * {{{
+  * aggregate(
+  *   Match(typ === "airfare"),
+  *   Project.all(department, amount),
+  *   Group(department, average -> Group.Avg(amount))
+  * )
+  * }}}
+  *
+  * @see [[http://docs.mongodb.org/manual/reference/aggregation/ MongoDB aggregation framework reference]],
+  *      [[http://docs.mongodb.org/ecosystem/tutorial/use-aggregation-framework-with-java-driver/ Java driver & aggregation framework]]
   */
 package object aggregation {
   implicit def opValFromField(f: Field[_]): Operator.Val =

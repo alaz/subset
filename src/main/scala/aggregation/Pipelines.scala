@@ -19,16 +19,6 @@ package aggregation
 import com.mongodb.DBObject
 import query.QueryMutation
 
-/**
- * http://docs.mongodb.org/ecosystem/tutorial/use-aggregation-framework-with-java-driver/
- *
- * aggregate(
- *   Match(type === "airfare"),
- *   Project(department, amount),
- *   Group(department, average -> Group.Avg(amount))
- * )
- */
-
 class PipelineOperator(val method: String) {
   protected def gen[A : ValueWriter](contents: A): DBObject = Mutation.writer(method, contents)
 
