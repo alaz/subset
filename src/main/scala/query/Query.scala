@@ -76,7 +76,10 @@ trait FieldConditions[T] extends Conditions[T] {
    * For Aggregation framework
    */
   def ===(f: Field[T]) = Query(this, f.projection)
-  def ===(op: aggregation.Operator[T]) = Query(this, op.m)
+  def ===(op: aggregation.Operator) = {
+    implicit val anyW = ValueWriter.anyWriter
+    Query(this, op.v)
+  }
 }
 
 /** A Query

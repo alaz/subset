@@ -32,8 +32,11 @@ class pipelinesSpec extends FunSpec with ShouldMatchers with MongoMatchers {
       Project.all("a".fieldOf[String], "b".fieldOf[String]) should equal(dbo.push("$project").add("a", 1).add("b", 1).get)
     }
     it("lets select fields") {
-      Project("a".fieldOf[String] -> 1) should equal(dbo.push("$project").add("a", 1).get)
-      Project("a".fieldOf[String] -> 0, "b".fieldOf[String] -> 1) should equal(dbo.push("$project").add("a", 0).add("b", 1).get)
+      Project("a".fieldOf[String] === Project.Include) should equal(dbo.push("$project").add("a", 1).get)
+      Project(
+        "a".fieldOf[String] === Project.Exclude &&
+        "b".fieldOf[String] === Project.Include) should
+        equal(dbo.push("$project").add("a", 0).add("b", 1).get)
     }
     it("lets project to a doc") {
       object Doc {

@@ -18,6 +18,7 @@ package aggregation
 
 import com.mongodb.DBObject
 import query.QueryMutation
+import Operator._
 
 /**
  * http://docs.mongodb.org/ecosystem/tutorial/use-aggregation-framework-with-java-driver/
@@ -31,16 +32,20 @@ import query.QueryMutation
 
 class PipelineOperator(val method: String) {
   protected def gen[A : ValueWriter](contents: A): DBObject = Mutation.writer(method, contents)
+
+  protected val fieldAsQuery =
+    (f: Field[_], op: Operator) => Query(QueryMutation.write(f, op.v)(ValueWriter.anyWriter))
 }
 
 object Project extends PipelineOperator("$project") {
+  val Include = Operator[Int](1)
+  val Exclude = Operator[Int](0)
+  def toLower[T](f: Field[T]) = Operator("$toLower", f)
+  def toUpper[T](f: Field[T]) = Operator("$toUpper", f)
+
   // default
   def all(fields: Field[_]*): DBObject =
-    apply(fields map {_ -> 1} :_*)
-
-  // include / exclude
-  def apply(fields: (Field[_], Int)*): DBObject =
-    gen((Query.empty /: fields) { (q, t) => q && (t._1.int === t._2)})
+    apply((Query.empty /: fields) { (q,t) => q && t === Include})
 
   // remap {stats: {pv: "$f1", p2: "$f2"}}
   def apply(query: Query): DBObject =
@@ -64,36 +69,28 @@ object Unwind extends PipelineOperator("$unwind") {
 }
 
 object Group extends PipelineOperator("$group") {
-  case class Op(val v: Any)
-  object Op {
-    def apply[T : ValueWriter](f: String, v: T): Op = new Op(Mutation.writer(f, v) : DBObject)
-  }
-
   // Group operators: http://docs.mongodb.org/manual/reference/aggregation/#group-operators
-  def Eq(f: Field[_]) = Op( ValueWriter.pack(f.projection).get )
-  def AddToSet[A](f: Field[A]) = Op("$addToSet", f.projection)
-  def First[A](f: Field[A]) = Op("$first", f.projection)
-  def Last[A](f: Field[A]) = Op("$last", f.projection)
-  def Max[A](f: Field[A]) = Op("$max", f.projection)
-  def Min[A](f: Field[A]) = Op("$min", f.projection)
-  def Avg[A](f: Field[A]) = Op("$avg", f.projection)
-  def Push[A](f: Field[A]) = Op("$push", f.projection)
-  def Sum(i: Int) = Op("$sum", i)
-  def Sum[A](f: Field[A]) = Op("$sum", f.projection)
+  def Eq(f: Field[_]) = Operator(f)
+  def AddToSet[A](f: Field[A]) = Operator("$addToSet", f)
+  def First[A](f: Field[A]) = Operator("$first", f)
+  def Last[A](f: Field[A]) = Operator("$last", f)
+  def Max[A](f: Field[A]) = Operator("$max", f)
+  def Min[A](f: Field[A]) = Operator("$min", f)
+  def Avg[A](f: Field[A]) = Operator("$avg", f)
+  def Push[A](f: Field[A]) = Operator("$push", f)
+  def Sum(i: Int) = Operator("$sum", i)
+  def Sum[A](f: Field[A]) = Operator("$sum", f)
 
   // id = field
   // id = field in subset
-  def apply(id: Field[_], pairs: (Field[_], Op)*) = {
+  def apply(id: Field[_], pairs: (Field[_], Operator)*) = {
     val l = (Document.DocumentId -> Eq(id)) +: pairs
     gen( (Query.empty /: l) { (q, t) => q && fieldAsQuery.tupled(t) } )
   }
 
   // id = document
-  def apply(q: Query, pairs: (Field[_], Op)*) =
+  def apply(q: Query, pairs: (Field[_], Operator)*) =
     gen( (q /: pairs) { (q,t) => q && fieldAsQuery.tupled(t) } )
-
-  private val fieldAsQuery =
-    (f: Field[_], op: Op) => Query(QueryMutation.write(f, op.v)(ValueWriter.anyWriter))
 }
 
 object Sort extends PipelineOperator("$sort") {
