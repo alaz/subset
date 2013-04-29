@@ -28,7 +28,7 @@ import QueryBuilder.{start => query}
 import BasicDBObjectBuilder.start
 
 @RunWith(classOf[JUnitRunner])
-class querySpec extends FunSpec with MustMatchers with MongoMatchers with Routines {
+class querySpec extends FunSpec with MustMatchers with MongoMatchers {
   import SmartValues._
 
   describe("Field query") {

@@ -24,7 +24,7 @@ import org.scalatest.junit.JUnitRunner
 import com.mongodb.BasicDBObjectBuilder.start
 
 @RunWith(classOf[JUnitRunner])
-class queryMutationSpec extends FunSpec with MustMatchers with MongoMatchers with Routines {
+class queryMutationSpec extends FunSpec with MustMatchers with MongoMatchers {
   describe("QueryMutation") {
     it("has conjunction") { pending }
     it("writes relative keys") { pending }

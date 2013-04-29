@@ -26,7 +26,7 @@ import BasicDBObjectBuilder.start
 import SmartValues._
 
 @RunWith(classOf[JUnitRunner])
-class tupleSpec extends FunSpec with MustMatchers with MongoMatchers with Routines {
+class tupleSpec extends FunSpec with MustMatchers with MongoMatchers {
   describe("Tuple deserializer") {
     it("deserializes Tuple2") {
       val T2 = "i".fieldOf[Int] ~ "s".fieldOf[String]
