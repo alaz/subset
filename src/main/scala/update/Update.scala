@@ -45,10 +45,33 @@ trait Modifications[T] extends Path {
   def pullAll[A](seq: Traversable[A])(implicit writer: ValueWriter[Traversable[A]], ev: T <:< Traversable[A]) = op("$pullAll", seq)
   def rename(newName: String) = op("$rename", newName)
   def rename(newField: Field[_]) = op("$rename", newField.name)
-  // TODO: $bit
+  def bit(bits: Update.Bit*) = op("$bit", (Mutation.empty /: bits) { _ ~ _.m })
 }
 
 object Update {
+  /**
+   * Helper for `update` queries:
+   *
+   * `collection.update(query && query && Update.Isolated, updates)`
+   */
+  def Isolated = "$isolated".fieldOf[Int] === 1
+
+  case class Bit(m: Mutation)
+
+  /**
+   * Bits for `\$bit` update modifier.
+   *
+   * ```
+   * import Update.Bit._
+   * collection.update(query, i.bit(And(4), Or(3)))
+   * ```
+   *
+   */
+  object Bit {
+    def And(i: Int)(implicit w: ValueWriter[Int]) = new Bit(Mutation.writer("and", i))
+    def Or(i: Int)(implicit w: ValueWriter[Int]) = new Bit(Mutation.writer("or", i))
+  }
+
   def empty: Update = new Update(Map.empty)
 
   def apply(t: (String, QueryMutation)) = new Update(Map(t))

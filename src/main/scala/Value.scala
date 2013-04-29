@@ -67,6 +67,8 @@ object ValueReader {
 
   def apply[T](pf: PartialFunction[Any,T]): ValueReaderPf[T] = new ValueReaderPf[T](pf)
 
+  def unpack[T](o: Any)(implicit getter: ValueReader[T]) = getter.unpack(o)
+
   //
   // Default readers
   //
@@ -139,6 +141,8 @@ object ValueWriter {
     new ValueWriter[T] {
       override def pack(x: T): Option[Any] = Some(sane(x))
     }
+
+  def pack[T](x: T)(implicit setter: ValueWriter[T]): Option[Any] = setter.pack(x)
 
   //
   // Default writers

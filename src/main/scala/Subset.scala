@@ -143,6 +143,10 @@ class Subset[T,Self](override val path: List[String], val self: Self) extends Fi
     */
   def where(f: Self => Query): Query = where( f(self) )
 
+  /** Create a projection relative to this field (in Aggregation framework)
+    */
+  def build(f: Self => Query): Query = build( f(self) )
+
   /** Creates a query as an \$elemMatch relative to this document
     *
     * [[http://www.mongodb.org/display/DOCS/Advanced+Queries#AdvancedQueries-%24elemMatch Advanced Queries - elemMatch]]

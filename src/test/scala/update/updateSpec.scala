@@ -25,7 +25,7 @@ import com.mongodb.{DBObject,BasicDBObjectBuilder}
 import BasicDBObjectBuilder.{start => dbo}
 
 @RunWith(classOf[JUnitRunner])
-class updateSpec extends FunSpec with MustMatchers with MongoMatchers with Routines {
+class updateSpec extends FunSpec with MustMatchers with MongoMatchers {
   import SmartValues._
 
   describe("Field") {
